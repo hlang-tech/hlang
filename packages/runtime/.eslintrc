@@ -1,0 +1,11 @@
+{
+  "extends": "@ali/eslint-config-wdk",
+  "parser": "babel-eslint",
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "rules": {
+    "prefer-spread": "off"
+  }
+}
