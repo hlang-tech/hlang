@@ -3,7 +3,7 @@ import { Flow } from '../src/index';
 import Console from './fixtures/base/console';
 import TimestampNode from './fixtures/base/timestamp';
 
-test("test normal param", (done) => {
+test("test base flow", (done) => {
   const flow = new Flow({
     traceManager: null,
   });

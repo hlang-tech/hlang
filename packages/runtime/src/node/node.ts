@@ -9,16 +9,14 @@ import {
   STREAM_TYPE,
   ERROR_PORT_NAME,
   NODE_ID_PREFIX,
-  IDENTITY
-} from "../type";
-import Port from "../base/port";
+  IDENTITY,
+} from '../type';
+import Port from '../base/port';
 import Flow from '../base/flow';
-import { uuid } from "../utils";
-
-
+import { uuid } from '../utils';
 
 class PortMap {
-  mapShape: {[key: string]: {[key: string]: Port}}
+  mapShape: {[key: string]: {[key: string]: Port}};
 
   constructor() {
     this.mapShape = {
@@ -33,13 +31,13 @@ class PortMap {
 
   getIn(key) {
     // TODO
-    const [type, name] = key.split(".");
+    const [type, name] = key.split('.');
     return this.mapShape[type][name];
   }
 
   setIn(key, val) {
     // TODO
-    const [type, name] = key.split(".");
+    const [type, name] = key.split('.');
     this.mapShape[type][name] = val;
   }
 }
@@ -63,10 +61,10 @@ export default class Node {
     this.flow = null;
     this.identity = IDENTITY.NODE;
 
-    Object.keys(STREAM_TYPE).map((k) => {
+    Object.keys(STREAM_TYPE).map(k => {
       Object.defineProperty(this, k, {
-        get() {
-          return (name) => this.portMap.getIn(`${k}.${name}`);
+        get: function() {
+          return name => this.portMap.getIn(`${k}.${name}`);
         },
       });
     });
@@ -92,5 +90,3 @@ export default class Node {
     this.portMap.setIn(`${port.type}.${port.name}`, port);
   }
 }
-
-

@@ -3,5 +3,5 @@ import findMyFlow from './findMyFlow';
 
 export {
   uuid,
-  findMyFlow
+  findMyFlow,
 };

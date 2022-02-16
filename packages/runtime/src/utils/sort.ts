@@ -1,12 +1,11 @@
-import { NODE_TYPE } from "../type";
-import { IPortDesc  } from "../type";
-import Graph from "../core/graph";
+import { NODE_TYPE, IPortDesc } from '../type';
+import Graph from '../core/graph';
 import Node from '../node';
 
 export default (G: Graph<IPortDesc, Node>) => {
-  let r: Node[] = [],
-    t: Node[] = [],
-    w: Node[] = [];
+  const r: Node[] = [];
+  const t: Node[] = [];
+  const w: Node[] = [];
 
   const vertices = G.vertices;
   for (const [_, v] of vertices) {
@@ -21,9 +20,8 @@ export default (G: Graph<IPortDesc, Node>) => {
   }
 
   return {
-    r,
-    t,
-    w,
+    r: r,
+    t: t,
+    w: w,
   };
 };
-

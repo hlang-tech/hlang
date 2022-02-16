@@ -1,16 +1,14 @@
-import { NODE_TYPE, STREAM_TYPE } from "../type";
-import { IPortDesc  } from "../type";
+import { NODE_TYPE, STREAM_TYPE, IPortDesc } from '../type';
 import Node from '../node';
-import Graph, { Vertex, Edge } from "./graph";
-
+import Graph, { Vertex, Edge } from './graph';
 
 const build = (G: Graph<IPortDesc, Node>) => {
-  return (_rootNode) => {
+  return _rootNode => {
     G.addVertex(new Vertex(_rootNode));
 
     const outs = _rootNode.portMap.get(STREAM_TYPE.O);
 
-    for (let outPortName in outs) {
+    for (const outPortName in outs) {
       const outPort = _rootNode.O(outPortName);
       const peers = outPort.peers;
 

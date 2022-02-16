@@ -1,9 +1,9 @@
 
-import { Subject } from "rxjs";
+import { Subject } from 'rxjs';
 import Node from '../node';
-import { STREAM_TYPE, IDENTITY, NOOP } from "../type";
-import { uuid, findMyFlow } from "../utils";
-import { catchError } from "rxjs/operators";
+import { STREAM_TYPE, IDENTITY, NOOP } from '../type';
+import { uuid, findMyFlow } from '../utils';
+import { catchError } from 'rxjs/operators';
 
 class Port {
   id: string;
@@ -13,13 +13,12 @@ class Port {
   node: Node | null;
   isActive: boolean;
   identity: symbol;
-  static I: (name:string) => Port;
-  static O: (name:string) => Port;
+  static I: (name: string) => Port;
+  static O: (name: string) => Port;
   $pipedEventEmitter: any;
   $eventEmitter: Subject<any>;
 
-
-  constructor({ type, name = "" }) {
+  constructor({ type, name = '' }) {
     this.name = name;
     this.type = type;
     this.peers = [];
@@ -27,8 +26,6 @@ class Port {
     this.isActive = false;
     this.identity = IDENTITY.PORT;
   }
-
-
 
   active() {
     this.isActive = true;
@@ -41,7 +38,6 @@ class Port {
   addPeer(val: Port) {
     this.peers.push(val);
   }
-
 
   attach(node: Node) {
     // TODO: asserts
@@ -63,22 +59,23 @@ class Port {
     $emitter.next(msg);
   }
 
+  // tslint:disable:ter-indent
   pipe(...args) {
     this.$pipedEventEmitter = this.$eventEmitter.pipe.apply(
       this.$eventEmitter,
       [
         ...args,
-
         // 管道中的未捕获异常处理
-        catchError((err) => {
+        catchError(err => {
           throw err;
         }),
-      ] as any
+      ] as any,
     );
     return {
       on: this.on.bind(this),
     };
   }
+  // tslint:enable
 
   on(next) {
     const onNext = (...args) => next(...args);
@@ -104,12 +101,12 @@ class Port {
   }
 }
 
-Port.I = (name) => {
-  return new Port({ type: STREAM_TYPE.I, name });
+Port.I = name => {
+  return new Port({ type: STREAM_TYPE.I, name: name });
 };
 
-Port.O = (name) => {
-  return new Port({ type: STREAM_TYPE.O, name });
+Port.O = name => {
+  return new Port({ type: STREAM_TYPE.O, name: name });
 };
 
 export default Port;

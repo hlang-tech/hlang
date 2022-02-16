@@ -7,6 +7,5 @@ export default Node;
 export {
   ReadableNode,
   WriteableNode,
-  TransformNode
+  TransformNode,
 };
-

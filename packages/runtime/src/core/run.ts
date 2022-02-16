@@ -1,9 +1,8 @@
 // import * as assert from "assert";
-import { IPortDesc  } from "../type";
+import { IPortDesc  } from '../type';
 import Graph from './graph';
 import Node from '../node';
 import Flow from '../base/flow';
-
 
 export interface ISortedNodeMap {
   r: Node[];
@@ -16,18 +15,18 @@ const run = (G: Graph<IPortDesc, Node>) => {
     const adjList = G.adjList;
     // const { traceManager } = flow;
 
-    const edges = (id) => {
+    const edges = id => {
       return adjList.getRow(id);
     };
 
-    const pipe = (edge) => {
+    const pipe = edge => {
       const { src: _src, dst: _dst } = edge;
       const _cacheKey = `${_src.id}@${_dst.id}`;
 
       // 相同的边不能重复订阅
       if (flow.cache.has(_cacheKey)) return;
 
-      _src.on((msg) => {
+      _src.on(msg => {
         // assert(typeof msg === "object", "msg must be object.");
 
         // flow.asyncLocalStorage.enterWith({
@@ -58,8 +57,8 @@ const run = (G: Graph<IPortDesc, Node>) => {
       flow.cache.set(_cacheKey, edge);
     };
 
-    const pipeWithEdges = (_pipe) => (_edges: Map<string, IPortDesc>) => {
-      for (let [_k, edge] of _edges) {
+    const pipeWithEdges = _pipe => (_edges: Map<string, IPortDesc>) => {
+      for (const [_k, edge] of _edges) {
         _pipe(edge);
       }
     };
@@ -67,37 +66,37 @@ const run = (G: Graph<IPortDesc, Node>) => {
     const _p = pipeWithEdges(pipe);
 
     // W
-    sortedNodes.w.forEach((node) => {
+    sortedNodes.w.forEach(node => {
       node.attach(flow);
 
-      const executeOnce = node.executeOnce.bind(node, "write", node.I);
+      const executeOnce = node.executeOnce.bind(node, 'write', node.I);
 
       executeOnce();
     });
 
     // T
-    sortedNodes.t.forEach((node) => {
+    sortedNodes.t.forEach(node => {
       node.attach(flow);
 
       _p(edges(node.id) as Map<string, IPortDesc>);
 
       const executeOnce = node.executeOnce.bind(
         node,
-        "transform",
+        'transform',
         node.I,
-        node.O
+        node.O,
       );
 
       executeOnce();
     });
 
     // R
-    sortedNodes.r.forEach((node) => {
+    sortedNodes.r.forEach(node => {
       node.attach(flow);
 
       _p(edges(node.id) as Map<string, IPortDesc>);
 
-      const executeOnce = node.executeOnce.bind(node, "read", node.O);
+      const executeOnce = node.executeOnce.bind(node, 'read', node.O);
 
       executeOnce();
     });

@@ -6,7 +6,6 @@ export default class Graph<T, K> {
   adjList: Matrix<T>;
   connectedMatrix: Matrix<boolean>;
 
-
   constructor(directed: boolean) {
     // digraph or undigraph
     this.directed = typeof directed === 'undefined' || Boolean(directed);
@@ -81,8 +80,6 @@ export class Vertex<T> {
   }
 }
 
-
-
 export class Edge<T, K>  {
   data: T;
   v1: Vertex<K>;
@@ -119,11 +116,10 @@ class Matrix<T> {
     return this.matrix.get(row);
   }
 
-
   set(row: string, col: string, v: T) {
     this.setRow(row);
 
-    (this.matrix.get(row) as Map<string, T>).set(col, v)
+    (this.matrix.get(row) as Map<string, T>).set(col, v);
   }
 
   get(row: string, col: string): T | null | undefined {
@@ -145,4 +141,3 @@ class Matrix<T> {
     return Array.from(this.matrix.keys());
   }
 }
-

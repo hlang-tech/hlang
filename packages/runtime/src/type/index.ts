@@ -12,18 +12,17 @@ export const PORT_ID_PREFIX = '@hlang/port';
 export const NODE_TYPE = {
   READABLE: Symbol.for('@type/readable'),
   WRITABLE: Symbol.for('@type/writable'),
-  TRANSFORM: Symbol.for('@type/transform')
+  TRANSFORM: Symbol.for('@type/transform'),
 };
 
 export const IDENTITY = {
   NODE: Symbol.for('@identity/node'),
-  PORT: Symbol.for('@identity/port')
-}
+  PORT: Symbol.for('@identity/port'),
+};
 
 export enum STREAM_TYPE {
   I = 'I',
-  O = 'O'
-};
+  O = 'O',
+}
 
 export const NOOP = () => void 0;
-

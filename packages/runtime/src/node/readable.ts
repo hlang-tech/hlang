@@ -22,7 +22,7 @@ export default class ReadableNode extends Node {
   traceAttach(payload) {
     return {
       _traceId: this._getTraceId(),
-      payload
+      payload: payload,
     };
   }
 
@@ -30,4 +30,3 @@ export default class ReadableNode extends Node {
     // NOOP
   }
 }
-

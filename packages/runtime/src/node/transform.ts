@@ -10,7 +10,6 @@ export default class TransformNode extends Node {
     Port.O(ERROR_PORT_NAME).attach(this);
   }
 
-
   throw(error) {
     this.E().send(error);
   }

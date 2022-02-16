@@ -3,7 +3,6 @@ import { v4, validate } from 'uuid';
 class UUIDManger {
   uuidSet: Set<string>;
 
-
   constructor() {
     this.uuidSet = new Set;
   }
@@ -17,7 +16,6 @@ class UUIDManger {
     this.uuidSet.add(uuid);
     return uuid;
   }
-
 
   validate(value) {
     if (!validate(value)) {
