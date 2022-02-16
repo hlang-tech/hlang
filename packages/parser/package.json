@@ -5,7 +5,8 @@
   "author": "archersado <archersado@hotmail.com>",
   "homepage": "https://github.com/HippoStoreExperienceTech/Hlang#readme",
   "license": "MIT",
-  "main": "lib/hlang-parser.js",
+  "main": "lib/index.js",
+  "type": "lib/index.d.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
