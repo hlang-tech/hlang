@@ -1,8 +1,8 @@
 
 import { Subject } from 'rxjs';
 import Node from '../node';
-import { STREAM_TYPE, IDENTITY, NOOP } from '../type';
-import { uuid, findMyFlow } from '../utils';
+import { STREAM_TYPE, IDENTITY } from '../type';
+import { uuid } from '../utils';
 import { catchError } from 'rxjs/operators';
 
 class Port {
@@ -79,14 +79,9 @@ class Port {
 
   on(next) {
     const onNext = (...args) => next(...args);
-    const { traceManager } = findMyFlow(this);
-
-    const onError =
-      (traceManager && traceManager.uncaughtExceptionHandler) || NOOP;
-
     const $emitter = this.$pipedEventEmitter || this.$eventEmitter;
 
-    return $emitter.subscribe(onNext, onError);
+    return $emitter.subscribe(onNext);
   }
 
   // core

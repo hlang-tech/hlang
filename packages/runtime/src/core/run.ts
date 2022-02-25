@@ -1,4 +1,3 @@
-// import * as assert from "assert";
 import { IPortDesc  } from '../type';
 import Graph from './graph';
 import Node from '../node';
@@ -13,7 +12,6 @@ export interface ISortedNodeMap {
 const run = (G: Graph<IPortDesc, Node>) => {
   return (sortedNodes: ISortedNodeMap, flow: Flow) => {
     const adjList = G.adjList;
-    // const { traceManager } = flow;
 
     const edges = id => {
       return adjList.getRow(id);
@@ -27,30 +25,6 @@ const run = (G: Graph<IPortDesc, Node>) => {
       if (flow.cache.has(_cacheKey)) return;
 
       _src.on(msg => {
-        // assert(typeof msg === "object", "msg must be object.");
-
-        // flow.asyncLocalStorage.enterWith({
-        //   src: _src.node,
-        //   dst: _dst.node
-        // });
-
-        // const { _traceId, payload, ...args } = msg;
-
-        // if (_traceId && traceManager) {
-        //   msg._traceId = traceManager.exchangeTraceId(_traceId, {
-        //     in_cn: _src._node.constructor.name,
-        //     in_n: _src._name,
-        //     in_cid: _src._node.opts.nodeId,
-        //     out_cn: _dst._node.constructor.name,
-        //     out_n: _dst._name,
-        //     out_cid: _dst._node.opts.nodeId,
-        //     payload,
-        //     extraArg: args,
-        //     _timestamp: moment().format("YYYY_MM_D HH:mm:ss"),
-        //   });
-
-        //   _dst._node._orginTraceId = msg._traceId;
-        // }
         _dst.send(msg);
       });
 

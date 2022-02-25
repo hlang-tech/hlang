@@ -206,9 +206,7 @@ const flowRunTemplate = `
             const { Flow } = Core;
 
 
-            const flow = new Flow({
-                traceManager: null,
-            });
+            const flow = new Flow({});
 
 
             const nodeMap = {};

@@ -104,7 +104,6 @@ class Matrix<T> {
   setRow(row: string) {
     if (!this.matrix.has(row)) {
       this.matrix.set(row, new Map());
-      // this.matrix[row] = Object.create(null);
     }
 
     return this.matrix.get(row);
