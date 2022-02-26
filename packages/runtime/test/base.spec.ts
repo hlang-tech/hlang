@@ -6,7 +6,6 @@ import TimestampNode from './fixtures/base/timestamp';
 test("test base flow", (done) => {
   const flow = new Flow({});
   
-  
   const $time = new TimestampNode({
     config:{
       params:{
