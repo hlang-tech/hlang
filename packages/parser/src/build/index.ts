@@ -43,7 +43,7 @@ export default async function build(graph): Promise<string> {
   const entry = path.resolve(baseDir, 'index.js');
   fs.writeFileSync(path.resolve(baseDir, 'package.json'), packageJSON);
   fs.writeFileSync(entry, target);
-  await runScript('tnpm install', { cwd: baseDir });
+  await runScript('npm install', { cwd: baseDir });
 
   return entry;
 }

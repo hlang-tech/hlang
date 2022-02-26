@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "type": "lib/index.d.ts",
   "scripts": {
-    "test": "tnpm run build && jest --coverage --forceExit",
+    "test": "npm run build && jest --coverage --forceExit",
     "build": "tsc -p tsconfig.json",
     "lint": "tslint --project . -c tslint.json"
   },
