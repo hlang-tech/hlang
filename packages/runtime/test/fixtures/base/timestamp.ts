@@ -1,17 +1,15 @@
-
-
-import { ReadableNode, Port } from '../../../src/index';
-import { interval } from 'rxjs';
-import moment = require('moment');
+import { ReadableNode, Port } from "../../../src/index";
+import { interval } from "rxjs";
+import moment = require("moment");
 
 export default class TimestampNode extends ReadableNode {
   constructor(opts) {
-    super(opts)
+    super(opts);
 
-    this.opts = opts
+    this.opts = opts;
 
-    Port.I('Input').attach(this)
-    Port.O('Output').attach(this)
+    Port.I("Input").attach(this);
+    Port.O("Output").attach(this);
   }
 
   _read($o) {
@@ -22,10 +20,10 @@ export default class TimestampNode extends ReadableNode {
 
     const source = interval(time);
 
-    source.subscribe(() => { 
+    source.subscribe(() => {
       const timestamp = moment().toISOString();
 
-      $o('Output').send(timestamp);
+      $o("Output").send(timestamp);
     });
   }
 }
