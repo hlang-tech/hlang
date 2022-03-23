@@ -1,4 +1,4 @@
-import Node from './Node';
+import Node from './node';
 import { NODE_TYPE } from '../type';
 
 export default class WritableNode extends Node {
