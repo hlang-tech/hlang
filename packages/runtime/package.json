@@ -1,7 +1,7 @@
 {
-  "name": "@hset/hlang-runtime",
+  "name": "@hlang/runtime",
   "version": "0.0.1",
-  "description": "hlang runime",
+  "description": "runime for hlang",
   "main": "lib/index.js",
   "type": "lib/index.d.ts",
   "scripts": {

@@ -32,12 +32,12 @@
 
 ### Feature
 
-* 😊 基于 `Rxjs`，遵循 `FBP` 范式，因此可以获得强大的逻辑流编排能力，支持 `sub flow` 抽象，支持多 `Readable` 节点构成的 `Flow` 进行拓扑执行，支持循环节点等复杂逻辑节点，可以无缝对接 `Rxjs Operator` 进行复杂`网关逻辑`节点的开发
-* 🚀 丰富的 `Node` 生态，`Node` 节点开发流程丝滑顺畅，配套成熟的开发者工具
-* 👬 `Readable` | `Writable` | `Transform` 三种核心的 `Node` 类型，对熟悉 `Node.js Stream` 的开发者心智友好
-* ✊ 生产环境配套支持，支持裸进程 `flow` 部署，配套 Node.js 服务端运行时 `Parser`，可以支持逼近 `AKKA` 的高可用特性
+* 😊 Another FBP-Inspired System, totally `Reactive`.
+* 🚀 Powerful ecosystem, abundant internal nodes.
+* 👬 Just use Node-Like `Readable` | `Writable` | `Transform` Stream API to become a node developer.
+* ✊ Production-ready and Enterprise-ready, High Performance.
 
-### 😊 How To Use
+### 🌰 Quick Start
 
 ```javascript
 const {
@@ -46,17 +46,20 @@ const {
   WriteableNode,
   TransformNode,
   Port,
-} = require("@hspider/runtime");
+} = require("@hlang/runtime");
 
 const flowIns = new Flow();
 
 class OneReadableNode extends ReadableNode {
   constructor() {
     super();
+
+    // dig a port named `out`
     Port.O("out").attach(this);
   }
 
   _read($o) {
+    // send packet to `out` port
     $o("out").send({ payload: "hello, world" });
   }
 }
@@ -65,6 +68,7 @@ class OneTransformNode extends TransformNode {
   constructor() {
     super();
 
+    // dig `in` `out` port
     Port.I("in").attach(this);
     Port.O("out").attach(this);
   }
@@ -91,9 +95,10 @@ const $R = new OneReadableNode();
 const $T = new OneTransformNode();
 const $W = new OneWriteableNode();
 
+// connect
 $R.O("out").connect($T.I("in"));
 $T.O("out").connect($W.I("in"));
 
+// for fun!
 flowIns.run($R);
 ```
-

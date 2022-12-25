@@ -1,11 +1,11 @@
-# `@hset/hlang-parser`
+# `@hlang/parser`
 
 > TODO: description
 
 ## Usage
 
 ```
-const hlangParser = require('@hset/hlang-parser');
+const parser = require('@hlang/parser');
 
 // TODO: DEMONSTRATE API
 ```

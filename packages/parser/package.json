@@ -1,7 +1,7 @@
 {
-  "name": "@hset/hlang-parser",
+  "name": "@hlang/parser",
   "version": "1.0.0",
-  "description": "> TODO: description",
+  "description": "parser for hlang",
   "author": "archersado <archersado@hotmail.com>",
   "homepage": "https://github.com/HippoStoreExperienceTech/Hlang#readme",
   "license": "MIT",
