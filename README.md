@@ -30,7 +30,7 @@
 
 ### Ecosystem
 
-#### UI & devtool
+#### UI & Devtool
 
 <p align="center">
   <img width="800" src="./media/ui.png" alt="devtool">
