@@ -108,3 +108,19 @@ $T.O("out").connect($W.I("in"));
 // for fun!
 flowIns.run($R);
 ```
+
+## Become a contributer ?
+
+### Install
+
+#### step-1
+
+```bash
+$ npm install
+```
+
+#### step-2
+
+```bash
+$ npm run pm_install
+```
