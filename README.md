@@ -4,7 +4,7 @@
 <br />
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hlang-org/hlang/master/media/logo.png" width="128" height="128" />
+  <img src="https://raw.githubusercontent.com/hlang-org/hlang/main/media/logo.png" width="256" height="256" />
 </p>
 
 <br />
@@ -33,7 +33,7 @@
 #### UI & Devtool
 
 <p align="center">
-  <img width="800" src="https://raw.githubusercontent.com/hlang-org/hlang/master/media/ui.png" alt="devtool">
+  <img width="800" src="https://raw.githubusercontent.com/hlang-org/hlang/main/media/ui.png" alt="devtool">
 </p>
 
 ### Feature
