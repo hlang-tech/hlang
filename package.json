@@ -1,7 +1,11 @@
 {
   "name": "hlang",
   "private": true,
+  "scripts": {
+    "pm_install": "./node_modules/.bin/pm run install",
+    "pm_publish": "./node_modules/.bin/pm run publish"
+  },
   "devDependencies": {
-    "lerna": "^4.0.0"
+    "@atools/pm": "1.0.x"
   }
 }

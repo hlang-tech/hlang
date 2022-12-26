@@ -2,8 +2,11 @@
   "name": "@hlang/parser",
   "version": "1.0.0",
   "description": "parser for hlang",
-  "author": "archersado <archersado@hotmail.com>",
-  "homepage": "https://github.com/HippoStoreExperienceTech/Hlang#readme",
+  "contributors": [
+    "archer <qddegtya@gmail.com>",
+    "archersado <archersado@hotmail.com>"
+  ],
+  "homepage": "https://github.com/hlang-org/hlang#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "type": "lib/index.d.ts",
@@ -19,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HippoStoreExperienceTech/Hlang.git"
+    "url": "git+https://github.com/hlang-org/hlang.git"
   },
   "scripts": {
     "test": "jest --coverage --forceExit",
@@ -27,18 +30,15 @@
     "lint": "tslint --project . -c tslint.json"
   },
   "bugs": {
-    "url": "https://github.com/HippoStoreExperienceTech/Hlang/issues"
+    "url": "https://github.com/hlang-org/hlang/issues"
   },
   "dependencies": {
-    "@hset/hit": "^1.0.4",
     "nunjucks": "^3.2.3"
   },
   "devDependencies": {
     "@types/jest": "^27.4.0",
     "@types/node": "^17.0.18",
     "eslint": "^8.9.0",
-    "moment": "^2.29.1",
-    "rxjs": "^7.5.4",
     "tslint": "^6.1.3",
     "tslint-config-airbnb": "^5.11.2",
     "typescript": "^4.5.5"

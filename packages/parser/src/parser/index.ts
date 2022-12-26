@@ -1,5 +1,7 @@
 import nunjucks = require('nunjucks');
-import { ParamParser, ParamPattern } from '@hset/hit';
+
+// FIXME
+import { ParamParser, ParamPattern } from '';
 import { getEnv, Env, camelize } from '../utils';
 import loadModule from '../module';
 
