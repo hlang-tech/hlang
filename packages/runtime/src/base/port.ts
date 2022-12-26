@@ -1,4 +1,3 @@
-
 import { Subject } from 'rxjs';
 import Node from '../node';
 import { STREAM_TYPE, IDENTITY } from '../type';
@@ -66,7 +65,7 @@ class Port {
       [
         ...args,
         // 管道中的未捕获异常处理
-        catchError(err => {
+        catchError((err) => {
           throw err;
         }),
       ] as any,
@@ -96,11 +95,11 @@ class Port {
   }
 }
 
-Port.I = name => {
+Port.I = (name) => {
   return new Port({ type: STREAM_TYPE.I, name: name });
 };
 
-Port.O = name => {
+Port.O = (name) => {
   return new Port({ type: STREAM_TYPE.O, name: name });
 };
 

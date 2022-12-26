@@ -19,11 +19,11 @@ class UUIDManger {
 
   validate(value) {
     if (!validate(value)) {
-      console.warn(`validate uuid ${value} is invalid`);
+      console.warn(`uuid ${value} is invalid.`);
       return false;
     }
     if (this.uuidSet.has(value)) {
-      console.warn(`${value} has exist!`);
+      console.warn(`${value} exists.`);
       return false;
     }
     return true;

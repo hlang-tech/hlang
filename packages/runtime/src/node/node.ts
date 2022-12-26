@@ -61,10 +61,10 @@ export default class Node {
     this.flow = null;
     this.identity = IDENTITY.NODE;
 
-    Object.keys(STREAM_TYPE).forEach(k => {
+    Object.keys(STREAM_TYPE).forEach((k) => {
       Object.defineProperty(this, k, {
-        get: function() {
-          return name => this.portMap.getIn(`${k}.${name}`);
+        get: function () {
+          return (name) => this.portMap.getIn(`${k}.${name}`);
         },
       });
     });

@@ -3,7 +3,7 @@ import Node from '../node';
 import Graph, { Vertex, Edge } from './graph';
 
 const build = (G: Graph<IPortDesc, Node>) => {
-  return _rootNode => {
+  return (_rootNode) => {
     G.addVertex(new Vertex(_rootNode));
 
     const outs = _rootNode.portMap.get(STREAM_TYPE.O);
