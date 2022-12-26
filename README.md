@@ -1,6 +1,5 @@
 # Hlang
 
-
 <br />
 <br />
 
@@ -29,6 +28,13 @@
 
 ---
 
+### Ecosystem
+
+#### UI & devtool
+
+<p align="center">
+  <img width="800" src="./media/ui.png" alt="devtool">
+</p>
 
 ### Feature
 
@@ -102,9 +108,3 @@ $T.O("out").connect($W.I("in"));
 // for fun!
 flowIns.run($R);
 ```
-
-### Ecosystem
-
-#### UI & devtool
-
-![devtool](./media/ui.png)
