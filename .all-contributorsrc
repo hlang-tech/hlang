@@ -1,0 +1,28 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "commitType": "docs",
+  "commitConvention": "angular",
+  "contributors": [
+    {
+      "login": "archersado",
+      "name": "archersado",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17758281?v=4",
+      "profile": "https://github.com/archersado",
+      "contributions": [
+        "infra",
+        "test",
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "skipCi": true,
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "projectName": "hlang",
+  "projectOwner": "hlang-org"
+}
