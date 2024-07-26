@@ -1,4 +1,7 @@
 # Hlang
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 <br />
 <br />
@@ -128,6 +131,20 @@ $ npm run pm_install
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/archersado"><img src="https://avatars.githubusercontent.com/u/17758281?v=4?s=100" width="100px;" alt="archersado"/><br /><sub><b>archersado</b></sub></a><br /><a href="#infra-archersado" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="https://github.com/hlang-org/hlang/commits?author=archersado" title="Tests">⚠️</a> <a href="https://github.com/hlang-org/hlang/commits?author=archersado" title="Code">💻</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 
