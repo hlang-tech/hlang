@@ -1,6 +1,6 @@
 import { v4, validate } from 'uuid';
 
-class UUIDManger {
+class UUIDManager {
   uuidSet: Set<string>;
 
   constructor() {
@@ -35,4 +35,4 @@ class UUIDManger {
   }
 }
 
-export default new UUIDManger();
+export default new UUIDManager();
