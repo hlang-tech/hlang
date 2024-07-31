@@ -2,10 +2,10 @@
   "name": "hlang",
   "scripts": {
     "pm_install": "./node_modules/.bin/pm run install",
-    "pm_publish": "./node_modules/.bin/pm run publish"
+    "pm_publish": "./node_modules/.bin/pm run publish",
+    "pm_test": "./node_modules/.bin/pm run test"
   },
   "devDependencies": {
     "@atools/pm": "1.0.x"
-  },
-  "version": "0.0.2"
+  }
 }

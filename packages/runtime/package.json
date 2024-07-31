@@ -1,12 +1,24 @@
 {
   "name": "@hlang-org/runtime",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A FBP-Inspired language for universal applications.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "type": "commonjs",
   "files": [
     "lib"
+  ],
+  "keywords": [
+    "fbp",
+    "fbp-runtime",
+    "javascript",
+    "flow",
+    "creative-coding",
+    "fbp-protocol",
+    "flow-based-programming",
+    "visual-programming-language",
+    "flow-based",
+    "internal-dsl"
   ],
   "homepage": "https://github.com/hlang-org/hlang#readme",
   "scripts": {
