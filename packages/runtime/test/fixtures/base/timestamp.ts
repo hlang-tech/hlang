@@ -1,6 +1,6 @@
 import { ReadableNode, Port } from "../../../src/index";
 import { interval } from "rxjs";
-import moment = require("moment");
+import * as moment from "moment";
 
 export default class TimestampNode extends ReadableNode {
   constructor(opts) {
