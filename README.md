@@ -17,7 +17,7 @@
 <br />
 
 <p align="center">
-<b style="font-size: 32px;line-height: 32px;">A Flow-based programming language for universal applications.</b>
+<b style="font-size: 32px;line-height: 32px;">A FBP-Inspired language for universal applications.</b>
 <br />
 <br />
 <br />
@@ -41,7 +41,7 @@
 
 ### Feature
 
-* 😊 Another FBP-Inspired System, totally `Reactive`.
+* 😊 Another FBP-Inspired System, but totally `Reactive`.
 * 🚀 Powerful ecosystem, abundant internal nodes.
 * 👬 Just use Node-Like `Readable` | `Writable` | `Transform` Stream API to become a node developer.
 * ✊ Production-ready and Enterprise-ready, High Performance.
