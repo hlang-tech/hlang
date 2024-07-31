@@ -55,7 +55,7 @@ const {
   WriteableNode,
   TransformNode,
   Port,
-} = require("@hlang/runtime");
+} = require("@hlang-org/runtime");
 
 const flowIns = new Flow();
 

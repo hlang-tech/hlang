@@ -1,9 +1,14 @@
 {
-  "name": "@hlang/runtime",
-  "version": "0.0.1",
+  "name": "@hlang-org/runtime",
+  "version": "1.0.0",
   "description": "runime for hlang",
   "main": "lib/index.js",
-  "type": "lib/index.d.ts",
+  "types": "lib/index.d.ts",
+  "type":"commonjs",
+  "files": [
+    "lib"
+  ],
+  "homepage": "https://github.com/hlang-org/hlang#readme",
   "scripts": {
     "test": "npm run build && jest --coverage --forceExit",
     "build": "tsc -p tsconfig.json",
