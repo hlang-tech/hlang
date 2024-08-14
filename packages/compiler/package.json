@@ -31,8 +31,7 @@
   "scripts": {
     "test": "./node_modules/.bin/jest --coverage --forceExit --detectOpenHandles",
     "build": "./node_modules/.bin/tsc -p tsconfig.json",
-    "watch": "./node_modules/.bin/tsc -p tsconfig.json -w",
-    "lint": "./node_modules/.bin/tslint --project . -c tslint.json"
+    "watch": "./node_modules/.bin/tsc -p tsconfig.json -w"
   },
   "dependencies": {
     "@hset/hit": "^1.0.4",
@@ -41,13 +40,11 @@
   },
   "devDependencies": {
     "@types/jest": "^27.4.0",
-    "@types/node": "^17.0.18",
+    "@types/node": "^17.0.45",
     "moment": "^2.29.1",
     "runscript": "^1.5.2",
     "rxjs": "^7.5.4",
     "ts-jest": "^29.2.4",
-    "tslint": "5.11.x",
-    "tslint-config-airbnb": "5.11.x",
     "typescript": "^4.5.5"
   }
 }
