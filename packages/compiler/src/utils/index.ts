@@ -1,12 +1,12 @@
-import log from 'debug';
+import log from "debug";
 
 export enum Env {
-  BROWSER = 'BROWSER',
-  NODE = 'NODE',
+  BROWSER = "BROWSER",
+  NODE = "NODE",
 }
 
 export const getEnv = function () {
-  return typeof window === 'undefined' ? Env.NODE : Env.BROWSER;
+  return typeof window === "undefined" ? Env.NODE : Env.BROWSER;
 };
 
 export const camelize = function (name: string) {
@@ -15,4 +15,4 @@ export const camelize = function (name: string) {
   });
 };
 
-export const debug = log('xlang-parser');
+export const debug = log("xlang-parser");

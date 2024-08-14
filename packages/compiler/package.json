@@ -29,7 +29,7 @@
     "lib"
   ],
   "scripts": {
-    "test": "./node_modules/.bin/jest --coverage --forceExit",
+    "test": "./node_modules/.bin/jest --coverage --forceExit --detectOpenHandles",
     "build": "./node_modules/.bin/tsc -p tsconfig.json",
     "watch": "./node_modules/.bin/tsc -p tsconfig.json -w",
     "lint": "./node_modules/.bin/tslint --project . -c tslint.json"

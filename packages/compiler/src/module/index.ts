@@ -1,6 +1,6 @@
-import { Env } from '../utils';
-import loadModuleInNode from './node';
-import loadModuleInBrowser from './browser';
+import { Env } from "../utils";
+import loadModuleInNode from "./node";
+import loadModuleInBrowser from "./browser";
 
 export default function (deps, env) {
   switch (env) {

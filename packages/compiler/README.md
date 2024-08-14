@@ -1,16 +1,16 @@
 # `@hlang-org/compiler`
 
-A runtime compiler for hlang to build the flow graph data struction to executable code, 
+A runtime compiler for hlang to build the flow graph data struction to executable code.
 
 ## Features
 
 - **Optimized Compilation**: Advanced optimization techniques ensure that your code runs efficiently.
 - **Cross-Platform Support**: Compile your code for various platforms including desktop, browser and server enviroment.
 
-
 ## Installation
+
 ```
-npm i @hlang-org/compiler
+> npm i @hlang-org/compiler
 ```
 
 ## Usage

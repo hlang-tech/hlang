@@ -83,4 +83,4 @@ onmessage = function (data) {
 
     }
 }
-`
+`;

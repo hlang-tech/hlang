@@ -5,4 +5,4 @@ export default `
 
     return _xlang_buildInMiddleware;
   }
-`
+`;

@@ -25,11 +25,6 @@
     "inlineSources": true,
     "declaration": true
   },
-  "exclude": [
-    "test*",
-    "node_modules*"
-  ],
-  "include": [
-    "src/**/*",
-  ],
+  "exclude": ["test*", "node_modules*"],
+  "include": ["src/**/*"]
 }

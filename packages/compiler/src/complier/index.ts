@@ -1,10 +1,11 @@
-import nunjucks = require('nunjucks');
-import { ParamParser, ParamPattern } from '@hset/hit';
-import { getEnv, Env, camelize } from '../utils';
-import getTemplate from '../template';
-import loadModule from '../module';
+import nunjucks = require("nunjucks");
+import { ParamParser, ParamPattern } from "@hset/hit";
+import { getEnv, Env, camelize } from "../utils";
+import getTemplate from "../template";
+import loadModule from "../module";
 
 nunjucks.configure({ autoescape: false });
+
 export interface IGraph {
   deps?: IPackageInfo[];
   connections: IConnections[];
@@ -31,9 +32,9 @@ export interface INodeInfo {
   group: string;
   bizData: { [key: string]: any };
   portInfo: {
-    Input:  {[key: string]: any };
-    Output: {[key: string]: any };
-  },
+    Input: { [key: string]: any };
+    Output: { [key: string]: any };
+  };
   runtimeResource: string;
 }
 export interface IPackageInfo {
@@ -47,7 +48,7 @@ export interface IConfig {
   middleware: string[];
 }
 
-const paramParser = (new ParamParser()).getParser(ParamPattern.MUSTACHE);
+const paramParser = new ParamParser().getParser(ParamPattern.MUSTACHE);
 
 const template = `
   {{ initModuleCode }}
@@ -62,7 +63,7 @@ const generateRuntimeCode = (graphInfo, flowId, config: IConfig) => {
   const { deps, connections, nodeList } = graphInfo;
   const { env = Env.NODE, middleware = [] } = config || {};
 
-  const parsedNodeList = nodeList.map(node => {
+  const parsedNodeList = nodeList.map((node) => {
     const { nodeId, code, bizData = {} } = node;
     const { params = {} } = bizData;
 
@@ -81,12 +82,12 @@ const generateRuntimeCode = (graphInfo, flowId, config: IConfig) => {
       }),
     };
   });
-  const ReadableNodes = parsedNodeList.filter(node => node.type === 'R');
+  const ReadableNodes = parsedNodeList.filter((node) => node.type === "R");
 
   if (ReadableNodes.length === 0) {
-    throw new Error('ReadableNodes not allow empty');
+    throw new Error("ReadableNodes not allow empty");
   }
-  const parsedConnections = connections.map(connection => {
+  const parsedConnections = connections.map((connection) => {
     const { Input, Output } = connection;
 
     return {
@@ -103,25 +104,29 @@ const generateRuntimeCode = (graphInfo, flowId, config: IConfig) => {
 
   const loadModuleCode = loadModule(deps, env);
   const { IPCTemplate, RuntimeTemplate, InitTemplate } = getTemplate(env);
-  const initModuleCode = nunjucks.renderString(
-    InitTemplate,
-    { middleware: middleware, flowId: flowId, env: env },
-  );
-  const IPCCode = nunjucks.renderString(
-    IPCTemplate,
-    { middleware: middleware, flowId: flowId, env: env },
-  );
-  const flowRunCode = nunjucks.renderString(
-    RuntimeTemplate,
-    {
-      flowId: flowId, nodeList: parsedNodeList,
-      connections: parsedConnections, ReadableNodes: ReadableNodes, env,
-    });
+  const initModuleCode = nunjucks.renderString(InitTemplate, {
+    middleware: middleware,
+    flowId: flowId,
+    env: env,
+  });
+  const IPCCode = nunjucks.renderString(IPCTemplate, {
+    middleware: middleware,
+    flowId: flowId,
+    env: env,
+  });
+  const flowRunCode = nunjucks.renderString(RuntimeTemplate, {
+    flowId: flowId,
+    nodeList: parsedNodeList,
+    connections: parsedConnections,
+    ReadableNodes: ReadableNodes,
+    env,
+  });
 
   return nunjucks.renderString(template, {
     loadModuleCode: loadModuleCode,
-    IPCCode: IPCCode, flowRunCode: flowRunCode,
-    initModuleCode
+    IPCCode: IPCCode,
+    flowRunCode: flowRunCode,
+    initModuleCode,
   });
 };
 
@@ -129,35 +134,41 @@ export default function (graphInfo: IGraph, flowId, opsConfig) {
   const env = getEnv();
   const { basePackageInfo = [] } = opsConfig;
   const { nodeList = [] } = graphInfo;
-  const deps: IPackageInfo[] = [...nodeList, ...basePackageInfo]
-    .reduce((ret: IPackageInfo[], el) => {
+  const deps: IPackageInfo[] = [...nodeList, ...basePackageInfo].reduce(
+    (ret: IPackageInfo[], el) => {
       const { runtimeResource, code, local } = el;
 
       const match = runtimeResource.match(/(.+?)@(\d+\.\d+\.\d+|latest)/) || [];
-      const [_, name, version ] = match;
-      const packageInfo = env === Env.BROWSER ? {
-        name: name,
-        id: camelize(code),
-        version,
-      } : {
-        id: camelize(code),
-        name: name,
-        version: version,
-        local: local,
-      };
-      const exist = ret.find(item => item.name === packageInfo.name);
+      const [_, name, version] = match;
+      const packageInfo =
+        env === Env.BROWSER
+          ? {
+              name: name,
+              id: camelize(code),
+              version,
+            }
+          : {
+              id: camelize(code),
+              name: name,
+              version: version,
+              local: local,
+            };
+      const exist = ret.find((item) => item.name === packageInfo.name);
       if (!exist) {
-        return [
-          ...ret,
-          packageInfo,
-        ];
+        return [...ret, packageInfo];
       }
       return ret;
-    },      []);
+    },
+    []
+  );
   graphInfo.deps = deps;
 
   return {
-    target: generateRuntimeCode(graphInfo, flowId, { ...opsConfig, debugMode: false, env: env }),
+    target: generateRuntimeCode(graphInfo, flowId, {
+      ...opsConfig,
+      debugMode: false,
+      env: env,
+    }),
     deps: deps.filter((el: IPackageInfo) => !el.local),
   };
 }
