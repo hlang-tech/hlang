@@ -1,0 +1,22 @@
+{
+  "extends": ["tslint-config-airbnb"],
+  "linterOptions": {
+    "exclude": [
+      "test/**/*"
+    ]
+  },
+  "rules": {
+    "arrow-parens": ["error", "as-needed"],
+    "variable-name": [
+      true,
+      "allow-pascal-case",
+      "allow-leading-underscore"
+    ],
+    "ter-arrow-parens": [true, "as-needed"],
+    "object-literal-shorthand": [true, "never"],
+    "import-name": false,
+    "space-before-function-paren": [true, "as-needed"],
+    "no-increment-decrement": false,
+    "function-name": false
+  }
+}
