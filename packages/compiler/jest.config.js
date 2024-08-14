@@ -8,7 +8,7 @@ module.exports = {
   // bail: 0,
 
   // Respect "browser" field in package.json when resolving modules
-  browser: false,
+  // browser: false,
 
   // The directory where Jest should store its cached dependency information
   // cacheDirectory: "/private/var/folders/s7/06196p4x0h75xh7r55lg2qr80000gn/T/jest_dx",
@@ -105,7 +105,7 @@ module.exports = {
   // resetModules: false,
 
   // A path to a custom resolver
-  // resolver: null,
+  // resolver: "",
 
   // Automatically restore mock state between every test
   // restoreMocks: false,

@@ -1,8 +1,11 @@
 {
   "name": "@hlang-org/compiler",
   "version": "1.0.0",
-  "description": "runtime compiler for hlang",
-  "author": "archersado <archersado@hotmail.com>",
+  "description": "Runtime compiler for hlang.",
+  "contributors": [
+    "archer <qddegtya@gmail.com>",
+    "archersado <archersado@hotmail.com>"
+  ],
   "license": "MIT",
   "keywords": [
     "fbp",
@@ -26,10 +29,10 @@
     "lib"
   ],
   "scripts": {
-    "test": "jest --coverage --forceExit",
-    "build": "tsc -p tsconfig.json",
-    "watch": "tsc -p tsconfig.json -w",
-    "lint": "tslint --project . -c tslint.json"
+    "test": "./node_modules/.bin/jest --coverage --forceExit",
+    "build": "./node_modules/.bin/tsc -p tsconfig.json",
+    "watch": "./node_modules/.bin/tsc -p tsconfig.json -w",
+    "lint": "./node_modules/.bin/tslint --project . -c tslint.json"
   },
   "dependencies": {
     "@hset/hit": "^1.0.4",
@@ -39,14 +42,12 @@
   "devDependencies": {
     "@types/jest": "^27.4.0",
     "@types/node": "^17.0.18",
-    "eslint": "^8.9.0",
-    "jest": "^28.1.3",
     "moment": "^2.29.1",
     "runscript": "^1.5.2",
     "rxjs": "^7.5.4",
     "ts-jest": "^29.2.4",
-    "tslint": "^6.1.3",
-    "tslint-config-airbnb": "^5.11.2",
+    "tslint": "5.11.x",
+    "tslint-config-airbnb": "5.11.x",
     "typescript": "^4.5.5"
   }
 }
