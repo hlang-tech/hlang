@@ -6,7 +6,7 @@ import * as os from "os";
 import * as fs from "fs";
 import * as path from "path";
 
-const DEFAULT_DIR_NAME = "ELANG_BUILD";
+const DEFAULT_DIR_NAME = "HLANG_BUILD";
 
 const packageJSONTpl = `
 {
