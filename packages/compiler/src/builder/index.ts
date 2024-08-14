@@ -42,8 +42,8 @@ export default async function build(graph): Promise<string> {
   }
   const { target, deps } = Parser(graphInfo, id, options);
 
-  console.log("parser output target", target);
-  console.log("parser output deps", deps);
+  debug("parser output target", target);
+  debug("parser output deps", deps);
   const packageJSON = nunjucks.renderString(packageJSONTpl, { deps: deps });
   const entry = path.resolve(baseDir, "index.js");
   fs.writeFileSync(path.resolve(baseDir, "package.json"), packageJSON);
