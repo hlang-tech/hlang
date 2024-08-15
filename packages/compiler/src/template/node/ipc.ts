@@ -26,7 +26,7 @@ const middleware = {
   {% for name in middleware %}
   {{ name }}: middlewareCall('{{ name }}'),
   {% endfor %}
-  onFlowCall: function(params, callback) {
+  onFlowCall: function (params, callback) {
     const { topic } = params;
     triggerQueue.set(topic, callback);
   },
