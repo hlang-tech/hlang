@@ -15,4 +15,4 @@ export const camelize = function (name: string) {
   });
 };
 
-export const debug = log("xlang-parser");
+export const debug = log("hlang-compiler");
