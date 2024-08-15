@@ -53,12 +53,13 @@ const paramParser = new ParamParser().getParser(ParamPattern.MUSTACHE);
 const template = `
   {{ initModuleCode }}
   init()
-  .then((_xlang_middleware) => {
-    {{ loadModuleCode }}
-    {{ IPCCode }}
-    {{ flowRunCode }}
-  })
+    .then((_xlang_middleware) => {
+      {{ loadModuleCode }}
+      {{ IPCCode }}
+      {{ flowRunCode }}
+    });
 `;
+
 const generateRuntimeCode = (graphInfo, flowId, config: IConfig) => {
   const { deps, connections, nodeList } = graphInfo;
   const { env = Env.NODE, middleware = [] } = config || {};

@@ -1,8 +1,8 @@
 import nunjucks = require("nunjucks");
 
 const template = `
-  const module{{id}} = require("{{name}}");
-  const {{id}} = module{{id}}.default || module{{id}};
+  const module{{ id }} = require("{{ name }}");
+  const {{ id }} = module{{ id }}.default || module{{ id }};
 `;
 
 export default function (deps) {

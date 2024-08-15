@@ -17,7 +17,7 @@ test("test parser", async () => {
         runtimeResource: "lodash@latest",
       },
     ],
-    dirName: `XLANG_BUILD`,
+    dirName: `HLANG_BUILD`,
   };
   const entry = await build({ graphInfo, id, options: config });
 

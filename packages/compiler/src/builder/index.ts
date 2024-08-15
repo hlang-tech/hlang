@@ -9,24 +9,22 @@ import * as path from "path";
 const DEFAULT_DIR_NAME = "HLANG_BUILD";
 
 const packageJSONTpl = `
-{
+  {
     "name": "test",
     "version": "0.0.0",
     "description": "",
     "main": "lib/index.js",
     "type": "lib/index.d.ts",
-    "scripts": {
-    },
+    "scripts": {},
     "author": "",
     "license": "MIT",
     "dependencies": {
-        "@hset/xlang-runtime-middleware": "latest",
-        {% for item in deps %}
-        "{{item.name}}": "{{item.version}}" {%if loop.index < loop.length %}, {% endif %}
-        {% endfor %}
+      "@hset/xlang-runtime-middleware": "latest",
+      {% for item in deps %}
+        "{{ item.name }}": "{{ item.version }}" {%if loop.index < loop.length %}, {% endif %}
+      {% endfor %}
     },
-    "devDependencies": {
-    }
+    "devDependencies": {}
   }
 `;
 

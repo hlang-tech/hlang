@@ -1,7 +1,7 @@
 import nunjucks = require("nunjucks");
 
 const template = `
-  import {{id}} from "{{name}}";
+  import {{ id }} from "{{ name }}";
 `;
 
 export default function (deps) {
