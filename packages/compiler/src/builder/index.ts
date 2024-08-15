@@ -21,7 +21,7 @@ const packageJSONTpl = `
     "dependencies": {
       "@hset/xlang-runtime-middleware": "latest",
       {% for item in deps %}
-        "{{ item.name }}": "{{ item.version }}" {%if loop.index < loop.length %}, {% endif %}
+      "{{ item.name }}": "{{ item.version }}" {%if loop.index < loop.length %}, {% endif %}
       {% endfor %}
     },
     "devDependencies": {}

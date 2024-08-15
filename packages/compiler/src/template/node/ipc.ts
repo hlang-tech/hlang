@@ -28,7 +28,7 @@ const middleware = {
   {% endfor %}
   onFlowCall: function(params, callback) {
     const { topic } = params;
-    triggerQueue.set(topic, callback)
+    triggerQueue.set(topic, callback);
   },
   logger: console.log
 };
@@ -49,7 +49,7 @@ const middlewareCall = mw => (...arg) => {
   return promise;
 }
 
-process.on("message", function(e) {
+process.on("message", function (e) {
   const { id, message, type, error, topic } = data;
   console.log('Message received from main script', data);
   let parsed;
