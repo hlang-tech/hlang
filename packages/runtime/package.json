@@ -23,8 +23,7 @@
   "homepage": "https://github.com/hlang-org/hlang#readme",
   "scripts": {
     "test": "npm run build && ./node_modules/.bin/jest --coverage --forceExit",
-    "build": "./node_modules/.bin/tsc -p tsconfig.json",
-    "lint": "./node_modules/.bin/tslint --project . -c tslint.json"
+    "build": "./node_modules/.bin/tsc -p tsconfig.json"
   },
   "contributors": [
     "archer <qddegtya@gmail.com>",
@@ -41,8 +40,6 @@
     "moment": "^2.29.1",
     "rxjs": "^6.6.7",
     "ts-jest": "^29.2.3",
-    "tslint": "^6.1.3",
-    "tslint-config-airbnb": "^5.11.2",
     "typescript": "^5.5.4"
   }
 }
