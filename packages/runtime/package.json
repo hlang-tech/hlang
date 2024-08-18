@@ -1,6 +1,6 @@
 {
   "name": "@hlang-org/runtime",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A FBP-Inspired language for universal applications.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
