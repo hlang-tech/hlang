@@ -8,7 +8,7 @@ export default class ConsoleNode extends WriteableNode {
   }
 
   _write($i) {
-    $i("Input").on((payload) => {
+    $i("Input").receive((payload) => {
       // eslint-disable-next-line no-console
       console.log("debug console: ", payload);
     });

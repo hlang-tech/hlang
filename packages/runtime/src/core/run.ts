@@ -24,7 +24,7 @@ const run = (G: Graph<IPortDesc, Node>) => {
       // 相同的边不能重复订阅
       if (flow.cache.has(_cacheKey)) return;
 
-      _src.on((msg) => {
+      _src.receive((msg) => {
         _dst.send(msg);
       });
 

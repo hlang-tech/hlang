@@ -71,7 +71,7 @@ class Port {
       ] as any
     );
     return {
-      on: this.on.bind(this),
+      receive: this.receive.bind(this),
     };
   }
   // tslint:enable
