@@ -11,7 +11,7 @@ export default class ReadableNode extends Node {
   }
 
   throw(error) {
-    super.E().send(error);
+    this.E().send(error);
   }
 
   _read(_$o) {

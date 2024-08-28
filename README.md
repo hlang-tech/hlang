@@ -83,7 +83,7 @@ class OneTransformNode extends TransformNode {
   }
 
   _transform($i, $o) {
-    $i("in").on((payload) => {
+    $i("in").receive((payload) => {
       $o("out").send(payload);
     });
   }
@@ -96,7 +96,7 @@ class OneWriteableNode extends WriteableNode {
   }
 
   _write($i) {
-    $i("in").on(console.log);
+    $i("in").receive(console.log);
   }
 }
 
