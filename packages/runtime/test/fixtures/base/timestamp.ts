@@ -8,7 +8,6 @@ export default class TimestampNode extends ReadableNode {
 
     this.opts = opts;
 
-    Port.I("Input").attach(this);
     Port.O("Output").attach(this);
   }
 
