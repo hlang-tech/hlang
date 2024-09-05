@@ -1,0 +1,6 @@
+mysql:
+  host: '192.168.235.239'
+  port: 3306
+  database: 'ecm'
+  user: 'ecm_rw'
+  password: 'smxA)YUUdp(+cIwIW_SI0k#W7wYf'

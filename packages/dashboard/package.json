@@ -1,0 +1,33 @@
+{
+  "name": "@hset/xlang-frontend",
+  "version": "0.0.1",
+  "description": "> TODO: description",
+  "author": "archersado <archersado@hotmail.com>",
+  "homepage": "https://github.com/archersado/xlang#readme",
+  "main": "webpack.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "webpack-dev-server"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.17.10",
+    "@babel/preset-react": "^7.16.7",
+    "@babel/runtime": "^7.17.9",
+    "babel-loader": "^8.2.5",
+    "css-loader": "^6.7.1",
+    "sass": "^1.51.0",
+    "sass-loader": "^12.6.0",
+    "style-loader": "^3.3.1",
+    "webpack": "^5.72.1",
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.9.0"
+  },
+  "dependencies": {
+    "@hset/xlang-editor": "^1.0.1",
+    "axios": "^0.27.2",
+    "html-webpack-plugin": "^5.5.0",
+    "react-router-dom": "^6.23.1",
+    "style-components": "^0.1.0"
+  }
+}

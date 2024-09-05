@@ -1,0 +1,122 @@
+@import '../css/color.scss';
+
+.features {
+  background-color: $color_222A3D;
+  position: relative;
+  overflow: hidden;
+  &::before,&::after{
+    content: '';
+    width: 726px;
+    height: 676px;
+    transform: rotate(-300deg);
+    background: rgba(156, 168, 198, 0.12);
+    border-radius: 28px;
+    position: absolute;
+    left: -580px;
+    top: calc(50% - 300px);
+  }
+  &::after{
+    right: -580px;
+    top: calc(50% - 300px);
+    left: auto;
+  }
+  .features-list{
+    position: relative;
+    z-index: 1;
+    .features-item{
+      padding: 70px 0 40px 0;
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      &::after{
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 100px;
+        width: 1000px;
+        border-bottom: dashed 1px  $color_33405F;
+        box-shadow: 0 1px 0 0 rgba(0,0,0,0.50);
+      }
+      &:last-child{
+        &::after{
+          display: none;
+        }
+      }
+      &.right{
+        .features-content{
+          text-align: right;
+          .features-des{
+             text-align: right;
+          }
+        }
+        .features-image{
+          text-align: left;
+        }
+      }
+      .features-content{
+        width: 50%;
+        padding: 0 30px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        .features-title{
+          font-family: FZLTZHK--GBK1-0;
+          font-size: 21px;
+          color: $color_fff;
+          padding: 5px 0 20px 0;
+        }
+        .features-subtitle{
+          font-size: 14px;
+          color: $color_8B909B;
+        }
+        .features-des{
+          font-size: 14px;
+          color: $color_747F97;
+          text-align: left;
+          line-height: 28px;
+        }
+      }
+      .features-image{
+        width: 50%;
+        text-align: right;
+        font-size: 220px;
+        padding: 0 100px;
+      }
+    }
+  }
+  .triangle {
+    height: 200px;
+    transform: matrix(1, 0.06, 0, 1, 0, -100);
+    background-color: $color_fff;
+  }
+  .icon-mark-bottom{
+    position: absolute;
+    right: 0;
+    top: -10px;
+    font-size: 72px;
+    transform: rotate(-180deg);
+    z-index: 3;
+  }
+  .position-relative{
+     position: relative;
+  }
+}
+@media screen and (max-width: 1400px){
+  .features {
+    &::before,&::after{
+      display: none;
+    }
+  }
+}
+
+@media screen and (min-width: 1400px) and (max-width: 1600px){
+  .features {
+    &::before{
+      left: -680px;
+    }
+    &::after{
+      right: -680px;
+    }
+  }
+}
+

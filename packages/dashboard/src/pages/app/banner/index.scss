@@ -1,0 +1,98 @@
+@import '../css/color.scss';
+
+.wrap-banner{
+  height: 640px;
+  .banner-content{
+    .wrap-fixed{
+      position: relative;
+    }
+    height: 530px;
+    position: relative;
+    z-index: 1;
+    .banner-font{
+      padding-top: 189px;
+      width: 540px;
+      h2.title{
+        font-family: Roboto-Bold;
+        font-size: 36px;
+        color: $color_fff;
+        letter-spacing: 0.5px;
+        line-height: 42px;
+      }
+      .subtitle{
+        font-size: 18px;
+        color: rgba(106,113,132, 0.95);
+        line-height: 24px;
+        font-weight: 100;
+        margin: 27px 0 60px 0;
+      }
+      .btn-white{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: rgba(255,255,255,0.00);
+        border: 2px solid $color_dbdbdb;
+        border-radius: 29.5px;
+        width: 225px;
+        height: 55px;
+        font-family: PingFangSC-Regular;
+        font-size: 20px;
+        color: $color_fff;
+        text-decoration: none;
+        &:hover{
+          background: $color_fff;
+          color: $color_222A3D;
+          border: none;
+        }
+      }
+    }
+  }
+  .banner-video{
+    position: absolute;
+    right: 0;
+    bottom: -200px;
+    border-radius: 29.5px;
+    width: 653px;
+    height: 446px;
+    background: $color_fff;
+    box-shadow: 0 2px 4px 0 rgba(212, 212,212, 0.5);
+    padding: 10px;
+    & > video {
+      border-radius: 24px;
+      outline: none;
+    }
+
+    &::before{
+      content: '';
+      width: 653px;
+      height: 116px;
+      background-image: linear-gradient(180deg, $color_E4E4E4 0%, $color_fff 15%);
+      border-radius: 29.5px;
+      position: absolute;
+      display: block;
+      bottom: -117px;
+      left: 0;
+    }
+
+    &::after{
+      content: 'What is Flow-based Programming ?';
+      position: absolute;
+      top: -40px;
+      font-size: 18px;
+      color: $color_fff;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-weight: 100;
+    }
+  }
+  .circle{
+    position: absolute;
+    left: 140px;
+    bottom: -230px;
+    background: rgba(129, 147, 153,0.06);
+    width: 148px;
+    height: 148px;
+    border-radius: 74px;
+  }
+}

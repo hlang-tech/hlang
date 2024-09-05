@@ -1,0 +1,11 @@
+mysql:
+  host: '127.0.0.1'
+  port: 3306
+  database: 'xlang'
+  user: 'root'
+  password: 'archer901103'
+
+
+static:
+  style: 'http://127.0.0.1:3000/index.css'
+  script: 'http://127.0.0.1:3000/index.js'

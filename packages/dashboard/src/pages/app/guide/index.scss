@@ -1,0 +1,89 @@
+@import '../css/color.scss';
+
+.guide{
+  height: 500px;
+  position: relative;
+  z-index: 0;
+  .wrap-fixed{
+    position: relative;
+    z-index: 2;
+  }
+  .triangle{
+    height: 300px;
+    background: $color_fff;
+    transform: matrix(1, -0.055, 0, 1, 0, 0);
+    transform-origin:0% 0%;
+    position: absolute;
+    z-index: 0;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .guide-ul{
+    display: flex;
+    justify-content: space-between;
+    padding-top: 150px;
+    position: relative;
+    .icon-mark-top{
+      position: absolute;
+      left: 0;
+      top: 30px;
+      font-size: 72px;
+    }
+    .guide-item{
+      background: $color_fff;
+      box-shadow: 0 0 12px 0 $color_ECECEC;
+      border-radius: 20px;
+      height: 304px;
+      padding: 45px 62px 32px 62px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      .guide-title{
+        font-size: 20px;
+        color: $color_334269;
+        margin-top: -5px;
+      }
+      .guide-des{
+        opacity: 0.69;
+        font-size: 14px;
+        color: $color_999999;
+        line-height: 22px;
+        width: 214px;
+        text-align: center;
+        font-family: FZLTXHK--GBK1-0;
+        margin: 14px 0;
+        height: 78px;
+        overflow: hidden;
+
+      }
+      .icon-guide0{
+        font-size: 69px;
+        height: 120px;
+      }
+      .icon-guide1{
+        font-size: 55px;
+        height: 120px;
+      }
+      .icon-guide2{
+        font-size: 55px;
+        height: 120px;
+      }
+      .guide-update{
+        background: $color_F9F9F9;
+        border-radius: 16px;
+        height: 32px;
+        line-height: 32px;
+        padding: 0 15px; 
+        font-family: FZLTXHK--GBK1-0;
+        font-size: 14px;
+        color: $color_B7B7B7;
+        text-decoration: none;
+        &:hover{
+          background: $color_F6FAFA;
+          color: $color_4DB59D;
+        }
+      }
+    }
+  }
+}

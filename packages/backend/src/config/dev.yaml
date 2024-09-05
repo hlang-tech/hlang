@@ -1,0 +1,33 @@
+mysql:
+  host: '10.39.202.254'
+  port: 3306
+  database: 'ennew_ecm'
+  user: 'ennew_ecm_rw'
+  password: 'jJkCW4gJE=AjKRYnKBM8X4c^kP%m'
+
+security:
+  # appId @see https://tenant-management-backstage.ennew.com
+  appId: 'icome-ng-portal'
+  appSecret: 'c1fcf5431421ba2270febcb4287d99b3'
+  X-GW-AccessKey: 'viL7u1thEW7khQBptqfrNIuholq3JyRM'
+
+auth:
+  server: 'https://auth-portal.dev.ennew.com'
+  sso: 'https://authentication-center.dev.ennew.com/login'
+
+icome:
+  workbench: https://rdfa-gateway.dev.ennew.com/talents-workbench
+  xga: '811exMztHFymZwcee1OaohhDwvUayGTA'
+
+tenant:
+  server: 'https://rdfa-gw-inside.dev.ennew.com/tenantApi'
+
+part-search:
+  server: 'https://rdfa-gw-inside.dev.ennew.com/partsearch'
+
+tenantApp:
+  appId: 'ennew-ecm'
+  appSecret: 'e22d7d9cc5d4f70fc638a90ae0624665'
+
+users:
+  search: 'https://mdata-search.dev.ennew.com/mdata-search/users'
