@@ -1,0 +1,14 @@
+.*
+*.log
+.DS_Store
+.idea
+
+/test
+/coverage
+/docs
+
+.justconf
+doc.json
+.eslintrc
+.eslintignore
+.editorconfig

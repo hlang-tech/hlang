@@ -1,0 +1,66 @@
+{
+  "name": "@hlang-nodes/{{npmGroupName}}-{{nodeId}}-editor",
+  "version": "0.0.0",
+  "description": "请勿发布此包",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.umd.js",
+  "module": "./dist/index.es.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "npm run eslint && npm-ensure -t deps",
+    "eslint": "eslint '../@editor/**/*.@(js|jsx)' --fix",
+    "precommit": "lint-staged"
+  },
+  "lint-staged": {
+    "../@editor/**/*.@(js|jsx)": [
+      "eslint --fix",
+      "npm-ensure -t deps",
+      "git add"
+    ]
+  },
+  "ensure": {
+    "deps": {
+      "checkDirs": [
+        "../@editor/**/*"
+      ],
+      "ignores": [
+        "components",
+        "utils",
+        "widget",
+        "styles"
+      ]
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@ant-design/pro-components": "^2.x",
+    "antd": "^5.x",
+    "styled-components": "5.x"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "4.x",
+    "babel-eslint": "^10.1.0",
+    "enzyme": "3.x",
+    "eslint": "^7.3.1",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-react": "^7.20.0",
+    "husky": "^4.2.5",
+    "lint-staged": "7.x",
+    "npm-ensure": "^1.2.0",
+    "react": "^18.x",
+    "react-dom": "^18.x",
+    "sass-embedded": "^1.77.8",
+    "vite": "^5.4.2",
+    "vite-plugin-dts": "^3.8.3",
+    "vite-plugin-externals": "^0.6.2"
+  }
+}

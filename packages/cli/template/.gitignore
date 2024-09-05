@@ -1,0 +1,4 @@
+@editor/node_modules/
+@runtime/node_modules/
+*.log
+*.log.*

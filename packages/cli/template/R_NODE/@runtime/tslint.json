@@ -1,0 +1,11 @@
+{
+  "extends": ["tslint-config-airbnb"],
+  "linterOptions": {
+    "exclude": [
+      "test/**/*"
+    ]
+  },
+  "rules": {
+    "arrow-parens": ["error", "as-needed"]
+  }
+}

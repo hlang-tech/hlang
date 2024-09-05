@@ -1,0 +1,30 @@
+import { WriteableNode, Port } from '@hlang-org/runtime';
+
+interface MIDDLEWARE {
+  logger: Function;
+}
+
+interface INodeProps {
+}
+
+
+interface OPTION {
+  nodeId?: string;
+  flowId?: string;
+  env?: string;
+  middleware?: MIDDLEWARE;
+  nodeData?: INodeProps;
+}
+
+export default class testW extends WriteableNode {
+  constructor(opts: OPTION) {
+    super(opts);
+    Port.I('Input').attach(this)
+  }
+
+  _write($i) {
+    $i('Input').on((content) => {
+      console.log('content', content);
+    });
+  }
+};

@@ -1,0 +1,35 @@
+import { ReadableNode, Port } from '@hlang-org/runtime';
+
+
+interface IMiddleware {
+  logger: Function;
+}
+interface INodeProps {
+  param: any;
+}
+
+interface OPTION {
+  nodeId?: string;
+  flowId?: string;
+  env?: string;
+  middleware?: IMiddleware;
+  nodeData?: INodeProps;
+}
+
+export default class {{upperCaseNodeName}} extends ReadableNode {
+  opts: OPTION
+
+  constructor(opts: OPTION) {
+    super(opts);
+
+    this.opts = opts;
+    Port.O('Output').attach(this);
+  }
+
+  _read($o) {
+    const { nodeData } = this.opts;
+    const { param } = nodeData || {};
+
+    $o('Output').send(param);
+  }
+};

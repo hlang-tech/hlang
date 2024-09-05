@@ -1,0 +1,55 @@
+{
+  "name": "@hlang-nodes/{{npmGroupName}}-{{nodeId}}",
+  "version": "0.0.0",
+  "description": "@hlang-nodes/{{npmGroupName}}-{{nodeId}}",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "type": "commonjs",
+  "scripts": {
+    "test": "npm run build && ./node_modules/.bin/jest --coverage --forceExit",
+    "lint": "npm run eslint && npm-ensure -t deps",
+    "build": "tsc -p tsconfig.json",
+    "precommit": "lint-staged",
+    "watch": "tsc -p tsconfig.json -w",
+    "prepublish": "npm run build"
+  },
+  "lint-staged": {
+    "../@runtime/**/*.@(js|jsx)": [
+      "eslint --fix",
+      "npm-ensure -t deps",
+      "git add"
+    ]
+  },
+  "ensure": {
+    "deps": {
+      "checkDirs": [
+        "../@runtime/**/*"
+      ],
+      "ignores": [
+        "components",
+        "utils",
+        "widget",
+        "styles"
+      ]
+    }
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@hlang-org/runtime": "1.x"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^14.6.4",
+    "eslint": "^7.3.1",
+    "husky": "^4.2.5",
+    "jest": "^29.7.0",
+    "lint-staged": "7.x",
+    "npm-ensure": "^1.2.0",
+    "ts-jest": "^29.2.4",
+    "typescript": "^5.x"
+  }
+}

@@ -1,0 +1,48 @@
+
+
+import { TransformNode, Port } from '@hlang-org/runtime';
+import { delay } from 'rxjs/operators';
+import * as moment from 'moment';
+
+interface MIDDLEWARE {
+  logger: Function;
+}
+
+interface INodeProps {
+  delayTime: number;
+}
+
+interface OPTION {
+  nodeId?: string;
+  flowId?: string;
+  env?: string;
+  middleware?: MIDDLEWARE;
+  nodeData?: INodeProps;
+}
+
+export default class testT extends TransformNode {
+  opts: OPTION
+
+  constructor(opts: OPTION) {
+    super(opts);
+
+    this.opts = opts;
+
+    Port.I('Input').attach(this);
+    Port.O('Output').attach(this);
+  }
+
+  private transform($i, $o) {
+    const { nodeData } = this.opts;
+    const { delayTime } = nodeData as INodeProps;
+    const time = moment.duration(delayTime).asMilliseconds();
+
+
+    $i('Input')
+      .pipe(delay(time))
+      .receive((input) => {
+        console.log(`延时 ${time}`);
+        $o('Output').send(input);
+      });
+  }
+};
