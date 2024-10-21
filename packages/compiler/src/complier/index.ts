@@ -53,7 +53,7 @@ const paramParser = new ParamParser().getParser(ParamPattern.MUSTACHE);
 const template = `
   {{ initModuleCode }}
   init()
-    .then((_xlang_middleware) => {
+    .then((_hlang_middleware) => {
       {{ loadModuleCode }}
       {{ IPCCode }}
       {{ flowRunCode }}
