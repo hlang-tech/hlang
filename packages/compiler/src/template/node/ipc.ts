@@ -22,7 +22,7 @@ const send = (messageType, payload = {}) => {
 };
 
 const middleware = {
-  ..._xlang_middleware,
+  ..._hlang_middleware,
   {% for name in middleware %}
   {{ name }}: middlewareCall('{{ name }}'),
   {% endfor %}
