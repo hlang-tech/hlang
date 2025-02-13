@@ -3,31 +3,19 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-<br />
-<br />
-
 <p align="center">
   <img src="https://raw.githubusercontent.com/hlang-org/hlang/main/media/logo.png" width="256" height="256" />
+  <br />
+  <br />
 </p>
-
-<br />
-<br />
-
-<br />
-<br />
 
 <p align="center">
 <b style="font-size: 32px;line-height: 32px;">A FBP-Inspired language for universal applications.</b>
-<br />
-<br />
 <br />
 <em>Hlang aims to make programming easier, faster and more comfortable. It avoids coding, repetition and frustration.</em>
 <br />
 <br />
 </p>
-
-<br />
-<br />
 
 ---
 
