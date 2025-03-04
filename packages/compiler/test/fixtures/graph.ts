@@ -129,9 +129,9 @@ export default {
         gmtModified: "2024-05-27T10:32:16.839Z",
         editorResource: {
           styleHref:
-            "https://icomestatics.oss-cn-beijing.aliyuncs.com/Elang/node/%40ennew/elang-advanced-function/6/editor.css",
+            "YOUR_NODES_ASSETS_BASE/hlang-advanced-function/6/editor.css",
           scriptHref:
-            "https://icomestatics.oss-cn-beijing.aliyuncs.com/Elang/node/%40ennew/elang-advanced-function/6/editor.js",
+            "YOUR_NODES_ASSETS_BASE/hlang-advanced-function/6/editor.js",
         },
         runtimeResource: "@hset/xlang-advanced-function@latest",
       },
@@ -156,9 +156,9 @@ export default {
         gmtModified: "2024-05-27T10:26:37.379Z",
         editorResource: {
           styleHref:
-            "https://icomestatics.oss-cn-beijing.aliyuncs.com/Elang/node/%40ennew/elang-trigger-http-request/4/editor.css",
+            "YOUR_NODES_ASSETS_BASE/hlang-trigger-http-request/4/editor.css",
           scriptHref:
-            "https://icomestatics.oss-cn-beijing.aliyuncs.com/Elang/node/%40ennew/elang-trigger-http-request/4/editor.js",
+            "YOUR_NODES_ASSETS_BASE/hlang-trigger-http-request/4/editor.js",
         },
         runtimeResource: "@hset/xlang-trigger-http-request@latest",
       },
@@ -244,9 +244,9 @@ export default {
         gmtModified: "2024-05-28T06:32:32.086Z",
         editorResource: {
           styleHref:
-            "https://icomestatics.oss-cn-beijing.aliyuncs.com/Elang/node/%40ennew/elang-rpc-http/2/editor.css",
+            "YOUR_NODES_ASSETS_BASE/hlang-rpc-http/2/editor.css",
           scriptHref:
-            "https://icomestatics.oss-cn-beijing.aliyuncs.com/Elang/node/%40ennew/elang-rpc-http/2/editor.js",
+            "YOUR_NODES_ASSETS_BASE/hlang-rpc-http/2/editor.js",
         },
         runtimeResource: "@hset/xlang-rpc-http@latest",
       },
@@ -334,9 +334,9 @@ export default {
         gmtModified: "2024-05-27T14:44:55.000Z",
         editorResource: {
           styleHref:
-            "https://icomestatics.oss-cn-beijing.aliyuncs.com/Elang/node/%40ennew/elang-advanced-function/6/editor.css",
+            "YOUR_NODES_ASSETS_BASE/hlang-advanced-function/6/editor.css",
           scriptHref:
-            "https://icomestatics.oss-cn-beijing.aliyuncs.com/Elang/node/%40ennew/elang-advanced-function/6/editor.js",
+            "YOUR_NODES_ASSETS_BASE/hlang-advanced-function/6/editor.js",
         },
         runtimeResource: "@hset/xlang-advanced-function@latest",
       },
