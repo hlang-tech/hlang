@@ -10,7 +10,6 @@
     "emitDecoratorMetadata": true,
     "ignoreDeprecations": "5.0",
     "forceConsistentCasingInFileNames": true,
-    "charset": "utf8",
     "allowJs": false,
     "pretty": true,
     "noEmitOnError": false,
