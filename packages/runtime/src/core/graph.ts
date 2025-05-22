@@ -44,7 +44,10 @@ export default class Graph<T, K> {
   }
 
   // digraph
-  hasDest(from: string, to: string) {
+  hasDest(from: string, to: string, visited: Set<string> = new Set()) {
+    if (visited.has(from)) return false;
+    visited.add(from);
+
     if (this.connectedMatrix.get(from, to)) return true;
     if (!this.adjList.getRow(from)) return false;
     if (this.adjList.get(from, to)) {
@@ -56,7 +59,7 @@ export default class Graph<T, K> {
         this.connectedMatrix.set(from, to, true);
         return true;
       }
-      if (this.hasDest(dest, to)) return true;
+      if (this.hasDest(dest, to, new Set([...visited]))) return true;
     }
 
     return false;
