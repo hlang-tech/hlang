@@ -4,7 +4,7 @@
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hlang-org/hlang/main/media/logo.png" width="256" height="256" />
+  <img src="https://raw.githubusercontent.com/hlang-tech/hlang/main/media/logo.png" width="256" height="256" />
   <br />
   <br />
 </p>
@@ -17,6 +17,9 @@
 <br />
 </p>
 
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/hlang-tech/hlang)
+
 ---
 
 ### Ecosystem
@@ -24,7 +27,7 @@
 #### UI & Devtool
 
 <p align="center">
-  <img width="800" src="https://raw.githubusercontent.com/hlang-org/hlang/main/media/ui.png" alt="devtool">
+  <img width="800" src="https://raw.githubusercontent.com/hlang-tech/hlang/main/media/ui.png" alt="devtool">
 </p>
 
 ### Feature
@@ -107,13 +110,13 @@ flowIns.run($R);
 #### step-1
 
 ```bash
-$ npm install
+npm install
 ```
 
 #### step-2
 
 ```bash
-$ npm run pm_install
+npm run pm_install
 ```
 
 ## Contributors
@@ -124,8 +127,8 @@ $ npm run pm_install
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/archersado"><img src="https://avatars.githubusercontent.com/u/17758281?v=4?s=100" width="100px;" alt="archersado"/><br /><sub><b>archersado</b></sub></a><br /><a href="#infra-archersado" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="https://github.com/hlang-org/hlang/commits?author=archersado" title="Tests">⚠️</a> <a href="https://github.com/hlang-org/hlang/commits?author=archersado" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://xiaoa.name"><img src="https://avatars.githubusercontent.com/u/773248?v=4?s=100" width="100px;" alt="Archer"/><br /><sub><b>Archer</b></sub></a><br /><a href="#infra-qddegtya" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="https://github.com/hlang-org/hlang/commits?author=qddegtya" title="Tests">⚠️</a> <a href="https://github.com/hlang-org/hlang/commits?author=qddegtya" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/archersado"><img src="https://avatars.githubusercontent.com/u/17758281?v=4?s=100" width="100px;" alt="archersado"/><br /><sub><b>archersado</b></sub></a><br /><a href="#infra-archersado" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="https://github.com/hlang-tech/hlang/commits?author=archersado" title="Tests">⚠️</a> <a href="https://github.com/hlang-tech/hlang/commits?author=archersado" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://xiaoa.name"><img src="https://avatars.githubusercontent.com/u/773248?v=4?s=100" width="100px;" alt="Archer"/><br /><sub><b>Archer</b></sub></a><br /><a href="#infra-qddegtya" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="https://github.com/hlang-tech/hlang/commits?author=qddegtya" title="Tests">⚠️</a> <a href="https://github.com/hlang-tech/hlang/commits?author=qddegtya" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

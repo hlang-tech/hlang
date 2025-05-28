@@ -20,7 +20,7 @@
     "flow-based",
     "internal-dsl"
   ],
-  "homepage": "https://github.com/hlang-org/hlang#readme",
+  "homepage": "https://github.com/hlang-tech/hlang#readme",
   "scripts": {
     "test": "npm run build && ./node_modules/.bin/jest --coverage --forceExit",
     "build": "./node_modules/.bin/tsc -p tsconfig.json"

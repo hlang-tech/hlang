@@ -28,12 +28,12 @@
         "test",
         "code"
       ]
-    },
+    }
   ],
   "contributorsPerLine": 7,
   "skipCi": true,
   "repoType": "github",
   "repoHost": "https://github.com",
   "projectName": "hlang",
-  "projectOwner": "hlang-org"
+  "projectOwner": "hlang-tech"
 }
