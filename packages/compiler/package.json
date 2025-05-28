@@ -19,7 +19,7 @@
     "flow-based",
     "internal-dsl"
   ],
-  "homepage": "https://github.com/hlang-org/hlang#readme",
+  "homepage": "https://github.com/hlang-tech/hlang#readme",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "directories": {
