@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-<b style="font-size: 32px;line-height: 32px;">A FBP-Inspired language for universal applications.</b>
+<b style="font-size: 32px;line-height: 32px;">A FBP-Inspired language for building universal applications.</b>
 <br />
 <em>Hlang aims to make programming easier, faster and more comfortable. It avoids coding, repetition and frustration.</em>
 <br />
