@@ -1,0 +1,34 @@
+/** Toast — transient glass confirmations, stacked bottom-center. */
+
+.hl-toast-stack {
+  position: fixed;
+  z-index: 70;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.hl-toast {
+  font-family: var(--hl-font-ui);
+  font-size: 12.5px;
+  color: var(--hl-ink);
+  background: var(--hl-glass-2);
+  backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  -webkit-backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  border: 1px solid var(--hl-line-strong);
+  border-radius: var(--hl-r-pill);
+  padding: 8px 16px;
+  box-shadow: var(--hl-glass-edge), 0 12px 28px -14px rgba(0, 0, 0, 0.8);
+  animation: hl-toast-in 0.18s var(--hl-ease);
+}
+@keyframes hl-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

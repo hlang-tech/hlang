@@ -1,0 +1,192 @@
+/**
+ * hlang node styling. Ports are anchored per-row: each row is `position:
+ * relative`, so the React Flow Handle (absolute, Left/Right) centers on its own
+ * row instead of the whole node — keeping every port, including @node/error,
+ * aligned to its label. No overflow:hidden on the node, or edge-anchored ports
+ * would be clipped; the signal bar rounds its own top corners.
+ */
+
+.hl-node {
+  --hl-kind: var(--hl-silver);
+  position: relative;
+  width: 208px;
+  border-radius: var(--hl-r-md);
+  /* Frosted glass card: translucent graphite + blur + a lit inner edge. */
+  background: var(--hl-glass);
+  backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  -webkit-backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  box-shadow: var(--hl-glass-edge), var(--hl-shadow-node);
+  color: var(--hl-ink);
+  font-family: var(--hl-font-ui);
+  /* Live dimension: idle nodes fade slightly. Default --hl-activity=1 (lit). */
+  opacity: calc(0.6 + 0.4 * var(--hl-activity));
+  transition: box-shadow 0.2s var(--hl-ease), opacity 0.3s var(--hl-ease),
+    transform 0.14s var(--hl-ease);
+}
+
+.hl-r { --hl-kind: var(--hl-r); }
+.hl-t { --hl-kind: var(--hl-t); }
+.hl-w { --hl-kind: var(--hl-w); }
+
+.hl-node:hover {
+  box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node);
+  transform: translateY(-1px);
+}
+
+/* Selection is SILVER (the primary accent), not the kind hue. */
+.hl-node.is-selected {
+  box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node), var(--hl-glow-silver);
+}
+
+.hl-node.is-error {
+  border-color: var(--hl-error);
+  box-shadow: var(--hl-shadow-node), 0 0 0 1px var(--hl-error),
+    0 0 18px -4px color-mix(in srgb, var(--hl-error) 70%, transparent);
+}
+
+/* --- Live execution state (driven imperatively by useLiveSignals) --- */
+/* A node lights with the cold spark when it emits during a run. */
+.hl-node.is-active {
+  box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node),
+    0 0 0 1px color-mix(in oklab, var(--hl-spark) 70%, transparent),
+    0 0 28px -6px var(--hl-spark);
+  animation: hl-node-pulse 0.7s var(--hl-ease);
+}
+@keyframes hl-node-pulse {
+  0% {
+    box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node),
+      0 0 0 2px var(--hl-spark), 0 0 36px -4px var(--hl-spark);
+  }
+}
+/* A node that threw during the run goes coral. */
+.hl-node.is-live-error {
+  box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node),
+    0 0 0 1px var(--hl-error),
+    0 0 22px -4px color-mix(in oklab, var(--hl-error) 75%, transparent);
+}
+
+/* Thin top signal bar — the node's kind, expressed with restraint */
+.hl-signal {
+  height: 2px;
+  border-top-left-radius: var(--hl-r-md);
+  border-top-right-radius: var(--hl-r-md);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--hl-kind) 30%,
+    var(--hl-kind) 70%,
+    transparent
+  );
+  opacity: 0.7;
+}
+
+.hl-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px 6px;
+}
+
+.hl-kind {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--hl-void);
+  background: var(--hl-kind);
+  border-radius: 3px;
+  padding: 1px 4px;
+  line-height: 1.4;
+}
+
+.hl-name {
+  font-size: 12px;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  color: var(--hl-ink);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hl-role {
+  font-size: 9px;
+  color: var(--hl-ink-3);
+}
+
+/* Optional custom body content (extension point). Empty by default. */
+.hl-body:empty {
+  display: none;
+}
+.hl-body {
+  padding: 0 11px 4px;
+}
+
+.hl-ports {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px 8px;
+  padding: 3px 0 9px;
+}
+
+.hl-col {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.hl-port {
+  position: relative; /* anchor for the absolutely-positioned Handle */
+  display: flex;
+  align-items: center;
+  height: 20px;
+  font-size: 10.5px;
+  color: var(--hl-ink-2);
+}
+
+.hl-in .hl-port { justify-content: flex-start; padding-left: 11px; }
+.hl-out .hl-port { justify-content: flex-end; padding-right: 11px; }
+
+.hl-port-label {
+  font-family: var(--hl-font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transition: color 0.15s var(--hl-ease);
+}
+.hl-port:hover .hl-port-label { color: var(--hl-ink); }
+.hl-port.is-error .hl-port-label {
+  color: color-mix(in srgb, var(--hl-error) 80%, var(--hl-ink-2));
+}
+
+/* Ports — small glowing nodes, kind-tinted, red for error. `value` ports are
+   hollow (change-only); `live` ports are filled (hot stream). */
+.hl-handle.hl-handle {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hl-void-2);
+  border: 1.5px solid var(--hl-kind);
+  box-shadow: 0 0 0 3px rgba(10, 11, 15, 0.9);
+  transition: box-shadow 0.15s var(--hl-ease), background 0.15s var(--hl-ease),
+    transform 0.12s var(--hl-ease);
+}
+.hl-handle.is-live {
+  background: color-mix(in srgb, var(--hl-kind) 60%, var(--hl-void-2));
+}
+.hl-port.is-error .hl-handle.hl-handle {
+  border-color: var(--hl-error);
+}
+.hl-node:hover .hl-handle.hl-handle {
+  box-shadow: 0 0 0 3px rgba(10, 11, 15, 0.9),
+    0 0 10px -1px color-mix(in srgb, var(--hl-kind) 80%, transparent);
+}
+.hl-handle.hl-handle:hover {
+  background: var(--hl-kind);
+  transform: scale(1.25);
+}
+.hl-port.is-error .hl-handle.hl-handle:hover {
+  background: var(--hl-error);
+}

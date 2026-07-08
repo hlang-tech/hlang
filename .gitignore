@@ -18,6 +18,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# lock files
-*.lock
-*-lock.*
+# AI
+/.playwright-mcp
+/.serena

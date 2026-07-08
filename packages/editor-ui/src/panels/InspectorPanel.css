@@ -1,0 +1,161 @@
+.hl-inspector {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 14px;
+  height: 100%;
+}
+
+.hl-inspector-empty {
+  align-items: center;
+  justify-content: center;
+}
+.hl-inspector-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--hl-ink-3);
+  text-align: center;
+}
+
+.hl-inspector-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--hl-line);
+}
+.hl-inspector-kind {
+  --hl-kind: var(--hl-silver);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--hl-void);
+  background: var(--hl-kind);
+  border-radius: 4px;
+  padding: 2px 6px;
+  line-height: 1.5;
+}
+.hl-inspector-kind.hl-r { --hl-kind: var(--hl-r); }
+.hl-inspector-kind.hl-t { --hl-kind: var(--hl-t); }
+.hl-inspector-kind.hl-w { --hl-kind: var(--hl-w); }
+.hl-inspector-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.hl-inspector-name {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--hl-ink);
+}
+.hl-inspector-role {
+  font-size: 10.5px;
+  color: var(--hl-ink-3);
+}
+
+.hl-inspector-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hl-inspector-section-title {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--hl-ink-3);
+}
+
+.hl-inspector-ports {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hl-inspector-port {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--hl-ink-2);
+}
+.hl-inspector-port.is-error {
+  color: color-mix(in srgb, var(--hl-error) 80%, var(--hl-ink-2));
+}
+.hl-port-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.hl-dir-i { background: var(--hl-ink-3); }
+.hl-dir-o { background: var(--hl-silver); }
+.hl-inspector-port.is-error .hl-port-dot { background: var(--hl-error); }
+.hl-inspector-port-dir {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--hl-ink-3);
+}
+
+/* Header preview thumbnail — image for assets, kind medallion otherwise. */
+.hl-inspector-preview {
+  --hl-kind: var(--hl-silver);
+  height: 132px;
+  border-radius: var(--hl-r-md);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg,
+    color-mix(in oklab, var(--hl-kind) 22%, var(--hl-surface-2)),
+    var(--hl-void-2));
+  box-shadow: var(--hl-glass-edge);
+}
+.hl-inspector-preview.hl-r { --hl-kind: var(--hl-r); }
+.hl-inspector-preview.hl-t { --hl-kind: var(--hl-t); }
+.hl-inspector-preview.hl-w { --hl-kind: var(--hl-w); }
+.hl-inspector-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hl-inspector-preview-badge {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: radial-gradient(circle at 32% 28%,
+    color-mix(in oklab, var(--hl-kind) 85%, white), var(--hl-kind) 75%);
+  color: var(--hl-void);
+  font-size: 17px;
+  font-weight: 700;
+  box-shadow: 0 0 18px -4px var(--hl-kind), var(--hl-glass-edge-hi);
+}
+
+/* Redesigned empty state — the first impression when nothing is selected. */
+.hl-inspector-blank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 0 8px;
+}
+.hl-inspector-blank-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: radial-gradient(circle at 30% 25%, var(--hl-silver-hi), var(--hl-silver-lo) 72%);
+  box-shadow: 0 0 16px -4px var(--hl-silver), var(--hl-glass-edge-hi);
+  opacity: 0.5;
+}
+.hl-inspector-blank-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--hl-ink-2);
+}

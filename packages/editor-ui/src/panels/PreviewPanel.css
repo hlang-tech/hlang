@@ -1,0 +1,47 @@
+/** PreviewPanel — a glass-framed result image, the graph's "output". */
+
+.hl-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 14px 0;
+}
+.hl-preview-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.hl-preview-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--hl-ink-3);
+}
+.hl-preview-status {
+  font-size: 10px;
+  color: var(--hl-silver);
+}
+
+.hl-preview-frame {
+  border-radius: var(--hl-r-md);
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background: var(--hl-void-2);
+  box-shadow: var(--hl-glass-edge), var(--hl-shadow-node);
+}
+.hl-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.hl-preview-placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  color: var(--hl-ink-3);
+  background: linear-gradient(135deg, var(--hl-surface-2), var(--hl-void-2));
+}

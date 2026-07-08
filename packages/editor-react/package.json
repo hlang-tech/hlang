@@ -1,0 +1,76 @@
+{
+  "name": "@hlang-org/editor-react",
+  "version": "1.0.0",
+  "description": "React bindings for the hlang visual editor: hooks and context over @hlang-org/editor-core, rendered with React Flow. No design styling — that lives in @hlang-org/editor-ui.",
+  "type": "commonjs",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "lib/index.js",
+  "module": "lib/index.mjs",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/index.d.mts",
+        "default": "./lib/index.mjs"
+      },
+      "require": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      }
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "keywords": [
+    "hlang",
+    "visual-programming-language",
+    "node-editor",
+    "react",
+    "react-flow",
+    "xyflow"
+  ],
+  "homepage": "https://github.com/hlang-tech/hlang#readme",
+  "contributors": [
+    "archer <qddegtya@gmail.com>",
+    "archersado <archersado@hotmail.com>"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "./node_modules/.bin/tsup",
+    "test": "./node_modules/.bin/jest --coverage",
+    "lint": "./node_modules/.bin/eslint \"src/**/*.ts\" \"src/**/*.tsx\" \"test/**/*.ts\" \"test/**/*.tsx\"",
+    "lint:pkg": "./node_modules/.bin/publint && ./node_modules/.bin/attw --pack",
+    "typecheck": "./node_modules/.bin/tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@hlang-org/editor-core": "file:../editor-core"
+  },
+  "peerDependencies": {
+    "@xyflow/react": "^12.0.0",
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.4",
+    "@testing-library/react": "^16.1.0",
+    "@types/jest": "^29.5.12",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@xyflow/react": "^12.11.1",
+    "eslint": "^9.15.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "publint": "^0.3.21",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "ts-jest": "^29.2.3",
+    "tsup": "^8.5.1",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.62.1"
+  }
+}

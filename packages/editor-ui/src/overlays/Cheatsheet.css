@@ -1,0 +1,107 @@
+/** Cheatsheet — a centered black/silver glass reference card. */
+
+.hl-cheat-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(6, 7, 9, 0.5);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.hl-cheat {
+  position: fixed;
+  z-index: 61;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(680px, calc(100vw - 48px));
+  max-height: calc(100vh - 96px);
+  overflow: auto;
+  padding: 20px 22px 24px;
+  background: var(--hl-glass-2);
+  backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  -webkit-backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  border: 1px solid var(--hl-line-strong);
+  border-radius: var(--hl-r-lg);
+  box-shadow: var(--hl-glass-edge), 0 32px 64px -28px rgba(0, 0, 0, 0.9);
+  animation: hl-cheat-in 0.16s var(--hl-ease);
+}
+@keyframes hl-cheat-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 8px)) scale(0.98);
+  }
+}
+
+.hl-cheat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.hl-cheat-title {
+  font-family: var(--hl-font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--hl-ink);
+  letter-spacing: 0.01em;
+}
+.hl-cheat-close {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  color: var(--hl-ink-3);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.hl-cheat-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--hl-ink);
+}
+
+.hl-cheat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px 28px;
+}
+.hl-cheat-group-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--hl-silver-lo);
+  margin: 0 0 8px;
+}
+.hl-cheat-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hl-cheat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.hl-cheat-label {
+  font-family: var(--hl-font-ui);
+  font-size: 12.5px;
+  color: var(--hl-ink-2);
+}
+.hl-cheat-keys {
+  flex: none;
+  font-size: 11px;
+  color: var(--hl-ink);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--hl-line-strong);
+  border-radius: 6px;
+  padding: 2px 7px;
+  white-space: nowrap;
+}

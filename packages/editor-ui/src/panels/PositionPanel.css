@@ -1,0 +1,87 @@
+/** PositionPanel — align cluster + X/Y coordinates, in the inspector. */
+
+.hl-position {
+  padding: 14px 16px 4px;
+  border-bottom: 1px solid var(--hl-line);
+}
+.hl-position-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--hl-silver-lo);
+  margin: 0 0 10px;
+}
+
+.hl-position-align {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
+  margin-bottom: 12px;
+}
+.hl-position-alignbtn {
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--hl-line);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--hl-ink-2);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.14s var(--hl-ease), color 0.14s var(--hl-ease), border-color 0.14s var(--hl-ease);
+}
+.hl-position-alignbtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--hl-ink);
+  border-color: color-mix(in oklab, var(--hl-silver) 40%, var(--hl-line-strong));
+}
+.hl-position-alignbtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.hl-position-coords {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.hl-position-field {
+  /* min-width:0 is load-bearing: without it the number input's intrinsic
+     min-width overflows the 1fr grid track and the second field spills past the
+     rail's right edge. */
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--hl-line-strong);
+  border-radius: var(--hl-r-sm);
+  padding: 0 9px;
+}
+.hl-position-field:focus-within {
+  border-color: color-mix(in oklab, var(--hl-silver) 45%, var(--hl-line-strong));
+}
+.hl-position-input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--hl-ink);
+  font-size: 12px;
+  outline: none;
+  /* strip number spinners */
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.hl-position-input::-webkit-outer-spin-button,
+.hl-position-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.hl-position-input:disabled {
+  color: var(--hl-ink-3);
+}
+.hl-position-axis {
+  font-size: 11px;
+  color: var(--hl-ink-3);
+}

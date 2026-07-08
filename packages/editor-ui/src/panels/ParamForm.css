@@ -1,0 +1,88 @@
+.hl-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hl-field-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--hl-ink-2);
+  letter-spacing: 0.01em;
+}
+
+.hl-input {
+  font-family: var(--hl-font-ui);
+  font-size: 12.5px;
+  color: var(--hl-ink);
+  background: var(--hl-void-2);
+  border: 1px solid var(--hl-line-strong);
+  border-radius: var(--hl-r-sm);
+  padding: 6px 9px;
+  width: 100%;
+  transition: border-color 0.15s var(--hl-ease);
+  resize: vertical;
+}
+.hl-input.hl-mono {
+  font-family: var(--hl-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.hl-input:hover {
+  border-color: color-mix(in oklab, var(--hl-silver) 30%, var(--hl-line-strong));
+}
+.hl-input:focus {
+  outline: none;
+  border-color: var(--hl-silver);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--hl-silver) 18%, transparent);
+}
+
+/* Toggle pill */
+.hl-toggle {
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid var(--hl-line-strong);
+  background: var(--hl-void-2);
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  align-self: flex-start;
+  transition: background 0.18s var(--hl-ease), border-color 0.18s var(--hl-ease);
+}
+.hl-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--hl-ink-3);
+  transition: transform 0.18s var(--hl-ease), background 0.18s var(--hl-ease);
+}
+.hl-toggle.is-on {
+  background: color-mix(in oklab, var(--hl-silver) 28%, var(--hl-void-2));
+  border-color: var(--hl-silver);
+}
+.hl-toggle.is-on .hl-toggle-knob {
+  transform: translateX(14px);
+  background: var(--hl-silver);
+}
+.hl-toggle:focus-visible {
+  outline: 2px solid var(--hl-silver);
+  outline-offset: 2px;
+}
+
+.hl-field-custom {
+  font-size: 12px;
+  color: var(--hl-ink-3);
+  padding: 6px 9px;
+  background: var(--hl-void-2);
+  border: 1px dashed var(--hl-line-strong);
+  border-radius: var(--hl-r-sm);
+}
