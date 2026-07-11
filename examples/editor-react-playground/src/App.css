@@ -6,6 +6,18 @@
  * further.
  */
 
+/* Hide every scrollbar app-wide while keeping regions scrollable — content that
+   overflows a short window scrolls, but no scrollbar chrome ever appears. One
+   global rule so no scroll region (rails, inspector, cheatsheet, outline,
+   asset grid, search, output) can drift and expose a native bar. React Flow
+   pans/zooms via transform, not native scrollbars, so this doesn't affect it. */
+* {
+  scrollbar-width: none; /* Firefox */
+}
+*::-webkit-scrollbar {
+  display: none; /* WebKit / Chromium / Electron */
+}
+
 /* --- Canvas wrapper: mode-driven cursor so pan vs select is felt, not just
    shown as a pressed button. Pan = grab/grabbing; select = default arrow. --- */
 .hl-canvas {
@@ -162,7 +174,8 @@
 }
 
 /* Left rail: a three-tab panel (Outline / Insert / Assets). The tab strip is
-   fixed at the top; the active tab body flexes and owns its own scroll. */
+   fixed at the top; the active tab body scrolls as a whole when the window is
+   short (hidden scrollbar), so its content is never squeezed. */
 .hl-leftrail {
   display: flex;
   flex-direction: column;
@@ -174,18 +187,30 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-/* Right stack: render preview over the inspector. */
+/* Right stack: render preview + position + inspector as one vertical column.
+   When the window gets short the whole column scrolls (hidden scrollbar) rather
+   than squeezing the square preview frame — every block keeps its natural
+   height. */
 .hl-rightstack {
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-}
-.hl-rightstack .hl-inspector {
-  flex: 1 1 auto;
-  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
+}
+/* All three blocks keep their intrinsic height; the column scrolls as a whole. */
+.hl-rightstack .hl-preview,
+.hl-rightstack .hl-position,
+.hl-rightstack .hl-inspector {
+  flex: none;
+}
+/* The inspector defaults to height:100% (to fill its own pane); inside the
+   scrolling column it must grow to its content instead, or it collapses. */
+.hl-rightstack .hl-inspector {
+  height: auto;
 }

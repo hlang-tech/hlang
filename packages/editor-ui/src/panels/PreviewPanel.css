@@ -5,6 +5,10 @@
   flex-direction: column;
   gap: 8px;
   padding: 14px 14px 0;
+  /* In a vertical flex host (right rail) the preview must not be squeezed by a
+     taller sibling (inspector) — otherwise the square frame collapses to a
+     sliver. It keeps its intrinsic height. */
+  flex: none;
 }
 .hl-preview-head {
   display: flex;
