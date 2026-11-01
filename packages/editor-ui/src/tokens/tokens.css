@@ -1,0 +1,100 @@
+/**
+ * @hlang-org/editor-ui — design tokens: "Liquid Glass · Black & Silver".
+ *
+ * A calm, expensive, tech-crafted language. Near-black graphite surfaces, a
+ * bright metallic SILVER as the single accent (selection, primary actions,
+ * resting edges), frosted-glass panels, and generous radii. The one bold,
+ * memorable element is the LIVING STREAM: a cold spark that travels a silver
+ * hairline edge only while a flow is actually running — something a static
+ * node board cannot do. Everything at rest stays quiet black/silver glass.
+ *
+ * All tokens are namespaced `--hl-*`. Override any subset under a scope class
+ * (see createTheme).
+ */
+
+:root {
+  /* Graphite surface ramp (near-black → raised) */
+  --hl-void: #08090b;
+  --hl-void-2: #0b0c0f;
+  --hl-surface: #0f1114;
+  --hl-surface-2: #15171c;
+  --hl-line: #212429;
+  --hl-line-strong: #2d323a;
+
+  /* Silver — the primary accent (metallic ramp) */
+  --hl-silver: #c8ccd4; /* base silver: selection, primary, resting edges */
+  --hl-silver-hi: #eef1f6; /* bright edge / highlight */
+  --hl-silver-lo: #7d828c; /* dim silver / secondary */
+
+  /* Frosted glass primitives */
+  --hl-glass: rgba(22, 24, 28, 0.55);
+  --hl-glass-2: rgba(28, 31, 37, 0.62);
+  --hl-glass-blur: 20px;
+  --hl-glass-sat: 1.1;
+  /* 1px inner light border that gives glass its lit edge */
+  --hl-glass-edge: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --hl-glass-edge-hi: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+
+  /* The single cold spark — ONLY for live/flowing signal, never resting UI */
+  --hl-spark: #a7c7ff;
+
+  /* Node-kind temperatures — muted/desaturated to sit in the silver world;
+     used as a small dot/icon on the node, not a large fill. */
+  --hl-r: #7fb8bd; /* Readable — a quiet source */
+  --hl-t: #9298c9; /* Transform — quiet processing */
+  --hl-w: #86bda2; /* Writable — quiet landing */
+  --hl-error: #d98a92; /* @node/error — muted coral */
+  --hl-warning: #e0b877; /* predictive edit-time diagnostic — muted amber */
+
+  /* Text (cool grey ramp) */
+  --hl-ink: #e8eaef;
+  --hl-ink-2: #9ba0aa;
+  --hl-ink-3: #656a74;
+
+  /* Type */
+  --hl-font-ui: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --hl-font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Radii / depth */
+  --hl-r-sm: 8px;
+  --hl-r-md: 12px;
+  --hl-r-lg: 16px;
+  --hl-r-pill: 999px;
+  /* Soft, expensive shadow (two-layer: contact + ambient) */
+  --hl-shadow-node: 0 1px 1px rgba(0, 0, 0, 0.4), 0 10px 30px -12px rgba(0, 0, 0, 0.75);
+  --hl-shadow-glass: 0 2px 4px rgba(0, 0, 0, 0.3), 0 16px 48px -20px rgba(0, 0, 0, 0.85);
+  /* Silver selection glow (subtle, not neon) */
+  --hl-glow-silver: 0 0 0 1px rgba(200, 204, 212, 0.5),
+    0 0 20px -4px rgba(200, 204, 212, 0.3);
+
+  --hl-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Live dimension — written imperatively per node/edge by useLiveSignals.
+     Defaults keep a static graph fully lit. */
+  --hl-activity: 1;
+  --hl-cost: 0;
+}
+
+/* Utility: numbers and codes align cleanly */
+.hl-mono {
+  font-family: var(--hl-font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Reusable frosted-glass surface — the material of panels, toolbars, popovers. */
+.hl-glass {
+  background: var(--hl-glass);
+  backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  -webkit-backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  box-shadow: var(--hl-glass-edge), var(--hl-shadow-glass);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hl-app *,
+  .hl-node *,
+  .hl-edge * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

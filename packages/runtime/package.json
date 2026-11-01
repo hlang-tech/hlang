@@ -1,43 +1,64 @@
 {
   "name": "@hlang-org/runtime",
   "version": "1.0.5",
-  "description": "A FBP-Inspired language for universal applications.",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "type": "commonjs",
-  "files": [
-    "lib"
-  ],
+  "description": "The hlang runtime: flow-based programming on RxJS streams. Readable, Transform, and Writable nodes connected through typed ports.",
   "keywords": [
+    "hlang",
+    "flow-based-programming",
     "fbp",
     "fbp-runtime",
-    "javascript",
-    "flow",
-    "creative-coding",
-    "fbp-protocol",
-    "flow-based-programming",
-    "visual-programming-language",
-    "flow-based",
-    "internal-dsl"
+    "dataflow",
+    "reactive",
+    "rxjs",
+    "streams",
+    "visual-programming-language"
   ],
-  "homepage": "https://github.com/hlang-tech/hlang#readme",
-  "scripts": {
-    "test": "npm run build && ./node_modules/.bin/jest --coverage --forceExit",
-    "build": "./node_modules/.bin/tsc -p tsconfig.json"
+  "homepage": "https://github.com/hlang-tech/hlang/tree/main/packages/runtime#readme",
+  "bugs": {
+    "url": "https://github.com/hlang-tech/hlang/issues"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hlang-tech/hlang.git",
+    "directory": "packages/runtime"
+  },
+  "license": "MIT",
+  "author": "hlang-tech",
   "contributors": [
-    "archer <qddegtya@gmail.com>",
+    "Archer <qddegtya@gmail.com>",
     "archersado <archersado@hotmail.com>"
   ],
-  "license": "MIT",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "jest --coverage --forceExit",
+    "build": "rm -rf lib && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf lib coverage",
+    "lint:pkg": "publint && attw --pack"
+  },
   "dependencies": {
     "rxjs": "^6.6.7",
-    "uuid": "^8.3.2"
+    "uuid": "^11.1.1"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@types/jest": "^29.5.12",
     "jest": "^29.7.0",
     "moment": "^2.29.1",
+    "publint": "^0.3.25",
     "rxjs": "^6.6.7",
     "ts-jest": "^29.2.3",
     "typescript": "^5.5.4"

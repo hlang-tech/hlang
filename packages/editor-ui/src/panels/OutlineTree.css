@@ -1,0 +1,208 @@
+/**
+ * OutlineTree — a nested layer tree. Group heads (topology sub-flows) expand to
+ * member rows. Per-type icons, hover-revealed visible/lock controls, and a
+ * solid silver highlight on the selected row.
+ */
+
+.hl-outline {
+  padding: 2px 10px 10px;
+  overflow-y: auto;
+  min-height: 0;
+}
+.hl-outline-empty {
+  padding: 12px;
+  font-size: 11px;
+  color: var(--hl-ink-3);
+}
+
+/* Group header (a sub-flow). */
+.hl-outline-grouphead {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  color: var(--hl-ink-2);
+  font-family: var(--hl-font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  border-radius: var(--hl-r-sm);
+  transition: background 0.14s var(--hl-ease), color 0.14s var(--hl-ease);
+}
+.hl-outline-grouphead:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--hl-ink);
+}
+.hl-outline-caret {
+  font-size: 9px;
+  color: var(--hl-ink-3);
+  transition: transform 0.16s var(--hl-ease);
+}
+.hl-outline-caret.is-open {
+  transform: rotate(90deg);
+}
+.hl-outline-groupname {
+  flex: 1;
+  text-align: left;
+}
+.hl-outline-count {
+  font-size: 10px;
+  color: var(--hl-ink-3);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--hl-r-pill);
+  padding: 0 7px;
+}
+
+/* Members of a Flow are a FLAT list, NOT a tree. hlang's graph is a DAG — the
+   nodes in a weakly-connected component are peers, and their real relationships
+   (edges, fan-in/out, feedback) live on the canvas, not here. So the outline
+   only expresses GROUPING (which Flow a node belongs to), with no parent/child
+   guide line or nesting indent that would imply a hierarchy that doesn't exist.
+   A small left inset just visually associates members with their group header. */
+.hl-outline-members {
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 0 0 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hl-outline-row {
+  display: flex;
+  align-items: center;
+  border-radius: var(--hl-r-sm);
+  transition: background 0.14s var(--hl-ease);
+}
+.hl-outline-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+/* Solid silver highlight when selected — full row, not a thin border. */
+.hl-outline-row.is-active {
+  background: linear-gradient(90deg,
+    color-mix(in oklab, var(--hl-silver) 26%, transparent),
+    color-mix(in oklab, var(--hl-silver) 14%, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hl-silver) 30%, transparent);
+}
+/* A hidden layer must stay READABLE, not vanish. Dim only the NAME (one step,
+   not 0.4 on the whole row) and let the persistent slash-eye badge carry the
+   state. Icon, controls, and selection highlight keep full contrast. */
+.hl-outline-row.is-hidden .hl-outline-name {
+  color: var(--hl-ink-3);
+  font-style: italic;
+}
+.hl-outline-row.is-hidden .hl-outline-icon {
+  opacity: 0.55;
+}
+
+.hl-outline-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 6px 6px 8px;
+  border: none;
+  background: transparent;
+  color: var(--hl-ink);
+  font-family: var(--hl-font-ui);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.hl-outline-icon {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  overflow: hidden;
+  color: var(--hl-void);
+  background: var(--hl-silver-lo);
+}
+.hl-outline-icon.hl-kind-r { background: var(--hl-r); }
+.hl-outline-icon.hl-kind-t { background: var(--hl-t); }
+.hl-outline-icon.hl-kind-w { background: var(--hl-w); }
+.hl-outline-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hl-outline-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Edit-time diagnostic marker in a row. */
+.hl-outline-diag {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+}
+.hl-outline-diag.hl-diag-warning {
+  color: var(--hl-warning);
+}
+.hl-outline-diag.hl-diag-error {
+  color: var(--hl-error);
+}
+
+/* Persistent state glyph inside the row (lock / slash-eye). Always visible when
+   its flag is on, so a hidden or locked layer is legible at rest — the state
+   doesn't hide behind hover. Silver so it reads as an intentional marker. */
+.hl-outline-badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--hl-silver);
+  opacity: 0.9;
+}
+
+/* Inline visible/lock controls — revealed on row hover or when selected. */
+.hl-outline-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 6px;
+  opacity: 0;
+  transition: opacity 0.14s var(--hl-ease);
+}
+.hl-outline-row:hover .hl-outline-controls,
+.hl-outline-row.is-active .hl-outline-controls,
+/* Keep controls visible whenever a flag is active, so the toggled-on state is
+   always operable and never hidden behind hover. */
+.hl-outline-row.is-hidden .hl-outline-controls,
+.hl-outline-row.is-locked .hl-outline-controls {
+  opacity: 1;
+}
+.hl-outline-ctl {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  color: var(--hl-ink-3);
+  border-radius: 5px;
+  cursor: pointer;
+  line-height: 1;
+}
+.hl-outline-ctl:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--hl-ink);
+}
+/* An engaged control (hidden/locked ON) reads in silver. */
+.hl-outline-ctl.is-active-ctl {
+  color: var(--hl-silver);
+}

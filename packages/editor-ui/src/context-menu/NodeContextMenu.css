@@ -1,0 +1,102 @@
+/**
+ * NodeContextMenu — a compact black/silver liquid-glass menu, matching the
+ * command palette's material. Frosted panel, silver active row, muted-coral
+ * destructive row, monospace shortcut hints.
+ */
+
+.hl-ctx-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.hl-ctx-menu {
+  position: fixed;
+  z-index: 41;
+  min-width: 192px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--hl-glass-2);
+  backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  -webkit-backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  border: 1px solid var(--hl-line-strong);
+  border-radius: var(--hl-r-md);
+  box-shadow: var(--hl-glass-edge), var(--hl-shadow-node),
+    0 20px 44px -22px rgba(0, 0, 0, 0.9);
+  outline: none;
+  animation: hl-ctx-in 0.13s var(--hl-ease);
+}
+@keyframes hl-ctx-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.hl-ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 9px;
+  border: none;
+  background: transparent;
+  color: var(--hl-ink);
+  font-family: var(--hl-font-ui);
+  font-size: 12.5px;
+  text-align: left;
+  border-radius: var(--hl-r-sm);
+  cursor: pointer;
+  transition: background 0.12s var(--hl-ease), color 0.12s var(--hl-ease);
+}
+/* Silver active row (keyboard/hover). */
+.hl-ctx-item.is-active {
+  background: color-mix(in oklab, var(--hl-silver) 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hl-silver) 26%, transparent);
+}
+.hl-ctx-item:disabled {
+  color: var(--hl-ink-3);
+  cursor: default;
+}
+.hl-ctx-item.is-danger {
+  color: var(--hl-error);
+}
+.hl-ctx-item.is-danger.is-active {
+  background: color-mix(in oklab, var(--hl-error) 20%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hl-error) 34%, transparent);
+}
+
+.hl-ctx-item-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  color: var(--hl-silver-lo);
+}
+.hl-ctx-item.is-danger .hl-ctx-item-icon {
+  color: var(--hl-error);
+}
+.hl-ctx-item.is-active .hl-ctx-item-icon {
+  color: var(--hl-silver-hi);
+}
+
+.hl-ctx-item-label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hl-ctx-item-key {
+  flex: none;
+  font-size: 11px;
+  color: var(--hl-ink-3);
+  letter-spacing: 0.02em;
+}
+.hl-ctx-item.is-active .hl-ctx-item-key {
+  color: var(--hl-ink-2);
+}

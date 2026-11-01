@@ -1,0 +1,48 @@
+/** ToolCluster — centred glass row of icon tools in the top bar. */
+
+.hl-toolcluster {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--hl-line);
+  border-radius: var(--hl-r-pill);
+}
+
+.hl-toolcluster-slot {
+  display: inline-flex;
+  align-items: center;
+}
+.hl-toolcluster-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 5px;
+  background: var(--hl-line-strong);
+}
+
+.hl-toolcluster-btn {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  color: var(--hl-ink-2);
+  border-radius: var(--hl-r-pill);
+  cursor: pointer;
+  transition: background 0.14s var(--hl-ease), color 0.14s var(--hl-ease);
+}
+.hl-toolcluster-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--hl-ink);
+}
+.hl-toolcluster-btn.is-active {
+  background: color-mix(in oklab, var(--hl-silver) 22%, transparent);
+  color: var(--hl-silver-hi);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hl-silver) 30%, transparent);
+}
+.hl-toolcluster-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

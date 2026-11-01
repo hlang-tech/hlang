@@ -1,0 +1,38 @@
+/** AssetGrid — two-column thumbnail grid of renders/assets. */
+
+.hl-assetgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 8px 12px 12px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.hl-assetgrid-cell {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  border: 1px solid var(--hl-line);
+  border-radius: var(--hl-r-sm);
+  overflow: hidden;
+  background: var(--hl-void-2);
+  cursor: pointer;
+  transition: border-color 0.14s var(--hl-ease), transform 0.14s var(--hl-ease);
+}
+.hl-assetgrid-cell:hover {
+  border-color: color-mix(in oklab, var(--hl-silver) 45%, var(--hl-line-strong));
+  transform: translateY(-1px);
+}
+.hl-assetgrid-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hl-assetgrid-empty {
+  padding: 14px 12px;
+  font-size: 11px;
+  color: var(--hl-ink-3);
+}
