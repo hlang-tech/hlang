@@ -131,6 +131,8 @@ export interface IRuntimeFlowOptions {
   readonly observer?: IRuntimeFlowObserver;
   /** Present when the run shares its thread (`@hlang-org/runtime` 2.2 and later). */
   readonly slice?: IRuntimeSliceOptions;
+  /** Present when messages are deep-frozen as they are sent (RFC 0001). */
+  readonly freezeMessages?: boolean;
 }
 
 /** A runtime `Flow`. `run` must be called with a Readable (R) root node. */

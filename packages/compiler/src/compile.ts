@@ -328,6 +328,8 @@ function runBody(plan: ExecutionPlan, localByCode: ReadonlyMap<string, string>):
           // Slicing is the host's choice, as in the interpreter: absent, the
           // flow delivers synchronously.
           property('slice', member(options, 'slice')),
+          // Freezing messages is the host's choice too (RFC 0001).
+          property('freezeMessages', member(options, 'freezeMessages')),
         ]),
       ]),
     ),

@@ -59,6 +59,7 @@ handle.dispose();
 | `options.env` | Environment label passed to every node. Default `'prod'`. |
 | `options.middleware` | Object passed to every node, for services such as a logger. |
 | `options.trace` | Report every delivery through `onDelivery`, with its timing. Default `false`: an untraced run reads no clock. |
+| `options.freezeMessages` | Deep-freeze the plain data in each message as it is sent, so a node that mutates what it received fails at once. Default `false`. |
 | `options.slice` | Share the thread: deliver in slices of at most `budgetMs` (default 5) and yield between them, so a graph that loops forever with no asynchronous step neither freezes a page nor starves a server, and `dispose()` can stop it. Default off: an unsliced run is fastest. Pass `{}` for the defaults. |
 
 It throws if a node `code` is not registered.

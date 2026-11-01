@@ -169,6 +169,12 @@ await flow.done; // every node has finished
 - Sending on a closed output throws.
 - A node in a feedback loop is one of its own senders, so its input does not end by itself: as in JavaFBP, a loop ends when one of its nodes closes its output.
 
+### Messages are immutable values
+
+Messages move between nodes without being copied, and one output can feed several inputs, so every branch receives the same object. A node therefore never mutates a message it received: it sends a new value instead, as with React and Redux state ([RFC 0001](../../rfcs/0001-bounded-connections.md)).
+
+`new Flow({ freezeMessages: true })` enforces this: the plain objects and arrays in each message are deep-frozen as they are sent, so a node that mutates what it received fails at once, in its own handler, and the other branches keep what was sent. It costs a walk of each message, so it is off by default; the editor turns it on. Typed arrays, buffers, maps, sets and class instances are not frozen; the rule applies to them all the same.
+
 ### Sharing the thread
 
 By default a flow delivers everything a send causes before the send returns. That is the fastest way to run, but work that never ends by itself, such as a feedback loop between Transforms with no asynchronous step (feedback is legal), then holds the thread for good: a page freezes, a server stops answering, and nothing can call `dispose`.

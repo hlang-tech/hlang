@@ -560,3 +560,20 @@ describe('bounded connections (RFC 0001)', () => {
     expect(stats.maxInFlight).toBe(5);
   });
 });
+
+describe('freezeMessages (RFC 0001)', () => {
+  it('passes it to the flow only when asked', () => {
+    const seen: IRuntimeFlowOptions[] = [];
+    const deps = makeDeps(r => {
+      r.register('src', ValueSourceNode);
+    });
+    const createFlow = (options: IRuntimeFlowOptions): IRuntimeFlow => {
+      seen.push(options);
+      return deps.createFlow(options);
+    };
+    const graph: IGraph = { nodeList: [rNode('r1', 'src', 'x')], connections: [] };
+    interpret(graph, { ...deps, createFlow }, { freezeMessages: true }).dispose();
+    interpret(graph, { ...deps, createFlow }).dispose();
+    expect(seen.map(options => options.freezeMessages)).toEqual([true, undefined]);
+  });
+});

@@ -76,6 +76,11 @@ export interface IInterpretOptions {
    * the send returns, which is fastest. Pass `{}` for the defaults.
    */
   readonly slice?: IRuntimeSliceOptions;
+  /**
+   * Deep-freeze the plain data in each message as it is sent, so a node that
+   * mutates what it received fails at once (RFC 0001). Off by default.
+   */
+  readonly freezeMessages?: boolean;
 }
 
 /**

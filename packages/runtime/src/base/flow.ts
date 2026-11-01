@@ -86,6 +86,14 @@ export interface FlowOptions {
    * defaults.
    */
   readonly slice?: SliceOptions;
+  /**
+   * Messages are immutable values (RFC 0001). With `true`, the plain objects
+   * and arrays in each message are deep-frozen as they are sent, so a node
+   * that mutates what it received fails at once, in its own handler, and
+   * the other branches of a fan-out keep what was sent. Off by default: it
+   * costs a walk of each message. The editor turns it on.
+   */
+  readonly freezeMessages?: boolean;
 }
 
 /** An input of this flow: its connections still open, and whether it has ended (RFC 0001). */
@@ -127,6 +135,7 @@ interface Started {
 export default class Flow {
   readonly #onError: FailureHandler | undefined;
   readonly #observer: FlowObserver | undefined;
+  readonly #freezeMessages: boolean;
   /** This flow's deliveries; no other flow waits on them. */
   readonly #deliveries: DeliveryQueue;
   /** The connections this flow has wired, by output and input port id. */
@@ -153,6 +162,7 @@ export default class Flow {
   constructor(options: FlowOptions = {}) {
     this.#onError = options.onError;
     this.#observer = options.observer;
+    this.#freezeMessages = options.freezeMessages ?? false;
     this.#deliveries = new DeliveryQueue(options.slice);
   }
 
@@ -207,6 +217,9 @@ export default class Flow {
     for (const node of nodes) {
       for (const port of this.#portsOf(node)) {
         portInternals.setFailureHandler(port, this.#onError);
+        if (this.#freezeMessages) {
+          portInternals.setFreeze(port, true);
+        }
         if (failed !== undefined) {
           portInternals.setFailureObserver(port, (error) => {
             this.#notify(() => {

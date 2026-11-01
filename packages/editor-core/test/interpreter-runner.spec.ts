@@ -157,4 +157,28 @@ describe('InterpreterGraphRunner (integration)', () => {
 
     expect(seen.map(options => options.slice)).toEqual([{}, undefined]);
   });
+
+  it('freezes messages by default, so a node that mutates what it received fails at once', () => {
+    class Source extends rt.ReadableNode {
+      constructor(opts: INodeConstructionOptions) {
+        super(opts);
+        rt.Port.O('Output').attach(this);
+      }
+    }
+    const registry = new RuntimeNodeRegistry().register('test-source', Source);
+    const graph = {
+      nodeList: [{ code: 'test-source', name: 'source', type: 'R' as const, nodeId: 'source', bizData: { params: {} } }],
+      connections: [],
+    };
+    const seen: IRuntimeFlowOptions[] = [];
+    const createFlow = (flowOptions: IRuntimeFlowOptions) => {
+      seen.push(flowOptions);
+      return new rt.Flow(flowOptions);
+    };
+
+    new InterpreterGraphRunner(registry, createFlow).run(graph).dispose();
+    new InterpreterGraphRunner(registry, createFlow, { freezeMessages: false }).run(graph).dispose();
+
+    expect(seen.map(options => options.freezeMessages)).toEqual([true, undefined]);
+  });
 });

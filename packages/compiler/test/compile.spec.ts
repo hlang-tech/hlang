@@ -277,6 +277,23 @@ describe('compile', () => {
     expect(JSON.parse(output)).toEqual([{ nodeId: 'f', error: 'bad:7' }]);
   });
 
+  it('passes freezeMessages to the flow, as the interpreter does', () => {
+    const graph: IGraph = {
+      nodeList: [node('a', 'source', 'R', { values: [{ count: 1 }] }), node('w', 'collect', 'W')],
+      connections: [link('a', 'w')],
+    };
+    const output = runCompiled(
+      compile(graph, { nodes: NODES }).code,
+      [
+        'const seen = [];',
+        'const handle = program.run({ freezeMessages: true, middleware: { record: (entry) => seen.push(Object.isFrozen(entry.value)) } });',
+        'handle.dispose();',
+        'console.log(JSON.stringify(seen));',
+      ].join('\n'),
+    );
+    expect(JSON.parse(output)).toEqual([true]);
+  });
+
   it('prints a bounded connection with its capacity and overflow', () => {
     const graph: IGraph = {
       nodeList: [node('a', 'source', 'R', { values: [1] }), node('w', 'collect', 'W')],

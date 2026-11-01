@@ -30,11 +30,19 @@ export interface InterpreterGraphRunnerOptions {
    * synchronously, which is fastest.
    */
   readonly slice?: IRuntimeSliceOptions | false;
+  /**
+   * Deep-freeze messages as they are sent (RFC 0001). Default `true`: a node
+   * that mutates what it received fails at once in the editor, where graphs
+   * are built, instead of corrupting another branch's data. `false` skips
+   * the walk of each message.
+   */
+  readonly freezeMessages?: boolean;
 }
 
 export class InterpreterGraphRunner implements IGraphRunner {
   private readonly trace: boolean;
   private readonly slice: IRuntimeSliceOptions | undefined;
+  private readonly freezeMessages: boolean;
 
   constructor(
     private readonly registry: IRuntimeNodeRegistry,
@@ -43,13 +51,18 @@ export class InterpreterGraphRunner implements IGraphRunner {
   ) {
     this.trace = options.trace ?? true;
     this.slice = options.slice === false ? undefined : (options.slice ?? {});
+    this.freezeMessages = options.freezeMessages ?? true;
   }
 
   run(graph: IGraph): IExecutionHandle {
     const handle = interpret(
       graph,
       { registry: this.registry, createFlow: this.createFlow },
-      { trace: this.trace, ...(this.slice === undefined ? {} : { slice: this.slice }) },
+      {
+        trace: this.trace,
+        freezeMessages: this.freezeMessages,
+        ...(this.slice === undefined ? {} : { slice: this.slice }),
+      },
     );
     return {
       onError: listener => handle.onError(listener),

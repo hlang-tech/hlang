@@ -75,7 +75,8 @@ export function run(options = {}) {
         throw error;
       });
     },
-    slice: options.slice
+    slice: options.slice,
+    freezeMessages: options.freezeMessages
   });
   flow.run(nodes["a"]);
   return {
