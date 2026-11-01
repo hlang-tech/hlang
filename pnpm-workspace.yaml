@@ -1,0 +1,7 @@
+packages:
+  - "packages/*"
+  - "examples/*"
+
+# Allow install scripts only for dependencies that need a native build step.
+onlyBuiltDependencies:
+  - esbuild

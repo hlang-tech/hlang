@@ -29,9 +29,9 @@
     "lib"
   ],
   "scripts": {
-    "test": "./node_modules/.bin/jest --coverage --forceExit --detectOpenHandles",
-    "build": "./node_modules/.bin/tsc -p tsconfig.json",
-    "watch": "./node_modules/.bin/tsc -p tsconfig.json -w"
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf lib coverage",
+    "test:e2e": "jest --coverage --forceExit --detectOpenHandles"
   },
   "dependencies": {
     "@hset/hit": "^1.0.4",

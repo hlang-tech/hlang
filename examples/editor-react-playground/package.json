@@ -5,16 +5,17 @@
   "description": "A minimal Vite playground that drives @hlang-org/editor-react end-to-end. Plain React Flow styling — the design system arrives with @hlang-org/editor-ui.",
   "type": "module",
   "scripts": {
-    "dev": "vite --force",
+    "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@hlang-org/editor-core": "file:../../packages/editor-core",
-    "@hlang-org/editor-react": "file:../../packages/editor-react",
-    "@hlang-org/editor-ui": "file:../../packages/editor-ui",
-    "@hlang-org/interpreter": "file:../../packages/interpreter",
-    "@hlang-org/runtime": "^1.0.5",
+    "@hlang-org/editor-core": "workspace:*",
+    "@hlang-org/editor-react": "workspace:*",
+    "@hlang-org/editor-ui": "workspace:*",
+    "@hlang-org/interpreter": "workspace:*",
+    "@hlang-org/runtime": "workspace:*",
     "@xyflow/react": "^12.11.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

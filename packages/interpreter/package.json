@@ -42,14 +42,15 @@
   ],
   "license": "MIT",
   "scripts": {
-    "build": "./node_modules/.bin/tsup",
-    "test": "./node_modules/.bin/jest --coverage",
-    "lint": "./node_modules/.bin/eslint \"src/**/*.ts\" \"test/**/*.ts\"",
-    "lint:pkg": "./node_modules/.bin/publint && ./node_modules/.bin/attw --pack",
-    "typecheck": "./node_modules/.bin/tsc -p tsconfig.json --noEmit"
+    "build": "tsup",
+    "test": "jest --coverage",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint:pkg": "publint && attw --pack",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf lib coverage"
   },
   "dependencies": {
-    "@hlang-org/runtime": "^1.0.5",
+    "@hlang-org/runtime": "workspace:^",
     "rxjs": "^6.6.7"
   },
   "devDependencies": {

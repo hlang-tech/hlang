@@ -22,8 +22,10 @@
   ],
   "homepage": "https://github.com/hlang-tech/hlang#readme",
   "scripts": {
-    "test": "npm run build && ./node_modules/.bin/jest --coverage --forceExit",
-    "build": "./node_modules/.bin/tsc -p tsconfig.json"
+    "test": "jest --coverage --forceExit",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf lib coverage"
   },
   "contributors": [
     "archer <qddegtya@gmail.com>",
