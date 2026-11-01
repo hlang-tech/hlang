@@ -1,5 +1,11 @@
 <p align="center">
-  <img src="./media/brand/readme-banner.svg" alt="hlang — flow-based programming on live streams" width="100%">
+  <img src="./media/brand/readme-banner.svg" alt="hlang — A FBP-Inspired language for building universal applications." width="100%">
+</p>
+
+<p align="center">
+  <b>A FBP-Inspired language for building universal applications.</b>
+  <br />
+  <em>Hlang aims to make programming easier, faster and more comfortable. It avoids coding, repetition and frustration.</em>
 </p>
 
 <p align="center">

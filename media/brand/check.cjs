@@ -11,7 +11,11 @@ const root = path.resolve(__dirname, '../..');
 const logo = fs.readFileSync(path.join(root, 'media/logo.png')).toString('base64');
 const href = `href="data:image/png;base64,${logo}"`;
 
-const files = ['readme-banner.svg', 'social-card.svg', 'logo-construction.svg', 'avatar.svg'];
+const packageBanners = fs
+  .readdirSync(path.join(__dirname, 'packages'))
+  .filter((name) => name.endsWith('.svg'))
+  .map((name) => `packages/${name}`);
+const files = ['readme-banner.svg', 'social-card.svg', 'logo-construction.svg', 'avatar.svg', ...packageBanners];
 for (const name of files) {
   const svg = fs.readFileSync(path.join(__dirname, name), 'utf8');
   assert.ok(svg.includes(href), `media/brand/${name}: the embedded mark differs from media/logo.png`);
