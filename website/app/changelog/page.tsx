@@ -8,6 +8,7 @@ import { SITE } from '@/lib/site';
 export const metadata: Metadata = {
   title: 'Changelog',
   description: 'Every release of every hlang package, from the changelogs Changesets writes.',
+  alternates: { canonical: '/changelog' },
 };
 
 export default async function ChangelogPage() {

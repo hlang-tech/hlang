@@ -5,6 +5,7 @@ import { getApiPackages, getNeighbours } from '@/lib/docs';
 export const metadata: Metadata = {
   title: 'API reference',
   description: 'The public API of every hlang package, generated from source by TypeDoc.',
+  alternates: { canonical: '/docs/api' },
 };
 
 export default function ApiIndex() {

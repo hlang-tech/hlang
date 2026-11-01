@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Backends } from '@/components/home/Backends';
 import { Band } from '@/components/home/Band';
 import { BuiltOn } from '@/components/home/BuiltOn';
@@ -6,6 +7,8 @@ import { Intro } from '@/components/home/Intro';
 import { LumenSection } from '@/components/home/LumenSection';
 import { Packages } from '@/components/home/Packages';
 import { Start } from '@/components/home/Start';
+
+export const metadata: Metadata = { alternates: { canonical: '/' } };
 
 export default function HomePage() {
   return (
