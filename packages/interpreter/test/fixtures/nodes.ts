@@ -163,6 +163,27 @@ export class EchoTransformNode extends TransformNode {
   }
 }
 
+/**
+ * A T node that counts what it forwards into `counter` and forwards all of it:
+ * two of them wired in a cycle loop forever with no asynchronous step.
+ */
+export function makeLoopTransform(counter: { count: number }): NodeConstructor {
+  class LoopTransformNode extends TransformNode {
+    constructor(opts: INodeConstructionOptions) {
+      super(opts);
+      Port.I('Input').attach(this);
+      Port.O('Output').attach(this);
+    }
+    override _transform(i: PortAccessor, o: PortAccessor): void {
+      i('Input').receive((payload: unknown) => {
+        counter.count += 1;
+        o('Output').send(payload);
+      });
+    }
+  }
+  return LoopTransformNode;
+}
+
 /** A W sink whose handler throws `failure` for every message. */
 export function makeThrowingSink(failure: Error): NodeConstructor {
   class ThrowingSinkNode extends WriteableNode {

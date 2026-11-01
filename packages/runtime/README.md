@@ -114,6 +114,25 @@ A node holds its own options and ports and nothing else: it cannot reach the flo
 
 Transform nodes can form cycles, so a graph can contain feedback loops. Bound a feedback loop, for example with `take` or a counter, so it ends.
 
+### Sharing the thread
+
+By default a flow delivers everything a send causes before the send returns. That is the fastest way to run, but work that never ends by itself, such as a feedback loop between Transforms with no asynchronous step (feedback is legal), then holds the thread for good: a page freezes, a server stops answering, and nothing can call `dispose`.
+
+`slice` makes the flow share the thread, as React's scheduler does: it delivers for at most `budgetMs` (default 5) per task, then yields and carries on in a later task, in the same order.
+
+```ts
+const flow = new Flow({ slice: {} }); // or { budgetMs: 2 }
+flow.run(source);
+// The loop runs in slices; the rest of the program keeps running, and this stops it.
+flow.dispose();
+```
+
+- The budget belongs to a task, not to one send: a source that sends a million values in one loop has its later values queued for the next slices.
+- Order is unchanged: messages on a connection arrive in the order they were sent, and messages sent while a flow is paused wait their turn.
+- Each flow has its own queue, so a paused flow never holds up another.
+- The next slice runs in a macrotask in any JavaScript runtime: `setImmediate` in Node.js and Bun, a `MessageChannel` message in browsers, Deno, and workers, `setTimeout` otherwise. Pass `yieldTo` (and `now`) to choose another.
+- The cost is one clock read per delivery, measured at 28 ns on Node.js 24. With handlers that do almost nothing (`value + 1`), throughput was 21% lower than synchronous delivery; the share falls as handlers do real work. Synchronous delivery, the default, is unchanged.
+
 ### Stopping a flow
 
 A flow owns the nodes it starts, and `flow.dispose()` ends them. `_read`, `_transform`, and `_write` may return a teardown: a function that releases what the node acquired, such as a timer or a socket. `dispose`:

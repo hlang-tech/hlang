@@ -270,7 +270,8 @@ function runBody(plan: ExecutionPlan, localByCode: ReadonlyMap<string, string>):
     );
   }
 
-  // 4. Run every Readable root. As in the interpreter, the flow reports a
+  // 4. Run every Readable root. As in the interpreter, `options.slice` makes
+  //    the flow share its thread, and the flow reports a
   //    Writable's handler failure (it has no error port) to `onError` with the
   //    node's id; a failure it cannot attribute is rethrown asynchronously.
   const element = (array: Expression, position: number): MemberExpression => ({
@@ -317,6 +318,9 @@ function runBody(plan: ExecutionPlan, localByCode: ReadonlyMap<string, string>):
               ]),
             ),
           ),
+          // Slicing is the host's choice, as in the interpreter: absent, the
+          // flow delivers synchronously.
+          property('slice', member(options, 'slice')),
         ]),
       ]),
     ),

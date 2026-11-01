@@ -21,6 +21,7 @@ import {
   makeTeardownSource,
   makePairSink,
   makeThrowingSink,
+  makeLoopTransform,
 } from './fixtures/nodes';
 
 /** Build interpreter deps from the real runtime Flow + a fresh registry. */
@@ -467,5 +468,44 @@ describe('tracing', () => {
     await expect(rethrown).resolves.toBe(failure);
     vi.restoreAllMocks();
     handle.dispose();
+  });
+});
+
+describe('slicing', () => {
+  it('runs a graph that loops forever without holding the thread, and stops it on dispose', async () => {
+    const counter = { count: 0 };
+    const deps = makeDeps(r => {
+      r.register('src', ValueSourceNode);
+      r.register('loop', makeLoopTransform(counter));
+    });
+    const graph: IGraph = {
+      nodeList: [rNode('r1', 'src', 1), tNode('a', 'loop'), tNode('b', 'loop')],
+      connections: [edge('r1', 'a'), edge('a', 'b'), edge('b', 'a')],
+    };
+
+    const handle = interpret(graph, deps, { slice: { budgetMs: 1 } });
+    await new Promise(resolve => setTimeout(resolve, 30));
+    const running = counter.count;
+    expect(running).toBeGreaterThan(0);
+
+    handle.dispose();
+    const stopped = counter.count;
+    await new Promise(resolve => setTimeout(resolve, 30));
+    expect(counter.count).toBe(stopped);
+  });
+
+  it('hands the flow no slicing unless asked', () => {
+    const seen: IRuntimeFlowOptions[] = [];
+    const deps = makeDeps(r => {
+      r.register('src', ValueSourceNode);
+    });
+    interpret({ nodeList: [rNode('r1', 'src', 'x')], connections: [] }, {
+      ...deps,
+      createFlow: options => {
+        seen.push(options);
+        return deps.createFlow(options);
+      },
+    }).dispose();
+    expect(seen.map(options => options.slice)).toEqual([undefined]);
   });
 });

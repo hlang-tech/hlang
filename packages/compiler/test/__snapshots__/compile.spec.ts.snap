@@ -117,7 +117,8 @@ export function run(options = {}) {
       queueMicrotask(() => {
         throw error;
       });
-    }
+    },
+    slice: options.slice
   });
   flow.run(nodes["numbers"]);
   flow.run(nodes["words"]);

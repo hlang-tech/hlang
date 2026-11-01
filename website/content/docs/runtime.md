@@ -44,6 +44,8 @@ Every connection delivers through one first-in, first-out queue, so the call sta
 
 `new Flow().run(readable)` collects the nodes reachable from the Readable root. It starts the Writable nodes first, then the Transform nodes, then the root, so every subscriber exists before data is sent. `run` throws if its argument is not a Readable node; run each Readable root of a graph.
 
+`new Flow({ slice: {} })` makes a flow share its thread: it delivers for at most `budgetMs` (default 5) per task, then yields and continues in a later task, in the same order. A feedback loop with no asynchronous step then neither freezes a page nor starves a server, and `dispose` can stop it. The cost is one clock read per delivery; synchronous delivery stays the default. The interpreter and compiled programs take the same `slice` option, and the editor slices its runs by default.
+
 `flow.dispose()` ends the nodes the flow started. It cuts the flow's connections, runs the teardowns that `_read`, `_transform` and `_write` may return (a function that clears a timer or closes a socket), the last started first, then completes the nodes' ports, which ends every subscription on them. It can be called more than once and from inside a handler; `run` throws on a disposed flow.
 
 ```js file=runtime.mjs
