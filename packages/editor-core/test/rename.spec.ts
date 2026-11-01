@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { createEditorCore } from '../src';
 import { AddNodeCommand, RenameNodeCommand } from '../src';
 import { readableDescriptor } from './fixtures/descriptors';

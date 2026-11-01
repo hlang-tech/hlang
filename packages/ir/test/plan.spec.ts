@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { planGraph, GraphError, ERROR_PORT_NAME } from '../src';
 import type { IGraph, INodeInfo, IConnection, NodeKind } from '../src';
 

@@ -2,6 +2,7 @@
  * Model <-> React Flow conversion, with the O->I direction invariant.
  */
 
+import { describe, it, expect } from 'vitest';
 import type { EditorEdge, EditorNode } from '@hlang-org/editor-core';
 import type { Connection } from '@xyflow/react';
 import { toRFNode, toRFEdge, endpointsFromConnection } from '../src/mapping/convert';

@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { cloneNodesWithEdges } from '../src';
 import { CountingIdGenerator } from '../src';
 import type { EditorEdge, EditorNode, ParamBag } from '../src';

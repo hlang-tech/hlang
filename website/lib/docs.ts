@@ -57,7 +57,19 @@ function requireString(data: Readonly<Record<string, unknown>>, key: string, fil
   return value;
 }
 
+/** A guide's file name becomes its URL segment, so it is held to a plain slug. */
+const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function slugOf(file: string): string {
+  const slug = file.replace(/\.md$/, '');
+  if (!SLUG.test(slug)) {
+    throw new Error(`${file}: a guide's file name must be a slug (lowercase letters, digits, single hyphens)`);
+  }
+  return slug;
+}
+
 function readGuide(file: string): Guide {
+  const slug = slugOf(file);
   const source = fs.readFileSync(path.join(DOCS_DIR, file), 'utf8');
   const { data, content } = matter(source);
   const fields: Readonly<Record<string, unknown>> = data;
@@ -71,7 +83,7 @@ function readGuide(file: string): Guide {
   }
   const pkg = fields['package'];
   return {
-    slug: file.replace(/\.md$/, ''),
+    slug,
     title: requireString(fields, 'title', file),
     description: requireString(fields, 'description', file),
     group,

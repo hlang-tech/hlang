@@ -4,6 +4,7 @@
  * -> @hlang-org/runtime). Proves the whole authoring-to-execution seam.
  */
 
+import { describe, it, expect } from 'vitest';
 import * as runtime from '@hlang-org/runtime';
 import { NodeRegistry as RuntimeNodeRegistry } from '@hlang-org/interpreter';
 import type {

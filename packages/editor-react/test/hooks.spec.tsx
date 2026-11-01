@@ -3,7 +3,8 @@
  * Uses @testing-library/react's renderHook against a real EditorCore.
  */
 
-import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, afterEach } from 'vitest';
+import { renderHook, act, cleanup } from '@testing-library/react';
 import type { Connection } from '@xyflow/react';
 import { AddNodeCommand } from '@hlang-org/editor-core';
 import { useGraphSync } from '../src/hooks/useGraphSync';
@@ -17,6 +18,10 @@ import { useDiagnostics } from '../src/hooks/useDiagnostics';
 import { useReconnect } from '../src/hooks/useReconnect';
 import { ConnectCommand } from '@hlang-org/editor-core';
 import { makeCore } from './fixtures/core';
+
+// Testing Library unmounts after each test only through an explicit cleanup
+// when the test API is imported rather than global.
+afterEach(cleanup);
 
 describe('useGraphSync', () => {
   it('reflects nodes/edges and re-renders when the model changes', () => {

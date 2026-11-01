@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { createEditorCore, planInsertOnEdge, distanceToSegment } from '../src';
 import { AddNodeCommand, ConnectCommand } from '../src';
 import { readableDescriptor, transformDescriptor, writableDescriptor } from './fixtures/descriptors';

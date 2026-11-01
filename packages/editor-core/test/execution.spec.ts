@@ -4,6 +4,7 @@
  * @xyflow — proving the core stays framework-agnostic.
  */
 
+import { describe, it, expect } from 'vitest';
 import {
   ServiceCollection,
   InstantiationService,

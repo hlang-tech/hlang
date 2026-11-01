@@ -11,11 +11,7 @@ export interface ISortedNodeMap {
 
 const run = (G: Graph<IPortDesc, Node>) => {
   return (sortedNodes: ISortedNodeMap, flow: Flow) => {
-    const adjList = G.adjList;
-
-    const edges = (id) => {
-      return adjList.getRow(id);
-    };
+    const edges = (id: string) => G.edgesFrom(id);
 
     const pipe = (edge) => {
       const { src: _src, dst: _dst } = edge;
@@ -31,8 +27,8 @@ const run = (G: Graph<IPortDesc, Node>) => {
       flow.cache.set(_cacheKey, edge);
     };
 
-    const pipeWithEdges = (_pipe) => (_edges: Map<string, IPortDesc>) => {
-      for (const [_k, edge] of _edges) {
+    const pipeWithEdges = (_pipe) => (_edges: IPortDesc[]) => {
+      for (const edge of _edges) {
         _pipe(edge);
       }
     };
@@ -52,7 +48,7 @@ const run = (G: Graph<IPortDesc, Node>) => {
     sortedNodes.t.forEach((node) => {
       node.attach(flow);
 
-      _p(edges(node.id) as Map<string, IPortDesc>);
+      _p(edges(node.id));
 
       const executeOnce = node.executeOnce.bind(
         node,
@@ -68,7 +64,7 @@ const run = (G: Graph<IPortDesc, Node>) => {
     sortedNodes.r.forEach((node) => {
       node.attach(flow);
 
-      _p(edges(node.id) as Map<string, IPortDesc>);
+      _p(edges(node.id));
 
       const executeOnce = node.executeOnce.bind(node, 'read', node.O);
 
