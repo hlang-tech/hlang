@@ -16,6 +16,8 @@ pnpm check
 
 `pnpm check` builds every package, then runs type checking, ESLint, and the tests. CI runs the same command.
 
+Tests run on [Vitest](https://vitest.dev) with V8 coverage. Each package's `vitest.config.mts` sets a coverage floor at its measured level; a change that lowers coverage fails the tests. Raise a floor when tests grow, and never lower one.
+
 ## Repository layout
 
 | Path | Contents |

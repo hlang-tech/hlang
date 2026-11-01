@@ -13,9 +13,13 @@ export default defineConfig({
     clearMocks: true,
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/**/index.ts', 'src/**/*.spec.{ts,tsx}', 'src/**/*.d.ts'],
+      // Presentation (`*.tsx`) is verified in the browser, not here; coverage
+      // measures the logic modules.
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/index.ts', 'src/**/*.spec.ts', 'src/**/*.d.ts'],
       reportsDirectory: 'coverage',
+      // The measured floor. Raise it as tests grow; never lower it.
+      thresholds: { statements: 42, branches: 49, functions: 37, lines: 42 },
     },
   },
 });
