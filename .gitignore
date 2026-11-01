@@ -34,3 +34,5 @@ website/*.tsbuildinfo
 
 # Vercel project link (vercel link)
 .vercel/
+website/test-results/
+website/playwright-report/

@@ -4,6 +4,7 @@
     "target": "es2017",
     "module": "commonjs",
     "outDir": "./lib",
+    "rootDir": "./src",
     "strict": true,
     "noImplicitAny": false,
     "experimentalDecorators": true,
@@ -22,7 +23,8 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "inlineSourceMap": true,
-    "importHelpers": true,
+    // Inline the interop helpers: tslib is not a dependency of this package.
+    "importHelpers": false,
     "inlineSources": true,
     "declaration": true
   },

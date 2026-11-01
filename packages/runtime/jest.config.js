@@ -6,6 +6,10 @@ module.exports = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
   preset: 'ts-jest',
+  // Tests compile with the test config, which names the jest globals.
+  transform: {
+    '^.+\\.ts$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.test.json' }],
+  },
   // Stop running tests after `n` failures
   // bail: 0,
 

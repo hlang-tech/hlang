@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useId, useState } from 'react';
 import { CloseIcon, GitHubMark, MenuIcon } from '@/components/icons';
+import { Search } from '@/components/Search';
 import { ThemeToggle } from '@/components/ThemeProvider';
 import { NAV, SITE } from '@/lib/site';
 
@@ -71,6 +72,7 @@ export function SiteHeader() {
               );
             })}
           </ul>
+          <Search />
           <ThemeToggle />
           <a
             href={SITE.repository}

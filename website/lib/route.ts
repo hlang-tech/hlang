@@ -10,9 +10,17 @@ export interface Point {
   readonly y: number;
 }
 
+/**
+ * A point on a route. A junction is a corner where another route branches
+ * off: it stays square, so the branch leaves exactly at the junction's dot.
+ */
+export interface RoutePoint extends Point {
+  readonly junction?: true;
+}
+
 /** Drops points that repeat or sit on a straight run, so every kept point is a real corner. */
-function corners(points: readonly Point[]): Point[] {
-  const kept: Point[] = [];
+function corners(points: readonly RoutePoint[]): RoutePoint[] {
+  const kept: RoutePoint[] = [];
   for (const point of points) {
     const last = kept[kept.length - 1];
     if (last !== undefined && Math.abs(last.x - point.x) < 0.5 && Math.abs(last.y - point.y) < 0.5) {
@@ -24,6 +32,7 @@ function corners(points: readonly Point[]): Point[] {
         (Math.abs(before.x - last.x) < 0.5 && Math.abs(last.x - point.x) < 0.5) ||
         (Math.abs(before.y - last.y) < 0.5 && Math.abs(last.y - point.y) < 0.5);
       if (straight) {
+        // A junction on a straight run is a pass-through, not a corner.
         kept[kept.length - 1] = point;
         continue;
       }
@@ -33,8 +42,11 @@ function corners(points: readonly Point[]): Point[] {
   return kept;
 }
 
-/** The SVG path of an orthogonal route, each corner rounded with `radius` (less on short runs). */
-export function orthogonalPath(points: readonly Point[], radius = 10): string {
+/**
+ * The SVG path of an orthogonal route, each corner rounded with `radius` (less
+ * on short runs) except junctions, which stay square.
+ */
+export function orthogonalPath(points: readonly RoutePoint[], radius = 10): string {
   const route = corners(points);
   const first = route[0];
   if (first === undefined) {
@@ -48,7 +60,7 @@ export function orthogonalPath(points: readonly Point[], radius = 10): string {
     if (point === undefined || previous === undefined) {
       continue;
     }
-    if (next === undefined) {
+    if (next === undefined || point.junction === true) {
       parts.push('L', point.x, point.y);
       continue;
     }

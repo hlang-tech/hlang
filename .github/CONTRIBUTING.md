@@ -62,8 +62,8 @@ Releases are made from a `release/<version>` branch.
 
 1. `pnpm changeset version` applies the pending changesets: it bumps versions and writes the changelogs.
 2. `pnpm check && pnpm lint:pkg` must pass.
-3. Merge into `main`, tag the release, and merge `main` back into `develop`.
-4. `pnpm release` publishes the `@hlang-org/*` packages. `pnpm release:mirror` publishes identical builds under `@hlang-tech/*`.
+3. Merge into `main` and merge `main` back into `develop`.
+4. The push to `main` runs the [release workflow](./workflows/release.yml). It publishes every version the registry does not have yet under `@hlang-org/*` and the identical `@hlang-tech/*` mirror, tags each one, and creates its GitHub Release from the changelog. npm trusts the workflow (trusted publishing), so no token or one-time password is needed, and every version carries a provenance attestation. The same push deploys the website.
 
 Packages at `0.x` (the Lumen editor packages) can change their API in a minor release.
 
