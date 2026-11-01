@@ -1,7 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import type { CSSProperties } from 'react';
+import { ArrowUpRight } from '@/components/icons';
 import { SectionHeader } from '@/components/SectionHeader';
-import { enter } from '@/lib/enter';
 
 interface Case {
   readonly name: string;
@@ -49,53 +50,91 @@ const CASES: readonly Case[] = [
   },
 ];
 
+/** Each folder's color; the tab and its sheet share it, so they read as one piece. */
+const TONES: readonly { readonly sheet: string; readonly fill: string }[] = [
+  { sheet: 'bg-surface', fill: 'fill-surface' },
+  { sheet: 'bg-surface-2', fill: 'fill-surface-2' },
+  { sheet: 'bg-surface-3', fill: 'fill-surface-3' },
+];
+
+/** Header height plus a gap, then one tab height per folder already stacked. */
+const STACK_TOP = 77;
+const TAB_STEP = 56;
+
+type StackStyle = CSSProperties & Record<'--stack-top', string>;
+
+/** Where folder `index` sticks, and its place in the stack. */
+function stackStyle(index: number): StackStyle {
+  return { '--stack-top': `${String(STACK_TOP + index * TAB_STEP)}px`, zIndex: index + 1 };
+}
+
 export function BuiltOn() {
   return (
-    <section id="built-on-hlang" aria-labelledby="built-on-title" className="frame scroll-mt-20 py-28 md:py-36">
+    <section id="built-on-hlang" aria-labelledby="built-on-title" className="frame scroll-mt-20 py-20 md:py-36">
       <SectionHeader
         id="built-on-title"
         title="Built on hlang"
         lead="Anything that produces an IGraph can run it with the interpreter or ship it with the compiler, so each product builds its own surface on the same engine."
       />
-      <ul className="mt-14 grid gap-3 lg:grid-cols-3">
-        {CASES.map((item, index) => (
-          <li
-            key={item.name}
-            className="grid min-w-0 overflow-hidden rounded-panel bg-surface ring-1 ring-line ring-inset md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:grid-cols-1 lg:grid-rows-[auto_1fr]"
-            data-enter
-            style={enter(index)}
-          >
-            <div className="p-2 sm:p-2.5 md:pr-0 lg:pr-2.5">
-              <div className="relative overflow-hidden rounded-[calc(var(--radius-panel)-10px)]">
-                <Image
-                  src={item.image.src}
-                  alt={item.image.alt}
-                  width={item.image.width}
-                  height={item.image.height}
-                  sizes="(min-width: 1024px) 31vw, (min-width: 768px) 52vw, 100vw"
-                  quality={92}
-                  className="block aspect-[16/10] w-full object-cover"
-                />
-                <span aria-hidden className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-line ring-inset" />
-              </div>
-            </div>
-            <div className="flex min-w-0 flex-col p-6 md:p-7">
-              <p className="text-xs text-muted">{item.context}</p>
-              <h3 className="mt-2 text-m font-semibold tracking-[-0.02em]">{item.name}</h3>
-              <p className="mt-4 text-s">{item.description}</p>
-              <p className="mt-auto pt-6">
-                <Link
-                  href={item.link.href}
-                  {...(item.link.href.startsWith('http') ? { target: '_blank', rel: 'noreferrer' } : {})}
-                  className="text-s font-medium underline decoration-silver-lo underline-offset-4 transition-colors hover:decoration-ink"
+      <div className="mt-14 space-y-3 md:space-y-0">
+        {CASES.map((item, index) => {
+          const tone = TONES[index % TONES.length] ?? { sheet: 'bg-surface', fill: 'fill-surface' };
+          const external = item.link.href.startsWith('http');
+          return (
+            <article
+              key={item.name}
+              aria-labelledby={`case-${String(index)}`}
+              // The offset applies only where the folders stick; in normal flow it would shift them.
+              className="relative md:sticky md:top-(--stack-top)"
+              style={stackStyle(index)}
+            >
+              {/* The folder tab: a rounded top-left corner and a curved shoulder into the sheet. */}
+              <div className="flex items-end">
+                <h3
+                  id={`case-${String(index)}`}
+                  className={`flex h-12 items-center whitespace-nowrap rounded-tl-[18px] pl-5 pr-1 text-[clamp(18px,5vw,24px)] font-semibold tracking-[-0.02em] sm:pl-6 ${tone.sheet}`}
                 >
-                  {item.link.label}
-                </Link>
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
+                  {item.name}
+                </h3>
+                <svg aria-hidden viewBox="0 0 44 48" preserveAspectRatio="none" className={`-ml-px h-12 w-11 shrink-0 ${tone.fill}`}>
+                  <path d="M0 0 C 18 0 22 48 44 48 L 0 48 Z" />
+                </svg>
+                <p className="ml-auto hidden min-w-0 truncate pb-3.5 pl-6 text-xs text-muted sm:block">{item.context}</p>
+              </div>
+              <div className={`rounded-b-panel rounded-tr-panel ${tone.sheet}`}>
+                <div className="grid gap-8 p-3 pb-7 sm:p-4 sm:pb-8 md:min-h-[min(78svh,760px)] md:grid-cols-12 md:items-center md:gap-6 md:p-6">
+                  <figure className="min-w-0 md:col-span-7">
+                    <div className="relative overflow-hidden rounded-[calc(var(--radius-panel)-8px)]">
+                      <Image
+                        src={item.image.src}
+                        alt={item.image.alt}
+                        width={item.image.width}
+                        height={item.image.height}
+                        sizes="(min-width: 768px) 56vw, 100vw"
+                        quality={92}
+                        className="block aspect-[16/10] w-full object-cover"
+                      />
+                      <span aria-hidden className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-line ring-inset" />
+                    </div>
+                  </figure>
+                  <div className="min-w-0 px-2 sm:px-3 md:col-span-4 md:col-start-9 md:px-0">
+                    <p className="text-xs text-muted sm:hidden">{item.context}</p>
+                    <p className="mt-3 text-s sm:mt-0">{item.description}</p>
+                    <Link
+                      href={item.link.href}
+                      {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
+                      className="group mt-6 inline-flex items-center gap-1.5 text-s font-medium underline decoration-silver-lo underline-offset-4 transition-colors hover:decoration-ink"
+                    >
+                      {item.link.label}
+                      {external ? <ArrowUpRight className="text-muted transition-transform duration-150 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /> : null}
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
     </section>
   );
 }
