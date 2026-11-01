@@ -7,12 +7,14 @@
 
 import type { ReactElement } from 'react';
 import type { EdgeId, EditorCore, Endpoint } from '@hlang-org/editor-core';
+import { useReadOnly } from '@hlang-org/editor-react';
 import { boundsFields, nextBounds } from '../edges/edge-bounds';
 import { useEdgeBounds } from '../hooks/useEdgeBounds';
 import { ParamForm } from './ParamForm';
 
 export function ConnectionInspector({ core, edgeId }: { readonly core: EditorCore; readonly edgeId: EdgeId }): ReactElement | null {
   const { edge, setBounds } = useEdgeBounds(core, edgeId);
+  const readOnly = useReadOnly(core);
   if (edge === undefined) {
     return null;
   }
@@ -36,6 +38,7 @@ export function ConnectionInspector({ core, edgeId }: { readonly core: EditorCor
         </p>
         <ParamForm
           fields={boundsFields(edge)}
+          disabled={readOnly}
           onCommit={(key, value) => {
             setBounds(nextBounds(edge, key, value));
           }}

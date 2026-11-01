@@ -1,0 +1,35 @@
+/** ReadOnlyBadge — a quiet pill in the toolbar: the graph is view only. */
+
+.hl-readonly-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 4px 10px 4px 8px;
+  border: 1px solid var(--hl-line);
+  border-radius: var(--hl-r-pill);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--hl-ink-2);
+  font-family: var(--hl-font-ui);
+  font-size: 11.5px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+.hl-readonly-badge svg {
+  flex: none;
+  color: var(--hl-silver);
+}
+
+@container hl-toolbar (max-width: 419px) {
+  .hl-readonly-badge {
+    padding: 6px;
+  }
+  .hl-readonly-badge-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

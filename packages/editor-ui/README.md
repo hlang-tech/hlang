@@ -52,9 +52,9 @@ See the [playground](https://github.com/hlang-tech/hlang/tree/main/examples/edit
 | Area | Exports |
 | --- | --- |
 | Nodes and edges | `HlangNode`, `AssetNodeChrome`, `PillNodeChrome`, `NodeChrome`, `PortRow`, `SignalBar`, `NodeBodySlot`, `FlowEdge`, `createHlangFlowTypes` |
-| Shell and toolbar | `EditorShell`, `Toolbar`, `UndoRedo`, `RunButton`, `ToolbarStat`, `ToolbarGhostButton`, `ToolCluster` |
+| Shell and toolbar | `EditorShell`, `Toolbar`, `UndoRedo`, `RunButton`, `ToolbarStat`, `ToolbarGhostButton`, `ToolCluster`, `ReadOnlyBadge` |
 | Canvas | `CanvasChrome`, `CanvasDock`, `EmptyState` |
-| Panels | `OutlineTree`, `RailTabs`, `AssetGrid`, `InspectorPanel`, `ParamForm`, `PositionPanel`, `PreviewPanel`, `DiagnosticBadge` |
+| Panels | `OutlineTree`, `RailTabs`, `AssetGrid`, `InspectorPanel`, `ParamForm`, `PositionPanel`, `PreviewPanel`, `DiagnosticBadge`, `RunLog`, `PanelHead`, `PanelAction` |
 | Creating nodes | `NodeSearch`, `useNodeSearch`, `useNodeSearchTriggers` (double-click the canvas, or drop a connection on empty space) |
 | Interaction | `useEditorHotkeys`, `NodeContextMenu`, `useNodeContextMenu`, `NodeInteractionProvider`, `Cheatsheet`, `ToastProvider` |
 | Live execution | `LiveSignalProvider`, `LiveSignalStore`, `useLiveSignals`, `useNodeLiveState`, `useEdgeFlowing` |
@@ -63,6 +63,14 @@ See the [playground](https://github.com/hlang-tech/hlang/tree/main/examples/edit
 ### Keyboard shortcuts
 
 `useEditorHotkeys(core)` binds undo (`⌘Z`), redo (`⇧⌘Z` or `⌘Y`), copy, cut, paste, duplicate (`⌘D`), select all (`⌘A`), and delete (`Delete` or `Backspace`). `Ctrl` replaces `⌘` on Windows and Linux. Shortcuts are ignored while a text field has focus.
+
+### Read-only editors
+
+When the core is read-only (`core.mode`), the inspector, the connection inspector and the position panel disable their fields, and the node-search triggers open nothing. Pass `readOnly` to `CanvasDock` to keep only its view controls, and leave `rename` out of `NodeInteraction` so a node's name cannot be edited in place. `ReadOnlyBadge` says so in the toolbar.
+
+### Panel headers
+
+`PanelHead` and `PanelAction` respond to the header's own width, not the window's: a narrow header shows its actions as icons (the labels stay their accessible names and tooltips) and then drops its status.
 
 ### Live execution
 

@@ -13,7 +13,7 @@ import { useCallback, useEffect, useReducer } from 'react';
 import type { ReactElement } from 'react';
 import type { EditorCore, EditorNode } from '@hlang-org/editor-core';
 import { MoveNodeCommand } from '@hlang-org/editor-core';
-import { useSelection } from '@hlang-org/editor-react';
+import { useReadOnly, useSelection } from '@hlang-org/editor-react';
 import './PositionPanel.css';
 
 export interface PositionPanelProps {
@@ -48,6 +48,7 @@ export function PositionPanel({ core, livePosition }: PositionPanelProps): React
   // re-renders us every frame (its live node list updates), so reading
   // `livePosition` here reflects the in-flight position continuously.
   useSelection(core);
+  const readOnly = useReadOnly(core);
   const [, bump] = useReducer((n: number) => n + 1, 0);
   useEffect(() => {
     const kinds = ['nodeChanged', 'nodeAdded', 'nodeRemoved'] as const;
@@ -126,7 +127,7 @@ export function PositionPanel({ core, livePosition }: PositionPanelProps): React
     [core, single],
   );
 
-  const disabled = nodes.length === 0;
+  const disabled = readOnly || nodes.length === 0;
   const alignButtons: readonly { kind: Align; label: string; d: string }[] = [
     { kind: 'left', label: 'Align left', d: 'M5 4v16M9 8h8M9 16h5' },
     { kind: 'hcenter', label: 'Align centre', d: 'M12 4v16M8 9h8M9 15h6' },
@@ -161,7 +162,7 @@ export function PositionPanel({ core, livePosition }: PositionPanelProps): React
             type="number"
             className="hl-position-input hl-mono"
             value={shownPos !== undefined ? Math.round(shownPos.x) : ''}
-            disabled={single === undefined}
+            disabled={readOnly || single === undefined}
             onChange={e => setCoord('x', Number(e.target.value))}
             aria-label="X position"
           />
@@ -172,7 +173,7 @@ export function PositionPanel({ core, livePosition }: PositionPanelProps): React
             type="number"
             className="hl-position-input hl-mono"
             value={shownPos !== undefined ? Math.round(shownPos.y) : ''}
-            disabled={single === undefined}
+            disabled={readOnly || single === undefined}
             onChange={e => setCoord('y', Number(e.target.value))}
             aria-label="Y position"
           />

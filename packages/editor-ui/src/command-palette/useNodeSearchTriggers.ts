@@ -10,6 +10,9 @@
  *     only for the pane, never for nodes/edges/handles) rather than a raw DOM
  *     double-click, so this never reaches into React Flow's internal markup.
  *
+ * A read-only editor (`core.mode.readOnly`) opens nothing: the palette only
+ * adds nodes, which a read-only graph refuses.
+ *
  * Screen→flow coordinate conversion uses the React Flow instance, so created
  * nodes land under the pointer regardless of pan/zoom. This hook must be used
  * within a `ReactFlowProvider` (React Flow's own requirement for `useReactFlow`).
@@ -84,7 +87,7 @@ export function useNodeSearchTriggers(
       const start = startRef.current;
       startRef.current = null;
       // Only act when the drag ended in empty space (no destination node/handle).
-      if (connectionState.toNode !== null || start === null) {
+      if (core.mode.readOnly || connectionState.toNode !== null || start === null) {
         return;
       }
       if (start.nodeId === null || start.handleId === null || start.handleType === null) {
@@ -118,6 +121,9 @@ export function useNodeSearchTriggers(
 
   const onPaneClick = useCallback(
     (event: PointerPosition): void => {
+      if (core.mode.readOnly) {
+        return;
+      }
       const t = now();
       const isDouble = t - lastPaneClickRef.current <= doubleClickMs;
       lastPaneClickRef.current = t;
@@ -128,7 +134,7 @@ export function useNodeSearchTriggers(
       const screen = { x: event.clientX, y: event.clientY };
       search.openBlank(screen, flow.screenToFlowPosition(screen));
     },
-    [flow, search, doubleClickMs, now],
+    [core, flow, search, doubleClickMs, now],
   );
 
   return { onConnectStart, onConnectEnd, onPaneClick };

@@ -230,3 +230,54 @@ describe('useNodeSearchTriggers — double-click on empty pane', () => {
     expect(result.current.search.state).toBeUndefined();
   });
 });
+
+describe('useNodeSearchTriggers — a read-only editor', () => {
+  it('opens nothing: neither a link released into empty space nor a double-click', () => {
+    const core = makeCore();
+    const src = addSource(core);
+    core.mode.setReadOnly(true);
+    let t = 1000;
+    const { result } = renderHook(() => {
+      const search = useNodeSearch(core);
+      const triggers = useNodeSearchTriggers(core, search, { now: () => t, doubleClickMs: 300 });
+      return { search, triggers };
+    });
+
+    act(() => {
+      result.current.triggers.onConnectStart(pointerEvent(0, 0), { nodeId: src.id, handleId: 'Output', handleType: 'source' });
+      result.current.triggers.onConnectEnd(pointerEvent(400, 300), releasedInEmptySpace());
+    });
+    expect(result.current.search.state).toBeUndefined();
+
+    act(() => {
+      result.current.triggers.onPaneClick({ clientX: 10, clientY: 10 });
+    });
+    t = 1100;
+    act(() => {
+      result.current.triggers.onPaneClick({ clientX: 10, clientY: 10 });
+    });
+    expect(result.current.search.state).toBeUndefined();
+  });
+
+  it('opens again once the editor is editable', () => {
+    const core = makeCore();
+    core.mode.setReadOnly(true);
+    let t = 1000;
+    const { result } = renderHook(() => {
+      const search = useNodeSearch(core);
+      const triggers = useNodeSearchTriggers(core, search, { now: () => t, doubleClickMs: 300 });
+      return { search, triggers };
+    });
+    act(() => {
+      core.mode.setReadOnly(false);
+    });
+    act(() => {
+      result.current.triggers.onPaneClick({ clientX: 10, clientY: 10 });
+    });
+    t = 1100;
+    act(() => {
+      result.current.triggers.onPaneClick({ clientX: 10, clientY: 10 });
+    });
+    expect(result.current.search.state).toBeDefined();
+  });
+});

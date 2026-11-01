@@ -1,6 +1,7 @@
 /** RunLog — the live console of a running graph, docked under the canvas. */
 
 .hl-runlog {
+  container: hl-runlog / inline-size;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -9,64 +10,6 @@
   border-top: 1px solid var(--hl-line);
 }
 
-.hl-runlog-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 7px 12px 7px 16px;
-  border-bottom: 1px solid var(--hl-line);
-  flex: none;
-}
-.hl-runlog-title {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--hl-silver);
-}
-.hl-runlog-count {
-  font-size: 11px;
-  color: var(--hl-ink-3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
-}
-.hl-runlog-actions {
-  display: flex;
-  gap: 4px;
-  margin-left: auto;
-  flex: none;
-}
-.hl-runlog-toggle {
-  padding: 3px 9px;
-  border: 1px solid var(--hl-line);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--hl-ink-3);
-  font-family: var(--hl-font-ui);
-  font-size: 11px;
-  font-weight: 550;
-  cursor: pointer;
-  max-width: 180px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: background 0.14s var(--hl-ease), color 0.14s var(--hl-ease);
-}
-.hl-runlog-toggle:hover:not(:disabled) {
-  color: var(--hl-ink-2);
-}
-.hl-runlog-toggle.is-on {
-  color: var(--hl-ink);
-  background: color-mix(in oklab, var(--hl-silver) 16%, transparent);
-  border-color: color-mix(in oklab, var(--hl-silver) 28%, transparent);
-}
-.hl-runlog-toggle:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-.hl-runlog-toggle:focus-visible,
 .hl-runlog-hit:focus-visible {
   outline: 1px solid var(--hl-silver);
   outline-offset: -1px;
@@ -160,7 +103,8 @@
   color: var(--hl-warning);
 }
 
-@media (max-width: 720px) {
+/* A narrow log puts the value on its own line. */
+@container hl-runlog (max-width: 720px) {
   .hl-runlog-hit {
     grid-template-columns: 56px minmax(0, 1fr) 56px;
   }

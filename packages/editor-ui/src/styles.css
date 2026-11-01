@@ -18,6 +18,7 @@
 @import './shell/EditorShell.css';
 @import './toolbar/Toolbar.css';
 @import './toolbar/ToolCluster.css';
+@import './toolbar/ReadOnlyBadge.css';
 @import './canvas/CanvasChrome.css';
 @import './canvas/CanvasDock.css';
 @import './canvas/EmptyState.css';
@@ -28,6 +29,7 @@
 @import './panels/RailTabs.css';
 @import './panels/AssetGrid.css';
 @import './panels/PositionPanel.css';
+@import './panels/PanelHead.css';
 @import './panels/RunLog.css';
 @import './command-palette/NodeSearch.css';
 @import './context-menu/NodeContextMenu.css';

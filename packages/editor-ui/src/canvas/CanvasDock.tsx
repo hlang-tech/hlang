@@ -4,6 +4,10 @@
  * glass language. It replaces React Flow's default corner Controls + MiniMap
  * with one calm, centred dock.
  *
+ * A read-only dock (`readOnly`) keeps only the view controls (zoom, fit):
+ * undo, redo, the pointer modes and add-node all change the graph or exist
+ * to edit it.
+ *
  * Presentation only: it renders buttons and the current zoom %, and calls back
  * to the host for every action. It holds no React Flow or graph state — the host
  * wires the callbacks to `useReactFlow()` (zoom/fit) and the node search (add).
@@ -31,6 +35,8 @@ export interface CanvasDockProps {
   readonly onRedo: () => void;
   readonly canUndo: boolean;
   readonly canRedo: boolean;
+  /** Show the view controls only: the graph cannot be edited. */
+  readonly readOnly?: boolean;
 }
 
 function CursorIcon(): ReactElement {
@@ -88,50 +94,55 @@ export function CanvasDock({
   onRedo,
   canUndo,
   canRedo,
+  readOnly = false,
 }: CanvasDockProps): ReactElement {
   const pct = `${String(Math.round(zoom * 100))}%`;
   return (
     <div className="hl-dock" role="toolbar" aria-label="Canvas tools">
-      <button
-        className="hl-dock-btn"
-        onClick={onUndo}
-        disabled={!canUndo}
-        title="Undo (⌘Z)"
-        aria-label="Undo"
-      >
-        <UndoIcon />
-      </button>
-      <button
-        className="hl-dock-btn"
-        onClick={onRedo}
-        disabled={!canRedo}
-        title="Redo (⌘⇧Z)"
-        aria-label="Redo"
-      >
-        <RedoIcon />
-      </button>
-      <span className="hl-dock-sep" aria-hidden />
-      <button
-        className={'hl-dock-btn' + (mode === 'select' ? ' is-active' : '')}
-        onClick={() => onModeChange('select')}
-        title="Select (V)"
-        aria-pressed={mode === 'select'}
-      >
-        <CursorIcon />
-      </button>
-      <button
-        className={'hl-dock-btn' + (mode === 'pan' ? ' is-active' : '')}
-        onClick={() => onModeChange('pan')}
-        title="Pan (Space)"
-        aria-pressed={mode === 'pan'}
-      >
-        <HandIcon />
-      </button>
-      <button className="hl-dock-btn hl-dock-add" onClick={onAdd} title="Add node">
-        <PlusIcon />
-      </button>
+      {readOnly ? null : (
+        <>
+          <button
+            className="hl-dock-btn"
+            onClick={onUndo}
+            disabled={!canUndo}
+            title="Undo (⌘Z)"
+            aria-label="Undo"
+          >
+            <UndoIcon />
+          </button>
+          <button
+            className="hl-dock-btn"
+            onClick={onRedo}
+            disabled={!canRedo}
+            title="Redo (⌘⇧Z)"
+            aria-label="Redo"
+          >
+            <RedoIcon />
+          </button>
+          <span className="hl-dock-sep" aria-hidden />
+          <button
+            className={'hl-dock-btn' + (mode === 'select' ? ' is-active' : '')}
+            onClick={() => onModeChange('select')}
+            title="Select (V)"
+            aria-pressed={mode === 'select'}
+          >
+            <CursorIcon />
+          </button>
+          <button
+            className={'hl-dock-btn' + (mode === 'pan' ? ' is-active' : '')}
+            onClick={() => onModeChange('pan')}
+            title="Pan (Space)"
+            aria-pressed={mode === 'pan'}
+          >
+            <HandIcon />
+          </button>
+          <button className="hl-dock-btn hl-dock-add" onClick={onAdd} title="Add node">
+            <PlusIcon />
+          </button>
 
-      <span className="hl-dock-sep" aria-hidden />
+          <span className="hl-dock-sep" aria-hidden />
+        </>
+      )}
 
       <button className="hl-dock-btn" onClick={onZoomOut} title="Zoom out" aria-label="Zoom out">
         <span className="hl-dock-glyph">−</span>
