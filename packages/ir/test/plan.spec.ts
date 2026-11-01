@@ -78,6 +78,17 @@ describe('planGraph', () => {
     expect(planGraph(graph).roots).toEqual(['r1', 'r2']);
   });
 
+  it('accepts a Transform connected to itself: iteration, as any T<->T feedback', () => {
+    const graph: IGraph = {
+      nodeList: [node('r1', 'R'), node('t1', 'T')],
+      connections: [link('r1', 't1'), link('t1', 't1', 'again', 'in')],
+    };
+    expect(planGraph(graph).connections).toContainEqual({
+      source: { nodeId: 't1', portId: 'again' },
+      target: { nodeId: 't1', portId: 'in' },
+    });
+  });
+
   it('allows an error port as a connection source', () => {
     const graph: IGraph = {
       nodeList: [node('a', 'R'), node('b', 'W')],
