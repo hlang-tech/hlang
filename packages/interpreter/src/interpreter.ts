@@ -17,12 +17,17 @@ import type { INodeRegistry } from './registry';
 import type {
   FlowFactory,
   INodeConstructionOptions,
+  IRuntimeFlowOptions,
   IRuntimeNode,
   IStopSignal,
 } from './runtime-contract';
 import type {
   IDisposable,
   INodeActivityEvent,
+  INodeDeliveryEvent,
+  INodeDroppedEvent,
+  INodeEndedEvent,
+  INodeFinishedEvent,
   IExecutionHandle,
   IInterpretOptions,
   INodeErrorEvent,
@@ -36,6 +41,11 @@ export interface IInterpreterDeps {
 }
 
 const DEFAULT_ENV = 'prod';
+
+/** How many recent activity events a listener attached after the run still sees. */
+const ACTIVITY_REPLAY = 200;
+/** How many recent deliveries a listener attached after the run still sees. */
+const DELIVERY_REPLAY = 500;
 
 /** Deterministic-enough flow id without pulling in a uuid dependency. */
 function generateFlowId(): string {
@@ -108,6 +118,10 @@ export function interpret(
     return instance;
   };
   const roots = plan.roots.map(nodeOf);
+  const nodeIdOf = new Map<IRuntimeNode, string>();
+  for (const [nodeId, instance] of instances) {
+    nodeIdOf.set(instance, nodeId);
+  }
 
   // 2. Subscribe error ports BEFORE running so synchronous errors are captured.
   //    A ReplaySubject buffers errors emitted during `flow.run` so that
@@ -134,7 +148,7 @@ export function interpret(
   //     which never emit) also light up. Error ports are skipped (onError).
   //     A bounded ReplaySubject buffers recent activity so a listener attached
   //     after `interpret` returns still sees the (synchronous) run's emissions.
-  const activityStream = new ReplaySubject<INodeActivityEvent>(200);
+  const activityStream = new ReplaySubject<INodeActivityEvent>(ACTIVITY_REPLAY);
   const observed = new Set<string>();
   for (const { source, target } of plan.connections) {
     if (source.portId === ERROR_PORT_NAME) {
@@ -155,25 +169,95 @@ export function interpret(
   }
 
   // 3. Wire connections: source.O(portId).connect(target.I(portId)).
-  for (const { source, target } of plan.connections) {
-    nodeOf(source.nodeId).O(source.portId).connect(nodeOf(target.nodeId).I(target.portId));
+  //    A bounded connection passes its capacity and overflow (RFC 0001).
+  for (const { source, target, capacity, overflow } of plan.connections) {
+    const input = nodeOf(target.nodeId).I(target.portId);
+    const output = nodeOf(source.nodeId).O(source.portId);
+    if (capacity === undefined) {
+      output.connect(input);
+    } else {
+      output.connect(input, overflow === undefined ? { capacity } : { capacity, overflow });
+    }
   }
 
   // 4. Run every Readable root. The runtime subscribes downstream (W->T->R)
   //    and R pushes last, so data flows on demand once run.
-  const flow = createFlow();
+  //    The flow reports a Writable's handler failure (it has no error port)
+  //    through `onError`, and, when the run is traced, every delivery.
+  const deliveryStream = new ReplaySubject<INodeDeliveryEvent>(DELIVERY_REPLAY);
+  const endedStream = new ReplaySubject<INodeEndedEvent>(DELIVERY_REPLAY);
+  const finishedStream = new ReplaySubject<INodeFinishedEvent>(DELIVERY_REPLAY);
+  const droppedStream = new ReplaySubject<INodeDroppedEvent>(DELIVERY_REPLAY);
+  const flowOptions: IRuntimeFlowOptions = {
+    onError: (error, node) => {
+      const nodeId = node === null ? undefined : nodeIdOf.get(node);
+      if (nodeId === undefined) {
+        // Not a node of this graph: rethrow asynchronously, as the runtime
+        // does without a handler, so the failure is never lost.
+        queueMicrotask(() => {
+          throw error;
+        });
+        return;
+      }
+      errorStream.next({ nodeId, error });
+    },
+    ...(options.slice === undefined ? {} : { slice: options.slice }),
+    ...(options.freezeMessages === true ? { freezeMessages: true } : {}),
+    ...(options.trace === true
+      ? {
+          observer: {
+            delivered: ({ source, sourcePort, target, targetPort, message, duration }) => {
+              const sourceNodeId = nodeIdOf.get(source);
+              const targetNodeId = nodeIdOf.get(target);
+              if (sourceNodeId !== undefined && targetNodeId !== undefined) {
+                deliveryStream.next({
+                  sourceNodeId,
+                  sourcePortId: sourcePort,
+                  targetNodeId,
+                  targetPortId: targetPort,
+                  message,
+                  duration,
+                });
+              }
+            },
+            ended: ({ node, port }) => {
+              const nodeId = nodeIdOf.get(node);
+              if (nodeId !== undefined) {
+                endedStream.next({ nodeId, portId: port });
+              }
+            },
+            finished: ({ node }) => {
+              const nodeId = nodeIdOf.get(node);
+              if (nodeId !== undefined) {
+                finishedStream.next({ nodeId });
+              }
+            },
+            dropped: ({ source, sourcePort, target, targetPort, message }) => {
+              const sourceNodeId = nodeIdOf.get(source);
+              const targetNodeId = nodeIdOf.get(target);
+              if (sourceNodeId !== undefined && targetNodeId !== undefined) {
+                droppedStream.next({ sourceNodeId, sourcePortId: sourcePort, targetNodeId, targetPortId: targetPort, message });
+              }
+            },
+          },
+        }
+      : {}),
+  };
+  const flow = createFlow(flowOptions);
   for (const root of roots) {
     flow.run(root);
   }
 
-  return createHandle(flowId, roots, instances, errorStream, activityStream, () => {
-    // Stop: signal nodes to cancel long-lived work, run onStop callbacks, and
-    // unsubscribe the interpreter's own port observations.
+  return createHandle(flowId, roots, instances, { errorStream, activityStream, deliveryStream, endedStream, finishedStream, droppedStream }, () => {
+    // Stop: signal nodes to cancel long-lived work, run onStop callbacks,
+    // dispose the runtime flow (node teardowns, closed ports), and unsubscribe
+    // the interpreter's own port observations.
     stop$.next();
     stop$.complete();
     for (const cb of onStopCallbacks) {
       cb();
     }
+    flow.dispose?.();
     for (const teardown of teardowns) {
       teardown();
     }
@@ -208,10 +292,26 @@ function createHandle(
   flowId: string,
   roots: readonly IRuntimeNode[],
   instances: ReadonlyMap<string, IRuntimeNode>,
-  errorStream: ReplaySubject<INodeErrorEvent>,
-  activityStream: ReplaySubject<INodeActivityEvent>,
+  streams: {
+    readonly errorStream: ReplaySubject<INodeErrorEvent>;
+    readonly activityStream: ReplaySubject<INodeActivityEvent>;
+    readonly deliveryStream: ReplaySubject<INodeDeliveryEvent>;
+    readonly endedStream: ReplaySubject<INodeEndedEvent>;
+    readonly finishedStream: ReplaySubject<INodeFinishedEvent>;
+    readonly droppedStream: ReplaySubject<INodeDroppedEvent>;
+  },
   teardown: () => void,
 ): IExecutionHandle {
+  const { errorStream, activityStream, deliveryStream, endedStream, finishedStream, droppedStream } = streams;
+  /** A listener's subscription to `stream`, as a disposable. */
+  const listen = <T,>(stream: ReplaySubject<T>, listener: (event: T) => void): IDisposable => {
+    const subscription = stream.subscribe(listener);
+    return {
+      dispose(): void {
+        subscription.unsubscribe();
+      },
+    };
+  };
   return {
     flowId,
     roots,
@@ -234,10 +334,31 @@ function createHandle(
         },
       };
     },
+    onDelivery(listener: (event: INodeDeliveryEvent) => void): IDisposable {
+      const subscription = deliveryStream.subscribe(listener);
+      return {
+        dispose(): void {
+          subscription.unsubscribe();
+        },
+      };
+    },
+    onEnded(listener: (event: INodeEndedEvent) => void): IDisposable {
+      return listen(endedStream, listener);
+    },
+    onFinished(listener: (event: INodeFinishedEvent) => void): IDisposable {
+      return listen(finishedStream, listener);
+    },
+    onDropped(listener: (event: INodeDroppedEvent) => void): IDisposable {
+      return listen(droppedStream, listener);
+    },
     dispose(): void {
       teardown();
       errorStream.complete();
       activityStream.complete();
+      deliveryStream.complete();
+      endedStream.complete();
+      finishedStream.complete();
+      droppedStream.complete();
     },
   };
 }

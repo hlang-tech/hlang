@@ -32,6 +32,9 @@ export interface HlangEdgeData extends Record<string, unknown> {
   readonly isError: boolean;
   /** The source port's stream mode (`'live'` default | `'value'`), for edge visuals. */
   readonly stream: 'live' | 'value';
+  /** A bounded connection's capacity and overflow (RFC 0001); absent when unbounded. */
+  readonly capacity?: number;
+  readonly overflow?: 'drop-oldest';
 }
 
 /** A React Flow node specialized to hlang. `type` is the node kind (R/T/W). */

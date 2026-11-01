@@ -27,13 +27,6 @@
   box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node),
     0 0 0 1px color-mix(in oklab, var(--hl-spark) 70%, transparent),
     0 0 28px -6px var(--hl-spark);
-  animation: hl-asset-pulse 0.7s var(--hl-ease);
-}
-@keyframes hl-asset-pulse {
-  0% {
-    box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node),
-      0 0 0 2px var(--hl-spark), 0 0 36px -4px var(--hl-spark);
-  }
 }
 .hl-asset.is-live-error {
   box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node),
@@ -143,4 +136,13 @@
 .hl-asset-ports .hl-handle.hl-handle:hover {
   background: var(--hl-silver-hi);
   transform: scale(1.2);
+}
+
+/* A node that has finished (RFC 0001): its inputs ended and its outputs
+   closed. It steps back, calmly, rather than going dark. */
+.hl-asset {
+  transition: opacity 0.4s var(--hl-ease);
+}
+.hl-asset.is-finished {
+  opacity: 0.6;
 }

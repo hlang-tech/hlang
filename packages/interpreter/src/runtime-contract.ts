@@ -33,8 +33,17 @@ export interface IRuntimePort {
    * The returned value is an RxJS `Subscription`; we treat it opaquely.
    */
   receive(next: (msg: unknown) => void): unknown;
-  /** Wire this Output port to a downstream Input port. Throws unless O -> I. */
-  connect(port: IRuntimePort): IRuntimePort;
+  /**
+   * Wire this Output port to a downstream Input port. Throws unless O -> I.
+   * With a capacity, the connection is bounded (`@hlang-org/runtime` 2.1 and later).
+   */
+  connect(port: IRuntimePort, options?: IRuntimeConnectOptions): IRuntimePort;
+}
+
+/** How a connection is bounded (RFC 0001). Mirrors the runtime's `ConnectOptions`. */
+export interface IRuntimeConnectOptions {
+  readonly capacity?: number;
+  readonly overflow?: 'drop-oldest';
 }
 
 /**
@@ -88,13 +97,75 @@ export interface INodeConstructionOptions {
  */
 export type NodeConstructor = new (opts: INodeConstructionOptions) => IRuntimeNode;
 
+/** One message delivered on one connection, as the runtime reports it. */
+export interface IRuntimeDeliveryEvent {
+  readonly source: IRuntimeNode;
+  readonly sourcePort: string;
+  readonly target: IRuntimeNode;
+  readonly targetPort: string;
+  readonly message: unknown;
+  /** How long the target's handlers took, in milliseconds. */
+  readonly duration: number;
+}
+
+/** A message a full `drop-oldest` connection dropped. Mirrors the runtime's `DroppedEvent`. */
+export interface IRuntimeDroppedEvent {
+  readonly source: IRuntimeNode;
+  readonly sourcePort: string;
+  readonly target: IRuntimeNode;
+  readonly targetPort: string;
+  readonly message: unknown;
+}
+
+/** Watches a runtime flow. Mirrors the runtime's `FlowObserver`. */
+export interface IRuntimeFlowObserver {
+  readonly delivered?: (event: IRuntimeDeliveryEvent) => void;
+  /** An input ended (RFC 0001). */
+  readonly ended?: (event: { readonly node: IRuntimeNode; readonly port: string }) => void;
+  /** A node finished (RFC 0001). */
+  readonly finished?: (event: { readonly node: IRuntimeNode }) => void;
+  readonly dropped?: (event: IRuntimeDroppedEvent) => void;
+}
+
+/** How a flow shares its thread. Mirrors the runtime's `SliceOptions`. */
+export interface IRuntimeSliceOptions {
+  /** How long one slice of deliveries may run, in milliseconds. */
+  readonly budgetMs?: number;
+  /** The clock the budget is measured with. */
+  readonly now?: () => number;
+  /** Schedules the next slice in a later task. */
+  readonly yieldTo?: (resume: () => void) => void;
+}
+
+/** What the interpreter asks of the flow it creates. Mirrors the runtime's `FlowOptions`. */
+export interface IRuntimeFlowOptions {
+  /** Receives a failure the graph cannot carry, such as a Writable's handler throwing. */
+  readonly onError?: (error: unknown, node: IRuntimeNode | null) => void;
+  /** Present when the run is traced. */
+  readonly observer?: IRuntimeFlowObserver;
+  /** Present when the run shares its thread (`@hlang-org/runtime` 2.1 and later). */
+  readonly slice?: IRuntimeSliceOptions;
+  /** Present when messages are deep-frozen as they are sent (RFC 0001). */
+  readonly freezeMessages?: boolean;
+}
+
 /** A runtime `Flow`. `run` must be called with a Readable (R) root node. */
 export interface IRuntimeFlow {
   run(rootNode: IRuntimeNode): void;
+  /**
+   * Ends every node the flow started: cuts its connections, runs the nodes'
+   * teardowns and completes their ports. `@hlang-org/runtime` 2.1 and later
+   * provide it; the interpreter calls it, when present, on `dispose`.
+   */
+  dispose?(): void;
 }
 
-/** Factory that produces a fresh `Flow` instance. */
-export type FlowFactory = () => IRuntimeFlow;
+/**
+ * Produces a fresh `Flow` from the options the interpreter passes, typically
+ * `options => new Flow(options)`. A factory that ignores them still runs the
+ * graph, without tracing and without a node id on Writable failures.
+ */
+export type FlowFactory = (options: IRuntimeFlowOptions) => IRuntimeFlow;
 
 // Node kinds and the error port name are defined once, in the IR.
 export { ERROR_PORT_NAME } from '@hlang-org/ir';

@@ -8,6 +8,7 @@
 
 import { createDecorator } from '../di';
 import type {
+  EdgeBounds,
   EditorEdge,
   EditorNode,
   Endpoint,
@@ -45,6 +46,7 @@ export type EditorEvent =
   | { readonly kind: 'nodeChanged'; readonly node: EditorNode }
   | { readonly kind: 'edgeAdded'; readonly edge: EditorEdge }
   | { readonly kind: 'edgeRemoved'; readonly edgeId: EdgeId }
+  | { readonly kind: 'edgeChanged'; readonly edge: EditorEdge }
   | { readonly kind: 'selectionChanged' }
   | { readonly kind: 'viewStateChanged' }
   | { readonly kind: 'historyChanged' };
@@ -78,6 +80,8 @@ export interface IGraphModel {
   updateNodeName(id: NodeId, name: string): void;
   addEdge(edge: EditorEdge): void;
   removeEdge(id: EdgeId): void;
+  /** Replace an edge's capacity and overflow; absent fields leave it unbounded. */
+  updateEdgeBounds(id: EdgeId, bounds: EdgeBounds): void;
   /** All edges touching `nodeId` on either endpoint. */
   incidentEdges(nodeId: NodeId): readonly EditorEdge[];
   snapshot(): GraphSnapshot;
@@ -98,8 +102,8 @@ export interface IConnectionValidator {
    * model. Used by design-time affordances such as "which node types can
    * complete this dangling connection?", where the candidate node does not
    * exist yet. This is the model-free subset of {@link validate}'s rules;
-   * `validate` additionally enforces node existence, self-connection, and
-   * duplicate-edge rules that only make sense against a concrete graph.
+   * `validate` additionally enforces node existence and the duplicate-edge
+   * rule, which only make sense against a concrete graph.
    */
   canLink(sourcePort: PortDescriptor, targetPort: PortDescriptor): ValidationResult;
 }

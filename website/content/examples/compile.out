@@ -61,7 +61,23 @@ export function run(options = {}) {
   }
   nodes["a"].O("out").connect(nodes["b"].I("in"));
   nodes["b"].O("out").connect(nodes["c"].I("in"));
-  const flow = new Flow();
+  const flow = new Flow({
+    onError: (error, node) => {
+      const entry = Object.entries(nodes).find(pair => pair[1] === node);
+      if (entry !== undefined && options.onError) {
+        options.onError({
+          nodeId: entry[0],
+          error
+        });
+        return;
+      }
+      queueMicrotask(() => {
+        throw error;
+      });
+    },
+    slice: options.slice,
+    freezeMessages: options.freezeMessages
+  });
   flow.run(nodes["a"]);
   return {
     flowId,
@@ -71,6 +87,9 @@ export function run(options = {}) {
       stop.complete();
       for (const callback of stopCallbacks) {
         callback();
+      }
+      if (typeof flow.dispose === "function") {
+        flow.dispose();
       }
     }
   };

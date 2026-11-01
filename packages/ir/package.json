@@ -1,6 +1,6 @@
 {
   "name": "@hlang-org/ir",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "The hlang intermediate representation: IGraph types, validation, and the execution plan shared by the interpreter and the compiler.",
   "keywords": [
     "hlang",

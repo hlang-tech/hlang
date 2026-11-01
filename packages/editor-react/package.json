@@ -1,6 +1,6 @@
 {
   "name": "@hlang-org/editor-react",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "React bindings of the Lumen editor for hlang: hooks that connect @hlang-org/editor-core to React Flow.",
   "keywords": [
     "hlang",

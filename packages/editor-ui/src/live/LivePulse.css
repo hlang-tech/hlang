@@ -1,0 +1,21 @@
+/** LivePulse — one flash per run of a node, over its own rounded outline. */
+
+.hl-live-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 2px var(--hl-spark),
+    0 0 36px -4px var(--hl-spark);
+  opacity: 0;
+  animation: hl-live-pulse 0.6s var(--hl-ease);
+}
+@keyframes hl-live-pulse {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

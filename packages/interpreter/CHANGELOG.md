@@ -1,5 +1,75 @@
 # @hlang-org/interpreter
 
+## 2.1.0
+
+### Minor Changes
+
+- 8c4ec76: Bounded connections in the graph (RFC 0001, part 3).
+  
+  - ir: `IConnection` takes `capacity` (a positive integer) and `overflow` (`"drop-oldest"`). `planGraph` checks them at run time and carries them into `PlannedConnection`.
+  - interpreter: bounded connections pass their capacity and overflow to the runtime (`IRuntimePort.connect` takes `IRuntimeConnectOptions`).
+  - compiler: a compiled program connects them the same way.
+  
+  A parity test runs one bounded graph through both backends and compares the results.
+- e22ab14: Observability, from the runtime to the editor.
+  
+  - runtime: `new Flow({ observer })` reports every delivery (source and target node and port, the message, and how long the target's handlers took) and every handler failure. Without an observer, no clock is read.
+  - interpreter: `createFlow(options)` receives the flow options. A Writable node's handler failure now reaches `handle.onError` with its node id. With `trace: true`, `handle.onDelivery` reports every delivery by graph node and port id.
+  - compiler: a compiled program reports a Writable's handler failure to `onError` with its node id, as the interpreter does.
+  - editor-core: the execution handle gains an optional `onDelivery`; `InterpreterGraphRunner` traces by default (`{ trace: false }` turns it off).
+  - editor-ui:
+    - Live highlighting is driven by deliveries: each node flashes every time it runs, and only the edge that carried a message lights.
+    - New `RunTrace`, `useRunTrace`, `RunLog`, and a Run section in the inspector.
+    - `EditorShell`'s footer can be resized (`footerResize`) by pointer, touch, or keyboard.
+    - `useFollowScroll` keeps a scrolling list on its newest entry.
+- 988e84a: Messages are immutable values (RFC 0001, part 5).
+  
+  - runtime: `new Flow({ freezeMessages: true })` deep-freezes the plain objects and arrays in each message as it is sent. A node that mutates what it received fails at once, in its own handler, and the other branches of a fan-out keep what was sent. It is off by default.
+  - interpreter: `interpret(graph, deps, { freezeMessages })`.
+  - compiler: compiled `run({ freezeMessages })`.
+  - editor-core: `InterpreterGraphRunner` freezes messages by default (`freezeMessages: false` turns it off).
+- 05928ae: End of stream and drops, live (RFC 0001, part 4b).
+  
+  - runtime:
+    - The observer gains `ended` (an input ended) and `finished` (a node finished).
+    - A node whose output closes is now marked finished before anything downstream learns of it.
+  - interpreter: a traced run reports `onEnded`, `onFinished` and `onDropped` by graph id.
+  - editor-core: the execution handle forwards them.
+  - editor-ui:
+    - The run log shows ended inputs, finished nodes and dropped messages.
+    - The inspector's run statistics count drops and show when a node has finished.
+    - A finished node steps back on the canvas.
+- a996d1e: Add `Flow#dispose()` and node teardowns.
+  
+  `_read`, `_transform`, and `_write` may now return a teardown function. `flow.dispose()` cuts the flow's connections, runs the teardowns of the nodes it started (the last started first; a failing one goes to `onError`), and completes those nodes' ports, which ends every subscription made on them. It is idempotent, safe to call from inside a handler, and `run` throws on a disposed flow. `flow.disposed` reports the state. The new `Teardown` type is exported.
+  
+  The interpreter's execution handle now calls the flow's `dispose` (when the runtime provides it) on `dispose()`, so node teardowns run and the graph stops delivering. `IRuntimeFlow` gains an optional `dispose`.
+  
+  A compiled program's `dispose()` does the same: after the stop signal and the `onStop` callbacks, it calls `flow.dispose()` when the runtime provides it, so both backends stop a graph identically.
+- f8ad2cd: Time-sliced delivery: a flow can share its thread.
+  
+  - runtime:
+    - `new Flow({ slice: { budgetMs?, now?, yieldTo? } })` delivers for at most `budgetMs` (default 5) per task, then yields and continues in a later task, in the same order. A feedback loop with no asynchronous step then neither freezes a page nor starves a server, and `dispose()` stops it.
+    - Each flow now has its own delivery queue.
+    - `yieldToRuntime` picks `setImmediate`, `MessageChannel` or `setTimeout`, whichever the runtime has.
+    - Synchronous delivery stays the default and is unchanged.
+  - interpreter: `interpret(graph, deps, { slice })` passes it to the flow; `IRuntimeFlowOptions.slice` is new.
+  - compiler: a compiled program's `run({ slice })` does the same.
+  - editor-core: `InterpreterGraphRunner` slices runs by default (`{ slice: false }` turns it off), so a graph that loops forever cannot freeze the editor.
+
+### Patch Changes
+
+- Updated dependencies [9c55b75]
+- Updated dependencies [8c4ec76]
+- Updated dependencies [1c413f0]
+- Updated dependencies [e22ab14]
+- Updated dependencies [988e84a]
+- Updated dependencies [05928ae]
+- Updated dependencies [a996d1e]
+- Updated dependencies [f8ad2cd]
+  - @hlang-org/runtime@2.1.0
+  - @hlang-org/ir@1.1.0
+
 ## 2.0.0
 
 ### Major Changes

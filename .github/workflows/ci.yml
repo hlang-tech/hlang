@@ -21,6 +21,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # A pull request checks out its merge commit; its first parent is the
+          # base branch, so two commits are enough to list what it changes.
+          fetch-depth: 2
 
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
@@ -35,11 +38,20 @@ jobs:
       - name: Build, typecheck, lint, test
         run: pnpm check
 
-      # Browser checks of the website built by `pnpm check`.
+      # Browser checks of the website built by `pnpm check`. A pull request
+      # skips them only when every file it changes is one the website never
+      # reads (see scripts/ci/website-affected.mjs); a push always runs them.
+      - name: Decide whether the website is affected
+        id: website
+        if: github.event_name == 'pull_request'
+        run: node scripts/ci/website-affected.mjs HEAD^1 HEAD
+
       - name: Install Chromium for the browser tests
+        if: steps.website.outputs.affected != 'false'
         run: pnpm --filter @hlang-org/website exec playwright install --with-deps chromium
 
       - name: Browser tests
+        if: steps.website.outputs.affected != 'false'
         run: pnpm --filter @hlang-org/website test:e2e
 
       - name: Validate publishable packages

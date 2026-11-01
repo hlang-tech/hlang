@@ -4,11 +4,12 @@
  * TDD: these are written before the implementation and must fail first.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { Subject } from 'rxjs';
 import { interpret, NodeRegistry } from '../src';
 import type { IInterpreterDeps } from '../src';
 import type { IGraph, ParamValue } from '../src';
-import type { IRuntimeFlow } from '../src';
+import type { IRuntimeFlow, IRuntimeFlowOptions, INodeDeliveryEvent, INodeErrorEvent } from '../src';
 import {
   Flow,
   ValueSourceNode,
@@ -17,8 +18,15 @@ import {
   EchoTransformNode,
   makeCollectorSink,
   makeStreamingSource,
+  makeTeardownSource,
   makePairSink,
+  makeThrowingSink,
+  makeLoopTransform,
+  makeAsyncSink,
 } from './fixtures/nodes';
+import { Port, ReadableNode } from './fixtures/nodes';
+import type { PortAccessor } from '@hlang-org/runtime';
+import type { INodeConstructionOptions } from '../src';
 
 /** Build interpreter deps from the real runtime Flow + a fresh registry. */
 function makeDeps(register: (r: NodeRegistry) => void): IInterpreterDeps {
@@ -26,7 +34,7 @@ function makeDeps(register: (r: NodeRegistry) => void): IInterpreterDeps {
   register(registry);
   return {
     registry,
-    createFlow: (): IRuntimeFlow => new Flow({}),
+    createFlow: (options: IRuntimeFlowOptions): IRuntimeFlow => new Flow(options),
   };
 }
 
@@ -132,6 +140,43 @@ describe('interpret', () => {
     // After dispose, no further ticks should be recorded.
     await new Promise(resolve => setTimeout(resolve, 80));
     expect(emitted.length).toBe(countAtStop);
+  });
+
+  it('case 2d: dispose() disposes the runtime flow, running node teardowns', async () => {
+    const emitted: number[] = [];
+    const received: unknown[] = [];
+    const deps = makeDeps(r => {
+      r.register('stream', makeTeardownSource(emitted, 10));
+      r.register('sink', makeCollectorSink(received));
+    });
+    const graph: IGraph = {
+      nodeList: [rNode('r1', 'stream'), wNode('w1', 'sink')],
+      connections: [edge('r1', 'w1')],
+    };
+
+    const handle = interpret(graph, deps);
+    await new Promise(resolve => setTimeout(resolve, 50));
+    expect(received.length).toBeGreaterThan(0);
+
+    handle.dispose();
+    const emittedAtStop = emitted.length;
+    const receivedAtStop = received.length;
+    await new Promise(resolve => setTimeout(resolve, 50));
+    expect(emitted.length).toBe(emittedAtStop);
+    expect(received.length).toBe(receivedAtStop);
+  });
+
+  it('case 2e: dispose() works with a flow that has no dispose', () => {
+    const runs: unknown[] = [];
+    const deps: IInterpreterDeps = {
+      registry: makeDeps(r => {
+        r.register('src', ValueSourceNode);
+      }).registry,
+      createFlow: (): IRuntimeFlow => ({ run: root => runs.push(root) }),
+    };
+    const handle = interpret({ nodeList: [rNode('r1', 'src', 'x')], connections: [] }, deps);
+    expect(runs).toHaveLength(1);
+    expect(() => handle.dispose()).not.toThrow();
   });
 
   it('case 3: direction is Output=source, Input=target (reversed wiring does not deliver)', () => {
@@ -283,5 +328,312 @@ describe('interpret', () => {
     interpret(graph, deps);
 
     expect(received).toEqual({ Left: ['v'], Right: ['v'] });
+  });
+});
+
+describe('tracing', () => {
+  const chain: IGraph = {
+    nodeList: [rNode('r1', 'src', 'hi'), tNode('t1', 'wrap'), wNode('w1', 'sink')],
+    connections: [edge('r1', 't1'), edge('t1', 'w1')],
+  };
+  const register = (r: NodeRegistry): void => {
+    r.register('src', ValueSourceNode);
+    r.register('wrap', WrapTransformNode);
+    r.register('sink', makeCollectorSink([]));
+  };
+
+  it('reports every delivery by graph node id when trace is on', () => {
+    const handle = interpret(chain, makeDeps(register), { trace: true });
+    const events: INodeDeliveryEvent[] = [];
+    // Attached after the synchronous run: the run's deliveries are replayed.
+    handle.onDelivery(event => events.push(event));
+
+    expect(
+      events.map(({ sourceNodeId, sourcePortId, targetNodeId, targetPortId }) =>
+        `${sourceNodeId}.${sourcePortId}->${targetNodeId}.${targetPortId}`,
+      ),
+    ).toEqual(['r1.Output->t1.Input', 't1.Output->w1.Input']);
+    expect(events[0]?.message).toBe('hi');
+    expect(events.every(event => typeof event.duration === 'number' && event.duration >= 0)).toBe(true);
+    handle.dispose();
+  });
+
+  it('reports no deliveries and gives the flow no observer without trace', () => {
+    const seen: IRuntimeFlowOptions[] = [];
+    const deps = makeDeps(register);
+    const handle = interpret(chain, {
+      ...deps,
+      createFlow: options => {
+        seen.push(options);
+        return deps.createFlow(options);
+      },
+    });
+    const events: INodeDeliveryEvent[] = [];
+    handle.onDelivery(event => events.push(event));
+
+    expect(events).toEqual([]);
+    expect(seen.map(options => options.observer)).toEqual([undefined]);
+    handle.dispose();
+  });
+
+  it('reports a Writable handler failure through onError with its node id', () => {
+    const failure = new Error('sink failed');
+    const handle = interpret(
+      { nodeList: [rNode('r1', 'src', 'x'), wNode('w1', 'bad')], connections: [edge('r1', 'w1')] },
+      makeDeps(r => {
+        r.register('src', ValueSourceNode);
+        r.register('bad', makeThrowingSink(failure));
+      }),
+    );
+    const errors: INodeErrorEvent[] = [];
+    handle.onError(event => errors.push(event));
+
+    expect(errors).toEqual([{ nodeId: 'w1', error: failure }]);
+    handle.dispose();
+  });
+
+  it('still runs with a flow factory that takes no options', () => {
+    const received: unknown[] = [];
+    const handle = interpret(
+      { nodeList: [rNode('r1', 'src', 'x'), wNode('w1', 'sink')], connections: [edge('r1', 'w1')] },
+      {
+        registry: makeDeps(r => {
+          r.register('src', ValueSourceNode);
+          r.register('sink', makeCollectorSink(received));
+        }).registry,
+        createFlow: (): IRuntimeFlow => new Flow(),
+      },
+      { trace: true },
+    );
+    expect(received).toEqual(['x']);
+    handle.dispose();
+  });
+
+  it('stops delivering to a listener once its subscription is disposed', async () => {
+    const handle = interpret(
+      { nodeList: [rNode('r1', 'tick'), wNode('w1', 'sink')], connections: [edge('r1', 'w1')] },
+      makeDeps(r => {
+        r.register('tick', makeTeardownSource([], 5));
+        r.register('sink', makeCollectorSink([]));
+      }),
+      { trace: true },
+    );
+    const disposed: INodeDeliveryEvent[] = [];
+    const kept: INodeDeliveryEvent[] = [];
+    const subscription = handle.onDelivery(event => disposed.push(event));
+    handle.onDelivery(event => kept.push(event));
+    await new Promise(resolve => setTimeout(resolve, 30));
+    subscription.dispose();
+    const atDispose = disposed.length;
+    await new Promise(resolve => setTimeout(resolve, 30));
+
+    expect(atDispose).toBeGreaterThan(0);
+    expect(disposed).toHaveLength(atDispose);
+    expect(kept.length).toBeGreaterThan(atDispose);
+    handle.dispose();
+  });
+
+  it('ignores what the flow reports about nodes outside the graph', async () => {
+    const failure = new Error('unattributed');
+    const stranger = new ValueSourceNode({
+      nodeId: 'x', flowId: 'f', env: 'test', middleware: {}, config: {},
+      signal: { observable: new Subject<void>().asObservable(), onStop: () => undefined },
+    });
+    const rethrown = new Promise<unknown>(resolve => {
+      const original = globalThis.queueMicrotask;
+      vi.spyOn(globalThis, 'queueMicrotask').mockImplementationOnce(task => {
+        original(() => {
+          try {
+            task();
+          } catch (error: unknown) {
+            resolve(error);
+          }
+        });
+      });
+    });
+    const handle = interpret(chain, {
+      registry: makeDeps(register).registry,
+      createFlow: options => ({
+        run: () => {
+          options.observer?.delivered?.({
+            source: stranger, sourcePort: 'Output', target: stranger, targetPort: 'Input', message: 1, duration: 0,
+          });
+          options.onError?.(failure, null);
+        },
+      }),
+    }, { trace: true });
+    const events: INodeDeliveryEvent[] = [];
+    const errors: INodeErrorEvent[] = [];
+    handle.onDelivery(event => events.push(event));
+    handle.onError(event => errors.push(event));
+
+    expect(events).toEqual([]);
+    expect(errors).toEqual([]);
+    await expect(rethrown).resolves.toBe(failure);
+    vi.restoreAllMocks();
+    handle.dispose();
+  });
+});
+
+describe('slicing', () => {
+  it('runs a graph that loops forever without holding the thread, and stops it on dispose', async () => {
+    const counter = { count: 0 };
+    const deps = makeDeps(r => {
+      r.register('src', ValueSourceNode);
+      r.register('loop', makeLoopTransform(counter));
+    });
+    const graph: IGraph = {
+      nodeList: [rNode('r1', 'src', 1), tNode('a', 'loop'), tNode('b', 'loop')],
+      connections: [edge('r1', 'a'), edge('a', 'b'), edge('b', 'a')],
+    };
+
+    const handle = interpret(graph, deps, { slice: { budgetMs: 1 } });
+    await new Promise(resolve => setTimeout(resolve, 30));
+    const running = counter.count;
+    expect(running).toBeGreaterThan(0);
+
+    handle.dispose();
+    const stopped = counter.count;
+    await new Promise(resolve => setTimeout(resolve, 30));
+    expect(counter.count).toBe(stopped);
+  });
+
+  it('hands the flow no slicing unless asked', () => {
+    const seen: IRuntimeFlowOptions[] = [];
+    const deps = makeDeps(r => {
+      r.register('src', ValueSourceNode);
+    });
+    interpret({ nodeList: [rNode('r1', 'src', 'x')], connections: [] }, {
+      ...deps,
+      createFlow: options => {
+        seen.push(options);
+        return deps.createFlow(options);
+      },
+    }).dispose();
+    expect(seen.map(options => options.slice)).toEqual([undefined]);
+  });
+});
+
+describe('bounded connections (RFC 0001)', () => {
+  /** A Readable that sends 1..5 at once. */
+  function graphWith(capacity?: number): IGraph {
+    const connection = edge('r1', 'w1');
+    return {
+      nodeList: [rNode('r1', 'burst'), wNode('w1', 'slow')],
+      connections: [capacity === undefined ? connection : { ...connection, capacity }],
+    };
+  }
+
+  async function run(capacity?: number) {
+    const stats: { inFlight: number; maxInFlight: number; seen: unknown[] } = { inFlight: 0, maxInFlight: 0, seen: [] };
+    class Burst extends ReadableNode {
+      constructor(opts: INodeConstructionOptions) {
+        super(opts);
+        Port.O('Output').attach(this);
+      }
+      override _read(o: PortAccessor): void {
+        for (const value of [1, 2, 3, 4, 5]) {
+          o('Output').send(value);
+        }
+      }
+    }
+    const handle = interpret(
+      graphWith(capacity),
+      makeDeps(r => {
+        r.register('burst', Burst);
+        r.register('slow', makeAsyncSink(stats));
+      }),
+    );
+    await new Promise(resolve => setTimeout(resolve, 60));
+    handle.dispose();
+    return stats;
+  }
+
+  it('passes a connection\'s capacity to the runtime: one message at a time, in order', async () => {
+    const stats = await run(2);
+    expect(stats.maxInFlight).toBe(1);
+    expect(stats.seen).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('leaves an unbounded connection as it was: asynchronous work overlaps', async () => {
+    const stats = await run();
+    expect(stats.maxInFlight).toBe(5);
+  });
+});
+
+describe('freezeMessages (RFC 0001)', () => {
+  it('passes it to the flow only when asked', () => {
+    const seen: IRuntimeFlowOptions[] = [];
+    const deps = makeDeps(r => {
+      r.register('src', ValueSourceNode);
+    });
+    const createFlow = (options: IRuntimeFlowOptions): IRuntimeFlow => {
+      seen.push(options);
+      return deps.createFlow(options);
+    };
+    const graph: IGraph = { nodeList: [rNode('r1', 'src', 'x')], connections: [] };
+    interpret(graph, { ...deps, createFlow }, { freezeMessages: true }).dispose();
+    interpret(graph, { ...deps, createFlow }).dispose();
+    expect(seen.map(options => options.freezeMessages)).toEqual([true, undefined]);
+  });
+});
+
+describe('end of stream and drops, traced (RFC 0001)', () => {
+  it('reports ended inputs and finished nodes by graph id', () => {
+    class Once extends ReadableNode {
+      constructor(opts: INodeConstructionOptions) {
+        super(opts);
+        Port.O('Output').attach(this);
+      }
+      override _read(o: PortAccessor): void {
+        o('Output').send(1);
+        o('Output').close();
+      }
+    }
+    const handle = interpret(
+      { nodeList: [rNode('r1', 'once'), wNode('w1', 'sink')], connections: [edge('r1', 'w1')] },
+      makeDeps(r => {
+        r.register('once', Once);
+        r.register('sink', makeCollectorSink([]));
+      }),
+      { trace: true },
+    );
+    const log: string[] = [];
+    handle.onEnded(event => log.push(`ended ${event.nodeId}.${event.portId}`));
+    handle.onFinished(event => log.push(`finished ${event.nodeId}`));
+    expect(log).toEqual(['ended w1.Input', 'finished r1', 'finished w1']);
+    handle.dispose();
+  });
+
+  it('reports a message a full drop-oldest connection dropped', async () => {
+    class Burst extends ReadableNode {
+      constructor(opts: INodeConstructionOptions) {
+        super(opts);
+        Port.O('Output').attach(this);
+      }
+      override _read(o: PortAccessor): void {
+        for (const value of [1, 2, 3]) {
+          o('Output').send(value);
+        }
+      }
+    }
+    const stats: { inFlight: number; maxInFlight: number; seen: unknown[] } = { inFlight: 0, maxInFlight: 0, seen: [] };
+    const handle = interpret(
+      {
+        nodeList: [rNode('r1', 'burst'), wNode('w1', 'slow')],
+        connections: [{ ...edge('r1', 'w1'), capacity: 1, overflow: 'drop-oldest' }],
+      },
+      makeDeps(r => {
+        r.register('burst', Burst);
+        r.register('slow', makeAsyncSink(stats));
+      }),
+      { trace: true },
+    );
+    const dropped: unknown[] = [];
+    handle.onDropped(event => dropped.push([event.sourceNodeId, event.targetNodeId, event.message]));
+    await new Promise(resolve => setTimeout(resolve, 30));
+    expect(dropped).toEqual([['r1', 'w1', 2]]);
+    expect(stats.seen).toEqual([1, 3]);
+    handle.dispose();
   });
 });

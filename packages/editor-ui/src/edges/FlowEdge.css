@@ -78,3 +78,58 @@
   box-shadow: var(--hl-glass-edge), 0 2px 8px -3px rgba(0, 0, 0, 0.6);
   white-space: nowrap;
 }
+
+/* One flash per message the edge carried (see FlowEdge), fading out. */
+.hl-edge-pulse {
+  fill: none;
+  stroke: var(--hl-spark);
+  stroke-width: 2.5;
+  pointer-events: none;
+  opacity: 0;
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--hl-spark) 70%, transparent));
+  animation: hl-edge-pulse 0.6s var(--hl-ease);
+}
+.hl-edge.is-error .hl-edge-pulse {
+  stroke: var(--hl-error);
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--hl-error) 70%, transparent));
+}
+@keyframes hl-edge-pulse {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* A bounded connection's capacity, in FBP notation: `[4]`. A connection that
+   drops its oldest message when full is lossy, so its badge takes the
+   warning hue. */
+.hl-edge-capacity {
+  position: absolute;
+  pointer-events: none;
+  padding: 2px 7px;
+  border-radius: var(--hl-r-pill);
+  border: 1px solid var(--hl-line-strong);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--hl-silver-hi);
+  /* Opaque, so the label stays legible over the line it labels. */
+  background: var(--hl-surface-2);
+}
+.hl-edge-capacity.is-lossy {
+  border-color: color-mix(in oklab, var(--hl-warning) 45%, var(--hl-line-strong));
+}
+.hl-edge-capacity.is-lossy {
+  color: var(--hl-warning);
+}
+
+/* A selected connection (the one the inspector shows): a brighter, thicker
+   silver line, so it is clear which connection is being edited. */
+.hl-edge.is-selected .hl-edge-flow {
+  stroke: var(--hl-silver-hi);
+  stroke-width: 2.25;
+  opacity: 1;
+  filter: drop-shadow(0 0 4px color-mix(in oklab, var(--hl-silver) 60%, transparent));
+}

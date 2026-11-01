@@ -114,6 +114,116 @@ A node holds its own options and ports and nothing else: it cannot reach the flo
 
 Transform nodes can form cycles, so a graph can contain feedback loops. Bound a feedback loop, for example with `take` or a counter, so it ends.
 
+### Back-pressure: bounded connections
+
+A connection can have a capacity, as connections do in Flow-Based Programming ([RFC 0001](../../rfcs/0001-bounded-connections.md)). It holds the messages waiting for its input and the ones the input is still working on; when it is full, the sender waits.
+
+```ts
+source.O("frames").connect(encoder.I("frames"), { capacity: 4 });
+
+// In the source: wait for room before each frame (FBP's suspending send).
+await $o("frames").write(frame);
+
+// Or the non-blocking form, as with Node.js streams.
+if (!$o("frames").send(frame)) {
+  await $o("frames").ready();
+}
+
+// In the encoder: a handler that returns a promise works on one frame at a
+// time; the next one waits in the connection until this one is done.
+$i("frames").receive(async (frame) => {
+  await encode(frame);
+});
+```
+
+- `send` returns whether every bounded connection of the port still has room. It accepts the message either way; `ready()` resolves when there is room again, and `write()` waits for it, then sends.
+- A handler may return a promise; until it settles, the message counts against its connection. A rejected promise is a failure, routed like a throw (a Transform's error port, otherwise `onError`).
+- An input fed by a bounded connection works on one message at a time. `receive(handler, { concurrency: n })` sets another limit, bounded or not.
+- `{ capacity, overflow: "drop-oldest" }` drops the oldest waiting message of a full connection instead of holding more (JavaFBP's `dropOldest`); the observer's `dropped` reports each one. A message being worked on is never dropped.
+- When one output feeds several bounded connections, it waits for the slowest.
+- Disposing the flow rejects pending `ready()` and `write()` with `FlowDisposedError`.
+- An unbounded connection into an input without a concurrency limit delivers exactly as before, at the same speed.
+
+### End of stream
+
+A sender can say it has nothing more to send, and a flow knows when it has finished ([RFC 0001](../../rfcs/0001-bounded-connections.md)), as in Flow-Based Programming:
+
+```ts
+// A source that has sent everything closes its output.
+override _read($o) {
+  for (const value of values) $o("out").send(value);
+  $o("out").close();
+}
+
+// A node acts on the end of its input: a total, once all numbers are in.
+$i("in").receive((value) => { total += value; }, {
+  end: () => $o("out").send(total),
+});
+
+await flow.done; // every node has finished
+```
+
+- An input ends once every connection into it has closed and its messages are done, including asynchronous work. Messages sent before a close are delivered first.
+- A Transform closes its outputs when all its inputs have ended, so the end travels through the graph. A node that keeps producing after its inputs end sets `closesWithInputs = false` and closes its outputs itself.
+- A node finishes when its inputs have ended and its outputs are closed; its error port then closes too. `flow.done` resolves when every node has finished, and rejects with `FlowDisposedError` if the flow is disposed first.
+- Sending on a closed output throws.
+- The observer's `ended` and `finished` report each input that ends and each node that finishes; `dropped` reports each message a `drop-oldest` connection drops.
+- A node in a feedback loop is one of its own senders, so its input does not end by itself: as in JavaFBP, a loop ends when one of its nodes closes its output.
+
+### Messages are immutable values
+
+Messages move between nodes without being copied, and one output can feed several inputs, so every branch receives the same object. A node therefore never mutates a message it received: it sends a new value instead, as with React and Redux state ([RFC 0001](../../rfcs/0001-bounded-connections.md)).
+
+`new Flow({ freezeMessages: true })` enforces this: the plain objects and arrays in each message are deep-frozen as they are sent, so a node that mutates what it received fails at once, in its own handler, and the other branches keep what was sent. It costs a walk of each message, so it is off by default; the editor turns it on. Typed arrays, buffers, maps, sets and class instances are not frozen; the rule applies to them all the same.
+
+### Sharing the thread
+
+By default a flow delivers everything a send causes before the send returns. That is the fastest way to run, but work that never ends by itself, such as a feedback loop between Transforms with no asynchronous step (feedback is legal), then holds the thread for good: a page freezes, a server stops answering, and nothing can call `dispose`.
+
+`slice` makes the flow share the thread, as React's scheduler does: it delivers for at most `budgetMs` (default 5) per task, then yields and carries on in a later task, in the same order.
+
+```ts
+const flow = new Flow({ slice: {} }); // or { budgetMs: 2 }
+flow.run(source);
+// The loop runs in slices; the rest of the program keeps running, and this stops it.
+flow.dispose();
+```
+
+- The budget belongs to a task, not to one send: a source that sends a million values in one loop has its later values queued for the next slices.
+- Order is unchanged: messages on a connection arrive in the order they were sent, and messages sent while a flow is paused wait their turn.
+- Each flow has its own queue, so a paused flow never holds up another.
+- The next slice runs in a macrotask in any JavaScript runtime: `setImmediate` in Node.js and Bun, a `MessageChannel` message in browsers, Deno, and workers, `setTimeout` otherwise. Pass `yieldTo` (and `now`) to choose another.
+- The cost is one clock read per delivery, measured at 28 ns on Node.js 24. With handlers that do almost nothing (`value + 1`), throughput was 21% lower than synchronous delivery; the share falls as handlers do real work. Synchronous delivery, the default, is unchanged.
+
+### Stopping a flow
+
+A flow owns the nodes it starts, and `flow.dispose()` ends them. `_read`, `_transform`, and `_write` may return a teardown: a function that releases what the node acquired, such as a timer or a socket. `dispose`:
+
+1. cuts the flow's connections, so nothing more is delivered (messages already queued are dropped);
+2. runs each node's teardown once, the last started first. A teardown that throws goes to `onError` (or is rethrown asynchronously), and the others still run;
+3. completes every port of those nodes, which ends each subscription made on them; later sends are dropped.
+
+```ts
+class Ticker extends ReadableNode {
+  constructor() {
+    super({});
+    Port.O("tick").attach(this);
+  }
+
+  override _read($o: PortAccessor): Teardown {
+    const timer = setInterval(() => $o("tick").send(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }
+}
+
+const flow = new Flow();
+flow.run(ticker);
+// later
+flow.dispose();
+```
+
+`dispose` can be called more than once and from inside a handler. `flow.disposed` tells whether it has been called, and `run` throws on a disposed flow. Nodes started by another flow are left running.
+
 ## TypeScript
 
 The package is typed without `any`.

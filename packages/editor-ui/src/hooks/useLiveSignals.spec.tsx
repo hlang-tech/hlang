@@ -9,6 +9,7 @@ import type {
   IDisposable,
   IExecutionHandle,
   INodeActivityEvent,
+  INodeDeliveryEvent,
   INodeErrorEvent,
   NodeDescriptor,
 } from '@hlang-org/editor-core';
@@ -103,5 +104,56 @@ describe('useLiveSignals', () => {
     handle.error({ nodeId: source, error: 'y' });
     unmount();
     expect(store.getNodeState(source)).toBe('idle');
+  });
+
+  it('lights each node and the exact edge from a traced run\'s deliveries, not its activity', () => {
+    const { core, source, sink } = graph();
+    core.commands.execute(new ConnectCommand('e1', { nodeId: source, portId: 'Output' }, { nodeId: sink, portId: 'Input' }));
+    const store = stillStore();
+    const deliveries = new Set<(event: INodeDeliveryEvent) => void>();
+    let activitySubscribed = false;
+    const handle: IExecutionHandle = {
+      onActivity: () => {
+        activitySubscribed = true;
+        return { dispose: () => undefined };
+      },
+      onError: () => ({ dispose: () => undefined }),
+      onDelivery: (listener) => {
+        deliveries.add(listener);
+        return { dispose: () => deliveries.delete(listener) };
+      },
+      dispose: () => undefined,
+    };
+    const { unmount } = renderHook(() => {
+      useLiveSignals(core, handle, store);
+    });
+    for (const listener of deliveries) {
+      listener({ sourceNodeId: source, sourcePortId: 'Output', targetNodeId: sink, targetPortId: 'Input', message: 1, duration: 0 });
+    }
+
+    expect(activitySubscribed).toBe(false);
+    expect([store.getNodePulse(source), store.getNodePulse(sink), store.getEdgePulse('e1')]).toEqual([1, 1, 1]);
+    unmount();
+    expect(deliveries.size).toBe(0);
+  });
+
+  it('marks a node finished when the handle reports it', () => {
+    const { core, source } = graph();
+    const store = stillStore();
+    let finish: ((event: { readonly nodeId: string }) => void) | undefined;
+    const handle: IExecutionHandle = {
+      onActivity: () => ({ dispose: () => undefined }),
+      onError: () => ({ dispose: () => undefined }),
+      onFinished: listener => {
+        finish = listener;
+        return { dispose: () => undefined };
+      },
+      dispose: () => undefined,
+    };
+    renderHook(() => {
+      useLiveSignals(core, handle, store);
+    });
+    finish?.({ nodeId: source });
+    expect(store.getNodeState(source)).toBe('finished');
   });
 });

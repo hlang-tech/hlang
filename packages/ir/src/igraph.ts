@@ -64,7 +64,18 @@ export interface IConnectionEndpoint {
 export interface IConnection {
   readonly Input: IConnectionEndpoint;
   readonly Output: IConnectionEndpoint;
+  /**
+   * How many messages the connection holds, counting the ones its input is
+   * still working on; a sender to a full connection waits (RFC 0001). A
+   * positive integer. Absent: unbounded.
+   */
+  readonly capacity?: number;
+  /** What a full bounded connection does with a new message: `'drop-oldest'` drops its oldest waiting one. */
+  readonly overflow?: ConnectionOverflow;
 }
+
+/** The overflow strategies a bounded connection can have (RFC 0001). */
+export type ConnectionOverflow = 'drop-oldest';
 
 /** Port metadata carried on a node (the design-time port descriptors). */
 export interface IPortInfo {

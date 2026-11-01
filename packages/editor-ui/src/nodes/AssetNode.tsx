@@ -15,6 +15,7 @@ import type { ReactElement } from 'react';
 import type { EditorNode } from '@hlang-org/editor-core';
 import { PortRow } from './PortRow';
 import { useNodeLiveState } from '../live/LiveSignalContext';
+import { LivePulse } from '../live/LivePulse';
 import './AssetNode.css';
 
 export interface AssetNodeChromeProps {
@@ -43,12 +44,14 @@ export function AssetNodeChrome({ node, selected }: AssetNodeChromeProps): React
     selected ? 'is-selected' : '',
     live === 'active' ? 'is-active' : '',
     live === 'error' ? 'is-live-error' : '',
+    live === 'finished' ? 'is-finished' : '',
   ]
     .filter(Boolean)
     .join(' ');
 
   return (
     <div className={className} data-kind={node.kind}>
+      <LivePulse nodeId={node.id} />
       <div className="hl-asset-frame">
         {imageUrl.length > 0 ? (
           <img className="hl-asset-img" src={imageUrl} alt={caption} draggable={false} />

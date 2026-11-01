@@ -13,6 +13,13 @@ import { uuid } from '../utils';
 /** Resolves one of a node's ports by name; throws if the node has no such port. */
 export type PortAccessor = (name: string) => Port;
 
+/**
+ * Releases what a node acquired when it started: a timer, a socket, a
+ * subscription to something outside the graph. `_read`, `_transform` and
+ * `_write` may return one; the flow calls it once, when it is disposed.
+ */
+export type Teardown = () => void;
+
 /** What a node is constructed with. A node declares its own shape as a type argument. */
 export type NodeOptions = Readonly<Record<string, unknown>>;
 
@@ -25,8 +32,11 @@ export let nodeInternals: {
   readonly portsOf: (node: Node<object>, type: STREAM_TYPE) => readonly Port[];
   /** Registers `port` on `node` under its name; `Port#attach` calls this. */
   readonly attachPort: (node: Node<object>, port: Port) => void;
-  /** Runs `start` the first time it is called for `node`, never again. */
-  readonly startOnce: (node: Node<object>, start: () => void) => void;
+  /**
+   * Runs `start` the first time it is called for `node`, never again, and
+   * returns whether it ran.
+   */
+  readonly startOnce: (node: Node<object>, start: () => void) => boolean;
 };
 
 /**
@@ -47,10 +57,11 @@ export default abstract class Node<TOptions extends object = NodeOptions> {
       },
       startOnce: (node, start) => {
         if (node.#started) {
-          return;
+          return false;
         }
         node.#started = true;
         start();
+        return true;
       },
     };
   }

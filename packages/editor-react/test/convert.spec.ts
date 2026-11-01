@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest';
 import type { EditorEdge, EditorNode } from '@hlang-org/editor-core';
 import type { Connection } from '@xyflow/react';
 import { toRFNode, toRFEdge, endpointsFromConnection } from '../src/mapping/convert';
+import { RECONCILE_EVENTS } from '../src/hooks/reconcile-events';
 
 function node(id: string, kind: 'R' | 'T' | 'W'): EditorNode {
   return {
@@ -50,6 +51,22 @@ describe('toRFEdge', () => {
     expect(rf.data?.isError).toBe(false);
   });
 
+  it('carries a bounded connection\'s capacity and overflow, and nothing for an unbounded one', () => {
+    const source = node('r1', 'R');
+    const ends = { source: { nodeId: 'r1', portId: 'Output' }, target: { nodeId: 't1', portId: 'Input' } };
+    const bounded = toRFEdge({ id: 'b', ...ends, capacity: 4, overflow: 'drop-oldest' }, source);
+    const unbounded = toRFEdge({ id: 'u', ...ends }, source);
+    expect([bounded.data?.capacity, bounded.data?.overflow]).toEqual([4, 'drop-oldest']);
+    expect(unbounded.data).not.toHaveProperty('capacity');
+    expect(unbounded.data).not.toHaveProperty('overflow');
+  });
+
+  it('reflects whether the edge is selected in editor-core', () => {
+    const source = node('r1', 'R');
+    const edge: EditorEdge = { id: 'e', source: { nodeId: 'r1', portId: 'Output' }, target: { nodeId: 't1', portId: 'Input' } };
+    expect([toRFEdge(edge, source).selected, toRFEdge(edge, source, { selected: true }).selected]).toEqual([false, true]);
+  });
+
   it('flags an edge originating from the @node/error port', () => {
     const source = node('t1', 'T');
     const edge: EditorEdge = {
@@ -85,5 +102,11 @@ describe('endpointsFromConnection', () => {
       targetHandle: 'Input',
     };
     expect(endpointsFromConnection(connection)).toBeUndefined();
+  });
+});
+
+describe('RECONCILE_EVENTS', () => {
+  it('re-derives the view when an edge changes (its capacity, for one)', () => {
+    expect(RECONCILE_EVENTS).toContain('edgeChanged');
   });
 });

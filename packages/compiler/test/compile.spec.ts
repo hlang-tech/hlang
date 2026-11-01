@@ -16,10 +16,15 @@ import { Flow } from '@hlang-org/runtime';
 import { interpret, NodeRegistry } from '@hlang-org/interpreter';
 import type { NodeConstructor } from '@hlang-org/interpreter';
 import Collect from './fixtures/nodes/collect.mts';
+import Countdown from './fixtures/nodes/countdown.mts';
+import FailingSink from './fixtures/nodes/failing-sink.mts';
 import Faulty from './fixtures/nodes/faulty.mts';
+import Loop from './fixtures/nodes/loop.mts';
 import Pair from './fixtures/nodes/pair.mts';
 import Scale from './fixtures/nodes/scale.mts';
+import SlowCollect from './fixtures/nodes/slow-collect.mts';
 import Source from './fixtures/nodes/source.mts';
+import TeardownTicker from './fixtures/nodes/teardown-ticker.mts';
 import Ticker from './fixtures/nodes/ticker.mts';
 import type { SinkEntry } from './fixtures/nodes/support.mts';
 import type { IConnection, IGraph, INodeInfo, NodeKind, ParamBag } from '@hlang-org/ir';
@@ -35,7 +40,12 @@ const FIXTURE_NODES: Readonly<Record<string, NodeConstructor>> = {
   pair: Pair,
   collect: Collect,
   faulty: Faulty,
+  'failing-sink': FailingSink,
+  loop: Loop,
+  countdown: Countdown,
+  'slow-collect': SlowCollect,
   ticker: Ticker,
+  'teardown-ticker': TeardownTicker,
 };
 
 /** Each node code imports the default export of its fixture module. */
@@ -77,7 +87,7 @@ function runInterpreted(graph: IGraph): SinkEntry[] {
     registry.register(code, nodeClass);
   }
   const entries: SinkEntry[] = [];
-  const handle = interpret(graph, { registry, createFlow: () => new Flow() }, { middleware: { record: (entry: SinkEntry) => entries.push(entry) } });
+  const handle = interpret(graph, { registry, createFlow: (options) => new Flow(options) }, { middleware: { record: (entry: SinkEntry) => entries.push(entry) } });
   handle.dispose();
   return entries;
 }
@@ -187,7 +197,7 @@ describe('compile', () => {
     const host = { tag: 'm' };
     const registry = new NodeRegistry();
     registry.register('source', Source);
-    const handle = interpret(graph, { registry, createFlow: () => new Flow() }, { middleware: host });
+    const handle = interpret(graph, { registry, createFlow: (options) => new Flow(options) }, { middleware: host });
     const interpreted = handle.getNode('a');
     const middleware: unknown = interpreted !== undefined && 'opts' in interpreted && typeof interpreted.opts === 'object' && interpreted.opts !== null && 'middleware' in interpreted.opts ? interpreted.opts.middleware : undefined;
     handle.dispose();
@@ -234,6 +244,27 @@ describe('compile', () => {
     expect(JSON.parse(output)).toEqual({ ticked: true, stable: true });
   });
 
+  it('disposes the runtime flow on dispose, so node teardowns run', () => {
+    const graph: IGraph = {
+      nodeList: [node('tick', 'teardown-ticker', 'R'), node('out', 'collect', 'W')],
+      connections: [link('tick', 'out')],
+    };
+    const output = runCompiled(
+      compile(graph, { nodes: NODES }).code,
+      [
+        'const entries = [];',
+        'const handle = program.run({ middleware: { record: (entry) => entries.push(entry) } });',
+        'await new Promise((resolve) => setTimeout(resolve, 60));',
+        'handle.dispose();',
+        'const stopped = entries.length;',
+        'await new Promise((resolve) => setTimeout(resolve, 60));',
+        'console.log(JSON.stringify({ ticked: stopped > 0, stable: entries.length === stopped }));',
+      ].join('\n'),
+    );
+    // The process exiting at all proves the teardown cleared the interval.
+    expect(JSON.parse(output)).toEqual({ ticked: true, stable: true });
+  });
+
   it('reports node errors through onError', () => {
     const graph: IGraph = {
       nodeList: [node('a', 'source', 'R', { values: [7] }), node('f', 'faulty', 'T'), node('w', 'collect', 'W')],
@@ -244,6 +275,141 @@ describe('compile', () => {
       'const errors = []; const handle = program.run({ onError: (event) => errors.push(event) }); handle.dispose(); console.log(JSON.stringify(errors));',
     );
     expect(JSON.parse(output)).toEqual([{ nodeId: 'f', error: 'bad:7' }]);
+  });
+
+  it('passes freezeMessages to the flow, as the interpreter does', () => {
+    const graph: IGraph = {
+      nodeList: [node('a', 'source', 'R', { values: [{ count: 1 }] }), node('w', 'collect', 'W')],
+      connections: [link('a', 'w')],
+    };
+    const output = runCompiled(
+      compile(graph, { nodes: NODES }).code,
+      [
+        'const seen = [];',
+        'const handle = program.run({ freezeMessages: true, middleware: { record: (entry) => seen.push(Object.isFrozen(entry.value)) } });',
+        'handle.dispose();',
+        'console.log(JSON.stringify(seen));',
+      ].join('\n'),
+    );
+    expect(JSON.parse(output)).toEqual([true]);
+  });
+
+  it('prints a bounded connection with its capacity and overflow', () => {
+    const graph: IGraph = {
+      nodeList: [node('a', 'source', 'R', { values: [1] }), node('w', 'collect', 'W')],
+      connections: [{ ...link('a', 'w'), capacity: 2, overflow: 'drop-oldest' }],
+    };
+    expect(compile(graph, { nodes: NODES }).code).toContain('nodes["a"].O("out").connect(nodes["w"].I("in"), {\n    capacity: 2,\n    overflow: "drop-oldest"\n  });');
+  });
+
+  it('runs a bounded connection the same way as the interpreter: one value at a time', async () => {
+    const graph: IGraph = {
+      nodeList: [node('a', 'source', 'R', { values: [1, 2, 3] }), node('w', 'slow-collect', 'W')],
+      connections: [{ ...link('a', 'w'), capacity: 2 }],
+    };
+    const registry = new NodeRegistry();
+    for (const [code, nodeClass] of Object.entries(FIXTURE_NODES)) {
+      registry.register(code, nodeClass);
+    }
+    const entries: SinkEntry[] = [];
+    const handle = interpret(graph, { registry, createFlow: (options) => new Flow(options) }, { middleware: { record: (entry: SinkEntry) => entries.push(entry) } });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    handle.dispose();
+
+    const compiled: unknown = JSON.parse(
+      runCompiled(
+        compile(graph, { nodes: NODES }).code,
+        'const entries = []; const handle = program.run({ middleware: { record: (entry) => entries.push(entry) } }); await new Promise((resolve) => setTimeout(resolve, 50)); handle.dispose(); console.log(JSON.stringify(entries));',
+      ),
+    );
+
+    expect(entries.map((entry) => entry.value)).toEqual([
+      { value: 1, concurrent: 1 },
+      { value: 2, concurrent: 1 },
+      { value: 3, concurrent: 1 },
+    ]);
+    expect(compiled).toEqual(entries);
+  });
+
+  it('runs a Transform connected to itself the same way as the interpreter', () => {
+    const graph: IGraph = {
+      nodeList: [node('a', 'source', 'R', { values: [3, 1] }), node('c', 'countdown', 'T'), node('w', 'collect', 'W')],
+      connections: [link('a', 'c'), link('c', 'c', 'again', 'in'), link('c', 'w')],
+    };
+    const interpreted = runInterpreted(graph);
+    const compiled: unknown = JSON.parse(runCompiled(compile(graph, { nodes: NODES }).code, RUN_AND_PRINT_RECORDED));
+
+    expect(interpreted.map((entry) => entry.value)).toEqual([3, 2, 1, 0, 1, 0]);
+    expect(compiled).toEqual(interpreted);
+  });
+
+  it('runs a graph that loops forever in slices when asked, and stops it on dispose', () => {
+    const graph: IGraph = {
+      nodeList: [node('a', 'source', 'R', { values: [1] }), node('x', 'loop', 'T'), node('y', 'loop', 'T')],
+      connections: [link('a', 'x'), link('x', 'y'), link('y', 'x')],
+    };
+    const output = runCompiled(
+      compile(graph, { nodes: NODES }).code,
+      [
+        'let count = 0;',
+        "const handle = program.run({ slice: { budgetMs: 1 }, middleware: { record: () => { count += 1; } } });",
+        // run() returned and this timer fires: the loop shares the thread.
+        'await new Promise((resolve) => setTimeout(resolve, 40));',
+        'handle.dispose();',
+        'const stopped = count;',
+        'await new Promise((resolve) => setTimeout(resolve, 40));',
+        'console.log(JSON.stringify({ looped: stopped > 0, stopped: count === stopped }));',
+      ].join('\n'),
+    );
+    // The child process exiting at all proves dispose ended the loop.
+    expect(JSON.parse(output)).toEqual({ looped: true, stopped: true });
+  });
+
+  it('reports the same node errors as the interpreter', () => {
+    const graph: IGraph = {
+      nodeList: [
+        node('a', 'source', 'R', { values: [7, 8] }),
+        node('f', 'faulty', 'T'),
+        node('w', 'failing-sink', 'W'),
+      ],
+      connections: [link('a', 'f'), link('a', 'w')],
+    };
+    const describe = (error: unknown): unknown => (error instanceof Error ? error.message : error);
+    const registry = new NodeRegistry();
+    for (const [code, nodeClass] of Object.entries(FIXTURE_NODES)) {
+      registry.register(code, nodeClass);
+    }
+    const interpreted: unknown[] = [];
+    const handle = interpret(graph, { registry, createFlow: (options) => new Flow(options) });
+    handle.onError(({ nodeId, error }) => interpreted.push({ nodeId, error: describe(error) }));
+    handle.dispose();
+
+    const compiled: unknown = JSON.parse(
+      runCompiled(
+        compile(graph, { nodes: NODES }).code,
+        'const errors = []; const handle = program.run({ onError: ({ nodeId, error }) => errors.push({ nodeId, error: error instanceof Error ? error.message : error }) }); handle.dispose(); console.log(JSON.stringify(errors));',
+      ),
+    );
+
+    expect(interpreted).toEqual([
+      { nodeId: 'f', error: 'bad:7' },
+      { nodeId: 'w', error: 'sink:7' },
+      { nodeId: 'f', error: 'bad:8' },
+      { nodeId: 'w', error: 'sink:8' },
+    ]);
+    expect(compiled).toEqual(interpreted);
+  });
+
+  it('reports a Writable handler failure through onError with its node id', () => {
+    const graph: IGraph = {
+      nodeList: [node('a', 'source', 'R', { values: [7] }), node('w', 'failing-sink', 'W')],
+      connections: [link('a', 'w')],
+    };
+    const output = runCompiled(
+      compile(graph, { nodes: NODES }).code,
+      'const errors = []; const handle = program.run({ onError: ({ nodeId, error }) => errors.push({ nodeId, error: error.message }) }); handle.dispose(); console.log(JSON.stringify(errors));',
+    );
+    expect(JSON.parse(output)).toEqual([{ nodeId: 'w', error: 'sink:7' }]);
   });
 
   it('serializes nested params, including keys that are not identifiers', () => {

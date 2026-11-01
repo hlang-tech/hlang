@@ -4,6 +4,10 @@
   gap: 18px;
   padding: 14px;
   height: 100%;
+  min-height: 0;
+  /* Its own scroll region: a tall node (or a short pane) never clips it. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .hl-inspector-empty {
@@ -157,5 +161,60 @@
   margin: 0;
   font-size: 13px;
   font-weight: 600;
+  color: var(--hl-ink-2);
+}
+
+/* Run statistics of the selected node (NodeRunStats). */
+.hl-runstats-hint {
+  text-align: left;
+}
+.hl-runstats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+.hl-runstats-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 7px 9px;
+  border-radius: var(--hl-r-sm);
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: var(--hl-glass-edge);
+}
+.hl-runstats-cell.is-wide {
+  grid-column: 1 / -1;
+}
+.hl-runstats-cell dt {
+  font-size: 10px;
+  color: var(--hl-ink-3);
+}
+.hl-runstats-cell dd {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--hl-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hl-runstats-cell.is-error dd {
+  color: var(--hl-error);
+}
+
+/* A connection in the inspector: its glyph, and the note above its form. */
+.hl-inspector-kind.hl-connection {
+  --hl-kind: var(--hl-silver);
+}
+.hl-inspector-note {
+  text-align: left;
+  line-height: 1.5;
+}
+
+.hl-runstats-cell.is-warning dd {
+  color: var(--hl-warning);
+}
+.hl-runstats-cell.is-done dd {
   color: var(--hl-ink-2);
 }

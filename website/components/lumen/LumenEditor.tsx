@@ -39,6 +39,9 @@ import {
   OutlineTree,
   RailTabs,
   RunButton,
+  RunLog,
+  RunTrace,
+  RunTraceProvider,
   ToastProvider,
   ToolCluster,
   Toolbar,
@@ -48,6 +51,8 @@ import {
   useNodeContextMenu,
   useNodeSearch,
   useNodeSearchTriggers,
+  useFollowScroll,
+  useRunTrace,
   useToast,
 } from '@hlang-org/editor-ui';
 import type { CanvasMode, ContextMenuItem, NodeInteraction, ToolItem } from '@hlang-org/editor-ui';
@@ -59,8 +64,10 @@ import { starterFlow } from '@/lib/lumen/starter-flow';
 
 const { nodeTypes, edgeTypes } = createHlangFlowTypes();
 
-/** Output lines kept on screen. */
-const OUTPUT_LINES = 3;
+/** Console lines kept; older ones are let go so a long run stays light. */
+const OUTPUT_LINES = 200;
+/** The console's header row: the height it collapses to. */
+const CONSOLE_HEADER_HEIGHT = 39;
 
 const LEFT_TABS = [
   { id: 'outline', label: 'Outline' },
@@ -112,15 +119,18 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
   // Set when the visitor stops the flow; auto-run then leaves it stopped.
   const stoppedByVisitor = useRef(false);
 
-  const wide = useMedia('(min-width: 1024px)');
+  // The side panels take 560 px; below 1440 px they would leave the canvas too
+  // narrow to read the flow (it would fit at 60% or less), so the canvas gets
+  // the full width instead.
+  const wide = useMedia('(min-width: 1440px)');
   const touch = useMedia('(pointer: coarse)');
   const narrow = useMedia('(max-width: 639px)');
 
   const { core, descriptors } = useMemo(() => {
     const kit = createLumenKit(value => {
-      setLog(previous => [{ id: (previous[0]?.id ?? 0) + 1, text: String(value) }, ...previous].slice(0, OUTPUT_LINES));
+      setLog(previous => [...previous, { id: (previous[previous.length - 1]?.id ?? 0) + 1, text: String(value) }].slice(-OUTPUT_LINES));
     });
-    const editor = createEditorCore({ graphRunner: new InterpreterGraphRunner(kit.registry, () => new Flow()) });
+    const editor = createEditorCore({ graphRunner: new InterpreterGraphRunner(kit.registry, (options) => new Flow(options)) });
     for (const descriptor of kit.descriptors) {
       editor.registry.register(descriptor);
     }
@@ -128,8 +138,10 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
   }, []);
 
   const liveStore = useMemo(() => new LiveSignalStore(), []);
+  const trace = useMemo(() => new RunTrace(), []);
   const flow = useHlangFlow(core);
   useLiveSignals(core, handle, liveStore);
+  useRunTrace(trace, handle);
   const rf = useReactFlow();
   const search = useNodeSearch(core);
   const triggers = useNodeSearchTriggers(core, search);
@@ -380,6 +392,7 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
 
   return (
     <LiveSignalProvider store={liveStore}>
+      <RunTraceProvider trace={trace}>
       <NodeInteractionProvider value={nodeInteraction}>
         <div
           ref={root}
@@ -391,6 +404,11 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
           onPointerDown={claimFocus}
         >
           <EditorShell
+            footerResize={{
+              defaultHeight: narrow ? 148 : 184,
+              minHeight: CONSOLE_HEADER_HEIGHT,
+              label: 'Resize the console',
+            }}
             leftCollapsed={!wide}
             rightCollapsed={!wide}
             toolbar={
@@ -418,7 +436,17 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
                 <InspectorPanel core={core} />
               </div>
             }
-            footer={<Output log={log} running={running} />}
+            footer={
+              <Console
+                core={core}
+                log={log}
+                running={running}
+                onFocusNode={focusNode}
+                onClear={() => {
+                  setLog([]);
+                }}
+              />
+            }
             canvas={
               <div ref={canvasRef} className={`hl-canvas hl-canvas-${canvasMode}`}>
                 <ReactFlow
@@ -481,6 +509,7 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
           />
         </div>
       </NodeInteractionProvider>
+      </RunTraceProvider>
     </LiveSignalProvider>
   );
 }
@@ -531,14 +560,80 @@ function LeftRail({ core, descriptors, onAdd, onFocus }: LeftRailProps): ReactEl
   );
 }
 
-function Output({ log, running }: { readonly log: readonly { readonly id: number; readonly text: string }[]; readonly running: boolean }): ReactElement {
+/** The footer's two views: what the sinks print, and every message the run delivers. */
+const CONSOLE_TABS = [
+  { id: 'output', label: 'Console' },
+  { id: 'trace', label: 'Run log' },
+] as const;
+
+interface ConsoleLine {
+  readonly id: number;
+  readonly text: string;
+}
+
+function Console({
+  core,
+  log,
+  running,
+  onFocusNode,
+  onClear,
+}: {
+  readonly core: EditorCore;
+  readonly log: readonly ConsoleLine[];
+  readonly running: boolean;
+  readonly onFocusNode: (id: NodeId) => void;
+  readonly onClear: () => void;
+}): ReactElement {
+  const [tab, setTab] = useState<string>('output');
+  const tabs = <RailTabs tabs={CONSOLE_TABS} active={tab} onChange={setTab} />;
+  return (
+    <div className="lumen-console">
+      {tab === 'trace' ? (
+        <RunLog core={core} leading={tabs} onSelectNode={onFocusNode} />
+      ) : (
+        <Output log={log} running={running} tabs={tabs} onClear={onClear} />
+      )}
+    </div>
+  );
+}
+
+/** What the Console nodes print, oldest first; it follows the newest line until the reader scrolls back. */
+function Output({
+  log,
+  running,
+  tabs,
+  onClear,
+}: {
+  readonly log: readonly ConsoleLine[];
+  readonly running: boolean;
+  readonly tabs: ReactElement;
+  readonly onClear: () => void;
+}): ReactElement {
+  const { ref, onScroll, follow, setFollow } = useFollowScroll<HTMLDivElement>();
   return (
     <section className="hl-output" aria-label="Console output" aria-live="off">
-      <span className="hl-output-tag">Console</span>
+      <header className="lumen-console-head">
+        {tabs}
+        <span className="lumen-console-actions">
+          <button
+            type="button"
+            className={`hl-runlog-toggle${follow ? ' is-on' : ''}`}
+            aria-pressed={follow}
+            onClick={() => {
+              setFollow(!follow);
+            }}
+          >
+            Follow
+          </button>
+          <button type="button" className="hl-runlog-toggle" disabled={log.length === 0} onClick={onClear}>
+            Clear
+          </button>
+        </span>
+      </header>
       {log.length === 0 ? (
         <span className="hl-output-idle">{running ? 'Waiting for the first value' : 'Press Run to start the flow.'}</span>
       ) : (
-        <div className="hl-output-body">
+        <div className="hl-output-body" ref={ref} onScroll={onScroll}>
           {log.map(line => (
             <span key={line.id} className="hl-output-line">
               <span className="hl-output-arrow" aria-hidden>

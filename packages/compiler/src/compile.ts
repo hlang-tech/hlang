@@ -33,6 +33,7 @@ import {
   spread,
   statement,
   str,
+  typeOf,
   valueToExpression,
 } from './estree';
 
@@ -258,19 +259,81 @@ function runBody(plan: ExecutionPlan, localByCode: ReadonlyMap<string, string>):
     });
   }
 
-  // 3. Wire every connection: source.O(port).connect(target.I(port)).
-  for (const { source, target } of plan.connections) {
+  // 3. Wire every connection: source.O(port).connect(target.I(port)), with
+  //    a bounded connection's capacity and overflow (RFC 0001).
+  for (const { source, target, capacity, overflow } of plan.connections) {
+    const input = call(member(nodeRef(target.nodeId), 'I'), [str(target.portId)]);
+    const bounds =
+      capacity === undefined
+        ? []
+        : [
+            object([
+              property('capacity', num(capacity)),
+              ...(overflow === undefined ? [] : [property('overflow', str(overflow))]),
+            ]),
+          ];
     body.push(
-      statement(
-        call(member(call(member(nodeRef(source.nodeId), 'O'), [str(source.portId)]), 'connect'), [
-          call(member(nodeRef(target.nodeId), 'I'), [str(target.portId)]),
-        ]),
-      ),
+      statement(call(member(call(member(nodeRef(source.nodeId), 'O'), [str(source.portId)]), 'connect'), [input, ...bounds])),
     );
   }
 
-  // 4. Run every Readable root.
-  body.push(constant('flow', construct(id('Flow'))));
+  // 4. Run every Readable root. As in the interpreter, `options.slice` makes
+  //    the flow share its thread, and the flow reports a
+  //    Writable's handler failure (it has no error port) to `onError` with the
+  //    node's id; a failure it cannot attribute is rethrown asynchronously.
+  const element = (array: Expression, position: number): MemberExpression => ({
+    type: 'MemberExpression',
+    object: array,
+    property: num(position),
+    computed: true,
+    optional: false,
+  });
+  body.push(
+    constant(
+      'flow',
+      construct(id('Flow'), [
+        object([
+          property(
+            'onError',
+            arrow(
+              [id('error'), id('node')],
+              block([
+                constant(
+                  'entry',
+                  call(member(call(member(id('Object'), 'entries'), [nodes]), 'find'), [
+                    arrow([id('pair')], binary('===', element(id('pair'), 1), id('node'))),
+                  ]),
+                ),
+                {
+                  type: 'IfStatement',
+                  test: logical('&&', binary('!==', id('entry'), id('undefined')), member(options, 'onError')),
+                  consequent: block([
+                    statement(
+                      call(member(options, 'onError'), [
+                        object([property('nodeId', element(id('entry'), 0)), property('error', id('error'), true)]),
+                      ]),
+                    ),
+                    { type: 'ReturnStatement', argument: null },
+                  ]),
+                  alternate: null,
+                },
+                statement(
+                  call(id('queueMicrotask'), [
+                    arrow([], block([{ type: 'ThrowStatement', argument: id('error') }])),
+                  ]),
+                ),
+              ]),
+            ),
+          ),
+          // Slicing is the host's choice, as in the interpreter: absent, the
+          // flow delivers synchronously.
+          property('slice', member(options, 'slice')),
+          // Freezing messages is the host's choice too (RFC 0001).
+          property('freezeMessages', member(options, 'freezeMessages')),
+        ]),
+      ]),
+    ),
+  );
   for (const root of plan.roots) {
     body.push(statement(call(member(id('flow'), 'run'), [nodeRef(root)])));
   }
@@ -294,6 +357,14 @@ function runBody(plan: ExecutionPlan, localByCode: ReadonlyMap<string, string>):
               left: { type: 'VariableDeclaration', kind: 'const', declarations: [{ type: 'VariableDeclarator', id: id('callback'), init: null }] },
               right: id('stopCallbacks'),
               body: block([statement(call(id('callback')))]),
+            },
+            // Dispose the flow (node teardowns, closed ports) on a runtime
+            // that provides it, as the interpreter does.
+            {
+              type: 'IfStatement',
+              test: binary('===', typeOf(member(id('flow'), 'dispose')), str('function')),
+              consequent: block([statement(call(member(id('flow'), 'dispose')))]),
+              alternate: null,
             },
           ]),
         ),

@@ -23,7 +23,7 @@ export default defineConfig({
       exclude: ['src/**/index.ts', 'src/**/*.spec.ts', 'src/**/*.d.ts'],
       reportsDirectory: 'coverage',
       // The measured floor. Raise it as tests grow; never lower it.
-      thresholds: { statements: 88, branches: 81, functions: 90, lines: 88 },
+      thresholds: { statements: 91, branches: 85, functions: 92, lines: 91 },
     },
   },
 });

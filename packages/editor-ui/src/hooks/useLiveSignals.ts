@@ -39,6 +39,8 @@ export function useLiveSignals(
         id: edge.id,
         sourceNodeId: edge.source.nodeId,
         sourcePortId: edge.source.portId,
+        targetNodeId: edge.target.nodeId,
+        targetPortId: edge.target.portId,
         isError: edge.source.portId === '@node/error',
       }));
       store.setEdgeIndex(entries);
@@ -61,11 +63,21 @@ export function useLiveSignals(
       store.reset();
       return;
     }
-    const activitySub = handle.onActivity(e => store.markActivity(e.nodeId, e.portId));
+    // A traced run reports each delivery, so each node and edge lights exactly
+    // when it ran or carried a message. A runner that cannot trace falls back
+    // to activity signals.
+    const signalSub =
+      handle.onDelivery?.(event => {
+        store.markDelivery(event);
+      }) ?? handle.onActivity(e => store.markActivity(e.nodeId, e.portId));
     const errorSub = handle.onError(e => store.markError(e.nodeId));
+    const finishedSub = handle.onFinished?.(e => {
+      store.markFinished(e.nodeId);
+    });
     return (): void => {
-      activitySub.dispose();
+      signalSub.dispose();
       errorSub.dispose();
+      finishedSub?.dispose();
       store.reset();
     };
   }, [store, handle]);

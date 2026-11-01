@@ -7,6 +7,7 @@
  */
 
 import type {
+  EdgeBounds,
   EditorEdge,
   EditorNode,
   EdgeId,
@@ -216,6 +217,63 @@ export class RenameNodeCommand implements IEditorCommand {
     }
     ctx.model.updateNodeName(this.nodeId, this.previous);
     emitChanged(ctx, this.nodeId);
+  }
+}
+
+/** Whether `bounds` are ones a graph accepts (RFC 0001): a positive integer capacity, and an overflow only with one. */
+function validBounds(bounds: EdgeBounds): boolean {
+  if (bounds.capacity === undefined) {
+    return bounds.overflow === undefined;
+  }
+  return Number.isInteger(bounds.capacity) && bounds.capacity > 0;
+}
+
+/**
+ * Bound a connection, or make it unbounded again (RFC 0001): its capacity and
+ * overflow. Undo restores what it had.
+ */
+export class SetEdgeBoundsCommand implements IEditorCommand {
+  readonly kind = 'setEdgeBounds';
+  readonly label = 'Set Connection Capacity';
+  private previous?: EdgeBounds;
+  constructor(
+    private readonly edgeId: EdgeId,
+    private readonly next: EdgeBounds,
+  ) {}
+  execute(ctx: CommandContext): void {
+    const edge = ctx.model.getEdge(this.edgeId);
+    if (edge === undefined) {
+      throw new CommandValidationError({
+        ok: false,
+        reason: 'missing-edge',
+        message: `Edge "${this.edgeId}" does not exist.`,
+      });
+    }
+    if (!validBounds(this.next)) {
+      throw new CommandValidationError({
+        ok: false,
+        reason: 'invalid-capacity',
+        message: 'A capacity must be a positive integer, and an overflow needs a capacity.',
+      });
+    }
+    this.previous = {
+      ...(edge.capacity === undefined ? {} : { capacity: edge.capacity }),
+      ...(edge.overflow === undefined ? {} : { overflow: edge.overflow }),
+    };
+    this.apply(ctx, this.next);
+  }
+  undo(ctx: CommandContext): void {
+    if (this.previous === undefined) {
+      return;
+    }
+    this.apply(ctx, this.previous);
+  }
+  private apply(ctx: CommandContext, bounds: EdgeBounds): void {
+    ctx.model.updateEdgeBounds(this.edgeId, bounds);
+    const edge = ctx.model.getEdge(this.edgeId);
+    if (edge !== undefined) {
+      ctx.bus.emit({ kind: 'edgeChanged', edge });
+    }
   }
 }
 

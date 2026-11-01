@@ -72,7 +72,7 @@ export function run(options = {}) {
 }
 ```
 
-`run(options)` accepts `flowId`, `env` (default `'prod'`), `middleware`, and `onError`. It returns `{ flowId, nodes, dispose }`.
+`run(options)` accepts `flowId`, `env` (default `'prod'`), `middleware`, `onError` (node errors, including a Writable's handler failures), `slice` (share the thread, as in the interpreter: `{}` for the defaults), and `freezeMessages` (deep-freeze messages as they are sent). It returns `{ flowId, nodes, dispose }`.
 
 ## API
 

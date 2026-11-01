@@ -18,6 +18,7 @@ import { PortRow } from './PortRow';
 import { NodeIcon } from '../icons/node-icons';
 import { DiagnosticBadge } from '../panels/DiagnosticBadge';
 import { useNodeLiveState } from '../live/LiveSignalContext';
+import { LivePulse } from '../live/LivePulse';
 import { useNodeInteraction } from './NodeInteractionContext';
 import './PillNode.css';
 
@@ -87,6 +88,7 @@ export function PillNodeChrome({ node, selected }: PillNodeChromeProps): ReactEl
     selected ? 'is-selected' : '',
     live === 'active' ? 'is-active' : '',
     live === 'error' ? 'is-live-error' : '',
+    live === 'finished' ? 'is-finished' : '',
     diagnostic?.severity === 'error' ? 'has-diag-error' : '',
     diagnostic?.severity === 'warning' ? 'has-diag-warning' : '',
   ]
@@ -95,6 +97,7 @@ export function PillNodeChrome({ node, selected }: PillNodeChromeProps): ReactEl
 
   return (
     <div className={className} data-kind={node.kind}>
+      <LivePulse nodeId={node.id} />
       {/* Domain bead: a kind-tinted disc carrying the node's per-type icon. */}
       <span className="hl-pill-dot" aria-hidden>
         <NodeIcon code={node.code} kind={node.kind} size={13} />

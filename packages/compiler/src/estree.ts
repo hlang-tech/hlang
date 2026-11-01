@@ -57,6 +57,11 @@ export function binary(operator: BinaryExpression['operator'], left: Expression,
   return { type: 'BinaryExpression', operator, left, right };
 }
 
+/** `typeof argument`. */
+export function typeOf(argument: Expression): UnaryExpression {
+  return { type: 'UnaryExpression', operator: 'typeof', prefix: true, argument };
+}
+
 export function logical(operator: LogicalExpression['operator'], left: Expression, right: Expression): LogicalExpression {
   return { type: 'LogicalExpression', operator, left, right };
 }

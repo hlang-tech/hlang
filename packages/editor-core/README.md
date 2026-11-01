@@ -60,11 +60,14 @@ import { NodeRegistry } from '@hlang-org/interpreter';
 import { createEditorCore, InterpreterGraphRunner } from '@hlang-org/editor-core';
 
 const runtimeNodes = new NodeRegistry().register('numbers', Numbers);
-const core = createEditorCore({ graphRunner: new InterpreterGraphRunner(runtimeNodes, () => new Flow()) });
+const core = createEditorCore({ graphRunner: new InterpreterGraphRunner(runtimeNodes, (options) => new Flow(options)) });
 
 const handle = core.execution?.run(core.model);
+handle?.onDelivery?.(({ sourceNodeId, targetNodeId, message, duration }) => log(sourceNodeId, targetNodeId, message, duration));
 handle?.dispose();
 ```
+
+The handle reports node errors (`onError`), data passing a connection (`onActivity`), and every delivered message with how long the receiving node took (`onDelivery`). `InterpreterGraphRunner` traces runs by default, because the editor is where graphs are inspected, and runs them in slices that share the thread, so a graph that loops forever cannot freeze the page and Stop can end it. It also freezes messages as they are sent, so a node that mutates what it received fails at once instead of corrupting another branch. Its third argument turns any of these off: `{ trace: false }`, `{ slice: false }`, `{ freezeMessages: false }`.
 
 ## The editor core
 
@@ -78,7 +81,7 @@ handle?.dispose();
 | `selection` | Selected nodes and edges. Not serialized. |
 | `viewState` | Hidden and locked flags per node. Not serialized. |
 | `registry` | Node descriptors (`code`, kind, ports, default parameters) and `createNode`. |
-| `validator` | Connection rules: output to input, no self-connections, no duplicates, compatible port types. Transform cycles are allowed. |
+| `validator` | Connection rules: output to input, no duplicates, compatible port types. Transform cycles are allowed, including a Transform connected to itself. |
 | `diagnostics` | Edit-time problems, recomputed on change. |
 | `serialization` | `toIGraph(model)` and `fromIGraph(graph)`. |
 | `events` | A typed event bus: `nodeAdded`, `nodeRemoved`, `nodeChanged`, `edgeAdded`, `edgeRemoved`, `selectionChanged`, `viewStateChanged`, `historyChanged`. |

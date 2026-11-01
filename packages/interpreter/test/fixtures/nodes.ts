@@ -14,7 +14,7 @@ import {
   TransformNode as RuntimeTransformNode,
   WriteableNode as RuntimeWriteableNode,
 } from '@hlang-org/runtime';
-import type { PortAccessor } from '@hlang-org/runtime';
+import type { PortAccessor, Teardown } from '@hlang-org/runtime';
 import { interval, takeUntil } from 'rxjs';
 import type {
   INodeConstructionOptions,
@@ -41,6 +41,31 @@ export class ValueSourceNode extends ReadableNode {
     const params = this.opts.config.params;
     o('Output').send(isRecord(params) ? (params.value ?? null) : null);
   }
+}
+
+/**
+ * A streaming R node that ignores the stop signal and returns a runtime
+ * teardown instead, so only the flow's own disposal can stop it.
+ */
+export function makeTeardownSource(emitted: number[], periodMs: number): NodeConstructor {
+  class TeardownSourceNode extends ReadableNode {
+    constructor(opts: INodeConstructionOptions) {
+      super(opts);
+      Port.O('Output').attach(this);
+    }
+    override _read(o: PortAccessor): Teardown {
+      let n = 0;
+      const timer = setInterval(() => {
+        n += 1;
+        emitted.push(n);
+        o('Output').send(n);
+      }, periodMs);
+      return () => {
+        clearInterval(timer);
+      };
+    }
+  }
+  return TeardownSourceNode;
 }
 
 /**
@@ -136,6 +161,66 @@ export class EchoTransformNode extends TransformNode {
       o('Output').send(payload);
     });
   }
+}
+
+/**
+ * A T node that counts what it forwards into `counter` and forwards all of it:
+ * two of them wired in a cycle loop forever with no asynchronous step.
+ */
+export function makeLoopTransform(counter: { count: number }): NodeConstructor {
+  class LoopTransformNode extends TransformNode {
+    constructor(opts: INodeConstructionOptions) {
+      super(opts);
+      Port.I('Input').attach(this);
+      Port.O('Output').attach(this);
+    }
+    override _transform(i: PortAccessor, o: PortAccessor): void {
+      i('Input').receive((payload: unknown) => {
+        counter.count += 1;
+        o('Output').send(payload);
+      });
+    }
+  }
+  return LoopTransformNode;
+}
+
+/**
+ * A W sink whose handler works on each value asynchronously (one macrotask)
+ * and records the most it ever worked on at once into `stats`.
+ */
+export function makeAsyncSink(stats: { inFlight: number; maxInFlight: number; seen: unknown[] }): NodeConstructor {
+  class AsyncSinkNode extends WriteableNode {
+    constructor(opts: INodeConstructionOptions) {
+      super(opts);
+      Port.I('Input').attach(this);
+    }
+    override _write(i: PortAccessor): void {
+      i('Input').receive(async (payload: unknown) => {
+        stats.inFlight += 1;
+        stats.maxInFlight = Math.max(stats.maxInFlight, stats.inFlight);
+        await new Promise(resolve => setTimeout(resolve, 1));
+        stats.seen.push(payload);
+        stats.inFlight -= 1;
+      });
+    }
+  }
+  return AsyncSinkNode;
+}
+
+/** A W sink whose handler throws `failure` for every message. */
+export function makeThrowingSink(failure: Error): NodeConstructor {
+  class ThrowingSinkNode extends WriteableNode {
+    constructor(opts: INodeConstructionOptions) {
+      super(opts);
+      Port.I('Input').attach(this);
+    }
+    override _write(i: PortAccessor): void {
+      i('Input').receive(() => {
+        throw failure;
+      });
+    }
+  }
+  return ThrowingSinkNode;
 }
 
 /** A W sink that records everything it receives into `collector`. */

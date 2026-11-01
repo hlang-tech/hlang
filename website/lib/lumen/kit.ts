@@ -33,17 +33,20 @@ interface Definition {
   readonly defaultParams?: NodeDescriptor['defaultParams'];
   /** Named inputs of a T or W node; defaults to one `Input`. */
   readonly inputs?: readonly string[];
+  /** Named outputs of an R or T node; defaults to one `Output`. */
+  readonly outputs?: readonly string[];
   readonly ctor: NodeConstructor;
 }
 
 /** Ports follow the kind: R has an output, T has inputs and an output, W has inputs only. */
 function define(definition: Definition): KitNode {
   const inputs = (definition.inputs ?? ['Input']).map(input);
+  const outputs = (definition.outputs ?? ['Output']).map(output);
   const ports =
     definition.kind === 'R'
-      ? [output('Output'), ERROR_PORT]
+      ? [...outputs, ERROR_PORT]
       : definition.kind === 'T'
-        ? [...inputs, output('Output'), ERROR_PORT]
+        ? [...inputs, ...outputs, ERROR_PORT]
         : inputs;
   return {
     descriptor: {
@@ -86,8 +89,15 @@ class RangeSource extends runtime.ReadableNode {
   override _read($o: PortAccess): void {
     range(numberParam(this.opts, 'start', 1), numberParam(this.opts, 'count', 5))
       .pipe(takeUntil(this.opts.signal.observable))
-      .subscribe(value => {
-        $o('Output').send(value);
+      .subscribe({
+        next: value => {
+          $o('Output').send(value);
+        },
+        // A range is finite: once it has sent its values its output closes,
+        // and the end of the stream travels through the graph (RFC 0001).
+        complete: () => {
+          $o('Output').close();
+        },
       });
   }
 }
@@ -100,6 +110,7 @@ class ConstantSource extends runtime.ReadableNode {
   }
   override _read($o: PortAccess): void {
     $o('Output').send(numberParam(this.opts, 'value', 42));
+    $o('Output').close();
   }
 }
 
@@ -130,6 +141,31 @@ class Filter extends runtime.TransformNode {
     $i('Input').receive(value => {
       if (typeof value !== 'number' || value >= min) {
         $o('Output').send(value);
+      }
+    });
+  }
+}
+
+/**
+ * T: counts down. For each number n it sends n on `Output` and, while n > 0,
+ * n - 1 on `Loop`. Wired from `Loop` back into its own `Input`, it repeats
+ * until it reaches 0: iteration, with no loop written in code.
+ */
+class Countdown extends runtime.TransformNode {
+  constructor(options: INodeConstructionOptions) {
+    super(options);
+    runtime.Port.I('Input').attach(this);
+    runtime.Port.O('Output').attach(this);
+    runtime.Port.O('Loop').attach(this);
+  }
+  override _transform($i: PortAccess, $o: PortAccess): void {
+    $i('Input').receive(value => {
+      if (typeof value !== 'number' || !Number.isFinite(value)) {
+        return;
+      }
+      $o('Output').send(value);
+      if (value > 0) {
+        $o('Loop').send(value - 1);
       }
     });
   }
@@ -211,6 +247,7 @@ function kitNodes(report: (value: unknown) => void): readonly KitNode[] {
     define({ code: 'constant', kind: 'R', displayName: 'Constant', group: 'Sources', defaultParams: { value: 42 }, ctor: ConstantSource }),
     define({ code: 'scale', kind: 'T', displayName: 'Scale', group: 'Transforms', defaultParams: { factor: 2 }, ctor: Scale }),
     define({ code: 'filter', kind: 'T', displayName: 'Filter', group: 'Transforms', defaultParams: { min: 0 }, ctor: Filter }),
+    define({ code: 'countdown', kind: 'T', displayName: 'Countdown', group: 'Transforms', outputs: ['Output', 'Loop'], ctor: Countdown }),
     define({ code: 'sum', kind: 'T', displayName: 'Sum', group: 'Transforms', ctor: Sum }),
     define({ code: 'delay', kind: 'T', displayName: 'Delay', group: 'Transforms', defaultParams: { ms: 300 }, ctor: Delay }),
     define({ code: 'merge', kind: 'T', displayName: 'Merge', group: 'Transforms', inputs: ['A', 'B'], ctor: Merge }),

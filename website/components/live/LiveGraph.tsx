@@ -86,7 +86,7 @@ export function LiveGraph({ views }: LiveGraphProps) {
       .register('print', NODES.print);
     const handle = interpret(
       liveGraph(code),
-      { registry, createFlow: () => new Flow() },
+      { registry, createFlow: (options) => new Flow(options) },
       { middleware: { input$: input$.current, emit: (value: string) => { setOutput(value); setArrivals(current => current + 1); } } },
     );
     const activity = handle.onActivity(({ nodeId, portId }) => {

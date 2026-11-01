@@ -30,12 +30,20 @@ export type { PortRowProps } from './nodes/PortRow';
 export { NodeBodySlot } from './nodes/NodeBodySlot';
 export type { NodeBodySlotProps } from './nodes/NodeBodySlot';
 export { FlowEdge } from './edges/FlowEdge';
+export { selfLoopPath, SELF_LOOP_CLEARANCE, SELF_LOOP_RADIUS } from './edges/self-loop';
+export type { SelfLoop, SelfLoopInput } from './edges/self-loop';
 export { createHlangFlowTypes } from './nodes/flow-types';
 export type { HlangFlowTypes } from './nodes/flow-types';
 
 // Shell / toolbar / canvas chrome
 export { EditorShell } from './shell/EditorShell';
 export type { EditorShellProps } from './shell/EditorShell';
+export { useFooterResize, DEFAULT_MIN_CANVAS_HEIGHT } from './shell/useFooterResize';
+export type { FooterResize, FooterResizeOptions } from './shell/useFooterResize';
+export { FooterResizer } from './shell/FooterResizer';
+export type { FooterResizerProps } from './shell/FooterResizer';
+export { footerBounds, clampFooter, resizeByKey, toggleCollapsed, FOOTER_KEY_STEP } from './shell/footer-size';
+export type { FooterBounds, FooterSize } from './shell/footer-size';
 export { Toolbar, UndoRedo, RunButton, ToolbarStat, ToolbarGhostButton } from './toolbar/Toolbar';
 export type { ToolbarProps, UndoRedoProps, RunButtonProps } from './toolbar/Toolbar';
 export { ToolCluster } from './toolbar/ToolCluster';
@@ -127,12 +135,34 @@ export {
   LiveSignalProvider,
   useLiveSignalStore,
   useNodeLiveState,
+  useNodePulse,
+  useEdgePulse,
   useEdgeFlowing,
 } from './live/LiveSignalContext';
 export type { LiveSignalProviderProps } from './live/LiveSignalContext';
-export { LiveSignalStore } from './live/live-signal-store';
+export { LiveSignalStore, defaultLiveDeps } from './live/live-signal-store';
+
+// Run trace: the live log and per-node statistics of a running graph
+export { RunTrace, RUN_LOG_CAPACITY, involves } from './live/run-trace';
+export type { RunTraceOptions, RunLogEntry, RunDeliveryEntry, RunErrorEntry, NodeRunSummary } from './live/run-trace';
+export { RunTraceProvider, useRunTraceStore, useRunTraceVersion } from './live/RunTraceContext';
+export type { RunTraceProviderProps } from './live/RunTraceContext';
+export { useRunTrace } from './hooks/useRunTrace';
+export { useFollowScroll, FOLLOW_SLACK_PX } from './hooks/useFollowScroll';
+export type { FollowScroll } from './hooks/useFollowScroll';
+export { RunLog } from './panels/RunLog';
+export type { RunLogProps } from './panels/RunLog';
+export { NodeRunStats } from './panels/NodeRunStats';
+export { ConnectionInspector } from './panels/ConnectionInspector';
+export { useEdgeBounds } from './hooks/useEdgeBounds';
+export type { EdgeBoundsHandle } from './hooks/useEdgeBounds';
+export { boundsFields, nextBounds, capacityLabel, DEFAULT_EDGE_CAPACITY } from './edges/edge-bounds';
+export { previewValue, PREVIEW_LENGTH } from './live/preview';
+export { formatDuration, formatElapsed } from './live/format';
 export type {
   NodeLiveState,
   EdgeIndexEntry,
   LiveSignalStoreDeps,
+  DeliverySignal,
 } from './live/live-signal-store';
+export { LivePulse } from './live/LivePulse';

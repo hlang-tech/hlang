@@ -28,7 +28,7 @@ const registry = new NodeRegistry()
   .register('double', Double)
   .register('log', Log);
 
-const handle = interpret(graph, { registry, createFlow: () => new Flow() }, { env: 'prod' });
+const handle = interpret(graph, { registry, createFlow: (options) => new Flow(options) }, { env: 'prod' });
 
 handle.onError(({ nodeId, error }) => console.error(nodeId, error));
 handle.onActivity(({ nodeId, portId }) => highlight(nodeId, portId));
@@ -43,7 +43,7 @@ handle.dispose();
 2. Constructs every node with `new NodeClass({ nodeId, flowId, env, middleware, config, signal })`. `config` is the node's `bizData`.
 3. Subscribes the `@node/error` port of every Readable and Transform node.
 4. Connects each connection as `source.O(port).connect(target.I(port))`.
-5. Runs every Readable root with a new `Flow`.
+5. Runs every Readable root with a new `Flow`, created by `deps.createFlow` with the options described below.
 
 `@hlang-org/compiler` emits the same steps as an ES module.
 
@@ -54,10 +54,13 @@ handle.dispose();
 | Argument | Description |
 | --- | --- |
 | `deps.registry` | A `NodeRegistry` that maps each node `code` to a node class. |
-| `deps.createFlow` | Returns a new runtime `Flow`. |
+| `deps.createFlow` | Returns a new runtime `Flow` from the options it is given: `(options) => new Flow(options)`. The options carry `onError`, so a Writable node's failure reaches `handle.onError`, and, when tracing, the flow's observer. |
 | `options.flowId` | Flow id passed to every node. Generated when omitted. |
 | `options.env` | Environment label passed to every node. Default `'prod'`. |
 | `options.middleware` | Object passed to every node, for services such as a logger. |
+| `options.trace` | Report every delivery through `onDelivery`, with its timing. Default `false`: an untraced run reads no clock. |
+| `options.freezeMessages` | Deep-freeze the plain data in each message as it is sent, so a node that mutates what it received fails at once. Default `false`. |
+| `options.slice` | Share the thread: deliver in slices of at most `budgetMs` (default 5) and yield between them, so a graph that loops forever with no asynchronous step neither freezes a page nor starves a server, and `dispose()` can stop it. Default off: an unsliced run is fastest. Pass `{}` for the defaults. |
 
 It throws if a node `code` is not registered.
 
@@ -68,8 +71,10 @@ It throws if a node `code` is not registered.
 | `flowId` | The flow id of this run. |
 | `roots` | The Readable root nodes. |
 | `getNode(nodeId)` | The constructed node, or `undefined`. |
-| `onError(listener)` | Errors sent on any `@node/error` port. Errors sent while the flow starts are buffered, so a listener added after `interpret` returns still receives them. Returns a disposable. |
+| `onError(listener)` | Errors sent on any `@node/error` port, and failures of a Writable node's handlers (a Writable has no error port). Errors sent while the flow starts are buffered, so a listener added after `interpret` returns still receives them. Returns a disposable. |
 | `onActivity(listener)` | Fires when data passes a connection, for both the source port and the target node. Returns a disposable. |
+| `onDelivery(listener)` | With `trace: true`, fires for every message delivered on a connection: `{ sourceNodeId, sourcePortId, targetNodeId, targetPortId, message, duration }`, where `duration` is how long the receiving node's handlers took, in milliseconds. The most recent 500 deliveries are replayed to a listener added later. Returns a disposable. |
+| `onEnded(listener)`, `onFinished(listener)`, `onDropped(listener)` | With `trace: true`: each input that ends (`{ nodeId, portId }`), each node that finishes (`{ nodeId }`), and each message a full `drop-oldest` connection drops. Replayed like deliveries. Return disposables. |
 | `dispose()` | Stops the run: emits the stop signal, calls `onStop` callbacks, and unsubscribes the interpreter's observers. |
 
 ### Stop signal

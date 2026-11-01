@@ -1,9 +1,19 @@
 import type Port from '../base/port';
+import type { Overflow } from '../base/port';
+import type { AnyNode } from '../node';
 
-/** A connection between two ports: an output (`src`) feeding an input (`dst`). */
+/**
+ * A connection between two ports: an output (`src`) of the `source` node
+ * feeding an input (`dst`) of the `target` node.
+ */
 export interface IPortDesc {
   readonly src: Port;
   readonly dst: Port;
+  readonly source: AnyNode;
+  readonly target: AnyNode;
+  /** How many messages the connection holds; `Infinity` when unbounded. */
+  readonly capacity: number;
+  readonly overflow: Overflow | undefined;
 }
 
 /** The name of the output port on which Readable and Transform nodes report errors. */

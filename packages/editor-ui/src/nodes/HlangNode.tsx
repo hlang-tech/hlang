@@ -16,6 +16,7 @@ import { SignalBar } from './SignalBar';
 import { PortRow } from './PortRow';
 import { NodeBodySlot } from './NodeBodySlot';
 import { useNodeLiveState } from '../live/LiveSignalContext';
+import { LivePulse } from '../live/LivePulse';
 import { AssetNodeChrome } from './AssetNode';
 import { PillNodeChrome } from './PillNode';
 import './HlangNode.css';
@@ -37,12 +38,14 @@ export function NodeChrome({ node, selected, body }: NodeChromeProps): ReactElem
     selected ? 'is-selected' : '',
     live === 'active' ? 'is-active' : '',
     live === 'error' ? 'is-live-error' : '',
+    live === 'finished' ? 'is-finished' : '',
   ]
     .filter(Boolean)
     .join(' ');
 
   return (
     <div className={className} data-kind={node.kind}>
+      <LivePulse nodeId={node.id} />
       <SignalBar />
       <header className="hl-head">
         <span className="hl-kind">{node.kind}</span>

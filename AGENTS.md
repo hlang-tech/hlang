@@ -112,8 +112,9 @@ never bypassed) — never mutate `IGraphModel` directly from UI code.
 - Ports are RxJS streams (`send`=next, `receive`=subscribe). Connections are
   living streams, not static wires — the engine is reactive/live, not batch.
 - Wiring is strictly `O.connect(I)`; the runtime throws otherwise. The connection
-  validator must reject wrong-direction links and must ALWAYS allow T↔T cycles
-  (feedback is a first-class feature).
+  validator must reject wrong-direction links and must ALWAYS allow T↔T cycles,
+  including a Transform connected to itself (feedback and iteration are
+  first-class features).
 - Multi named ports are first-class. `@node/error` is an O port, source-only.
 - IGraph is hlang's portable JSON IR — keep editor output IGraph-compatible so
   the same graph can be interpreted or compiled.

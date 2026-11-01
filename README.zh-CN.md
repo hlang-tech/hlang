@@ -142,7 +142,7 @@ const graph = {
   ],
 };
 
-const handle = interpret(graph, { registry, createFlow: () => new Flow() });
+const handle = interpret(graph, { registry, createFlow: (options) => new Flow(options) });
 handle.onError(({ nodeId, error }) => console.error(nodeId, error));
 handle.dispose(); // 停止长时间运行的节点
 ```

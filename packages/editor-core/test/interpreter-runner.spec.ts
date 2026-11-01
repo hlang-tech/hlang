@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 import { Flow, Port, ReadableNode, WriteableNode } from '@hlang-org/runtime';
 import type { PortAccessor } from '@hlang-org/runtime';
 import { NodeRegistry as RuntimeNodeRegistry } from '@hlang-org/interpreter';
-import type { INodeConstructionOptions } from '@hlang-org/interpreter';
+import type { INodeConstructionOptions, INodeDeliveryEvent, IRuntimeFlowOptions } from '@hlang-org/interpreter';
 import {
   createEditorCore,
   InterpreterGraphRunner,
@@ -56,10 +56,7 @@ describe('InterpreterGraphRunner (integration)', () => {
       .register('test-source', Source)
       .register('test-sink', Sink);
 
-    const runner = new InterpreterGraphRunner(
-      runtimeRegistry,
-      () => new rt.Flow({}),
-    );
+    const runner = new InterpreterGraphRunner(runtimeRegistry, options => new rt.Flow(options));
 
     const core = createEditorCore({ graphRunner: runner });
     core.registry.register(readableDescriptor);
@@ -76,5 +73,136 @@ describe('InterpreterGraphRunner (integration)', () => {
     handle?.dispose();
 
     expect(received).toEqual(['payload']);
+  });
+
+  /** An editor with a source sending 'payload' to a sink, run through `runner`. */
+  function authored(trace?: boolean) {
+    class Source extends rt.ReadableNode {
+      constructor(opts: INodeConstructionOptions) {
+        super(opts);
+        rt.Port.O('Output').attach(this);
+      }
+      override _read(o: PortAccessor): void {
+        o('Output').send('payload');
+      }
+    }
+    class Sink extends rt.WriteableNode {
+      constructor(opts: INodeConstructionOptions) {
+        super(opts);
+        rt.Port.I('Input').attach(this);
+      }
+      override _write(i: PortAccessor): void {
+        i('Input').receive(() => undefined);
+      }
+    }
+    const registry = new RuntimeNodeRegistry().register('test-source', Source).register('test-sink', Sink);
+    const runner = new InterpreterGraphRunner(
+      registry,
+      options => new rt.Flow(options),
+      ...(trace === undefined ? [] : [{ trace }]),
+    );
+    const core = createEditorCore({ graphRunner: runner });
+    core.registry.register(readableDescriptor);
+    core.registry.register(writableDescriptor);
+    const r = core.registry.createNode('test-source', { x: 0, y: 0 });
+    const w = core.registry.createNode('test-sink', { x: 1, y: 0 });
+    core.commands.execute(new AddNodeCommand(r));
+    core.commands.execute(new AddNodeCommand(w));
+    core.commands.execute(new ConnectCommand('e1', out(r.id), inp(w.id)));
+    return { core, source: r.id, sink: w.id };
+  }
+
+  it('traces a run by default, by editor node id', () => {
+    const { core, source, sink } = authored();
+    const handle = core.execution?.run(core.model);
+    const events: INodeDeliveryEvent[] = [];
+    handle?.onDelivery?.(event => events.push(event));
+    handle?.dispose();
+
+    expect(events.map(event => [event.sourceNodeId, event.targetNodeId, event.message])).toEqual([
+      [source, sink, 'payload'],
+    ]);
+  });
+
+  it('does not trace when the host turns it off', () => {
+    const { core } = authored(false);
+    const handle = core.execution?.run(core.model);
+    const events: INodeDeliveryEvent[] = [];
+    handle?.onDelivery?.(event => events.push(event));
+    handle?.dispose();
+
+    expect(events).toEqual([]);
+  });
+
+  it('shares the thread by default, so a graph that loops forever cannot freeze the editor', () => {
+    class Source extends rt.ReadableNode {
+      constructor(opts: INodeConstructionOptions) {
+        super(opts);
+        rt.Port.O('Output').attach(this);
+      }
+    }
+    const registry = new RuntimeNodeRegistry().register('test-source', Source);
+    const graph = {
+      nodeList: [{ code: 'test-source', name: 'source', type: 'R' as const, nodeId: 'source', bizData: { params: {} } }],
+      connections: [],
+    };
+    const seen: IRuntimeFlowOptions[] = [];
+    const createFlow = (flowOptions: IRuntimeFlowOptions) => {
+      seen.push(flowOptions);
+      return new rt.Flow(flowOptions);
+    };
+
+    new InterpreterGraphRunner(registry, createFlow).run(graph).dispose();
+    new InterpreterGraphRunner(registry, createFlow, { slice: false }).run(graph).dispose();
+
+    expect(seen.map(options => options.slice)).toEqual([{}, undefined]);
+  });
+
+  it('freezes messages by default, so a node that mutates what it received fails at once', () => {
+    class Source extends rt.ReadableNode {
+      constructor(opts: INodeConstructionOptions) {
+        super(opts);
+        rt.Port.O('Output').attach(this);
+      }
+    }
+    const registry = new RuntimeNodeRegistry().register('test-source', Source);
+    const graph = {
+      nodeList: [{ code: 'test-source', name: 'source', type: 'R' as const, nodeId: 'source', bizData: { params: {} } }],
+      connections: [],
+    };
+    const seen: IRuntimeFlowOptions[] = [];
+    const createFlow = (flowOptions: IRuntimeFlowOptions) => {
+      seen.push(flowOptions);
+      return new rt.Flow(flowOptions);
+    };
+
+    new InterpreterGraphRunner(registry, createFlow).run(graph).dispose();
+    new InterpreterGraphRunner(registry, createFlow, { freezeMessages: false }).run(graph).dispose();
+
+    expect(seen.map(options => options.freezeMessages)).toEqual([true, undefined]);
+  });
+
+  it('forwards end-of-stream and drop events from a traced run', () => {
+    class Once extends rt.ReadableNode {
+      constructor(opts: INodeConstructionOptions) {
+        super(opts);
+        rt.Port.O('Output').attach(this);
+      }
+      override _read(o: PortAccessor): void {
+        o('Output').close();
+      }
+    }
+    const registry = new RuntimeNodeRegistry().register('once', Once);
+    const handle = new InterpreterGraphRunner(registry, options => new rt.Flow(options)).run({
+      nodeList: [{ code: 'once', name: 'once', type: 'R' as const, nodeId: 'once', bizData: { params: {} } }],
+      connections: [],
+    });
+    const finished: string[] = [];
+    handle.onFinished?.(event => finished.push(event.nodeId));
+    const ended = handle.onEnded?.(() => undefined);
+    const dropped = handle.onDropped?.(() => undefined);
+    expect(finished).toEqual(['once']);
+    expect([ended, dropped].every(disposable => disposable !== undefined)).toBe(true);
+    handle.dispose();
   });
 });

@@ -44,14 +44,26 @@ export function toRFNode(node: EditorNode, view?: NodeViewState): HlangRFNode {
   };
 }
 
-/** Convert an editor edge to a React Flow edge, preserving O->I direction. */
-export function toRFEdge(edge: EditorEdge, sourceNode: EditorNode | undefined): HlangRFEdge {
+/** Per-edge view flags reflected into React Flow. */
+export interface EdgeViewState {
+  /** Whether the edge is selected in editor-core's selection service. */
+  readonly selected?: boolean;
+}
+
+/**
+ * Convert an editor edge to a React Flow edge, preserving O->I direction.
+ * `view.selected` keeps the canvas in step with editor-core's selection, as
+ * for nodes.
+ */
+export function toRFEdge(edge: EditorEdge, sourceNode: EditorNode | undefined, view?: EdgeViewState): HlangRFEdge {
   const sourcePort = sourceNode ? findPort(sourceNode, edge.source.portId) : undefined;
   const data: HlangEdgeData = {
     sourcePortId: edge.source.portId,
     targetPortId: edge.target.portId,
     isError: sourcePort?.isError ?? edge.source.portId === '@node/error',
     stream: sourcePort?.stream ?? 'live',
+    ...(edge.capacity === undefined ? {} : { capacity: edge.capacity }),
+    ...(edge.overflow === undefined ? {} : { overflow: edge.overflow }),
   };
   return {
     id: edge.id,
@@ -59,6 +71,7 @@ export function toRFEdge(edge: EditorEdge, sourceNode: EditorNode | undefined): 
     sourceHandle: edge.source.portId,
     target: edge.target.nodeId,
     targetHandle: edge.target.portId,
+    selected: view?.selected ?? false,
     data,
   };
 }

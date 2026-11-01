@@ -86,3 +86,14 @@
   border: 1px dashed var(--hl-line-strong);
   border-radius: var(--hl-r-sm);
 }
+
+/* A field that does not apply yet (a connection's capacity while it is
+   unbounded): visibly off, and not interactive. */
+.hl-input:disabled,
+.hl-toggle:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.hl-input:disabled:hover {
+  border-color: var(--hl-line-strong);
+}

@@ -13,6 +13,7 @@ import type {
   INodeInfo,
 } from '@hlang-org/interpreter';
 import type {
+  EdgeBounds,
   EditorEdge,
   EditorNode,
   GraphSnapshot,
@@ -67,6 +68,15 @@ function edgeToConnection(edge: EditorEdge): IConnection {
   return {
     Output: { nodeId: edge.source.nodeId, portConf: { id: edge.source.portId } },
     Input: { nodeId: edge.target.nodeId, portConf: { id: edge.target.portId } },
+    ...boundsOf(edge),
+  };
+}
+
+/** A connection's or an edge's capacity and overflow, without absent fields. */
+function boundsOf(from: { readonly capacity?: number; readonly overflow?: EditorEdge['overflow'] }): EdgeBounds {
+  return {
+    ...(from.capacity === undefined ? {} : { capacity: from.capacity }),
+    ...(from.overflow === undefined ? {} : { overflow: from.overflow }),
   };
 }
 
@@ -124,5 +134,6 @@ function connectionToEdge(connection: IConnection, index: number): EditorEdge {
     id: `edge-${String(index + 1)}`,
     source: { nodeId: connection.Output.nodeId, portId: sourcePortId },
     target: { nodeId: connection.Input.nodeId, portId: targetPortId },
+    ...boundsOf(connection),
   };
 }
