@@ -54,7 +54,9 @@ export function useGraphSync(core: EditorCore): GraphView {
     );
     const edges = core.model
       .getEdges()
-      .map(edge => toRFEdge(edge, core.model.getNode(edge.source.nodeId)));
+      .map(edge =>
+        toRFEdge(edge, core.model.getNode(edge.source.nodeId), { selected: core.selection.isSelected(edge.id) }),
+      );
     return { nodes, edges };
     // `version` is the intentional invalidation key: it changes on every model
     // mutation and forces a fresh derivation from the (mutable) model.

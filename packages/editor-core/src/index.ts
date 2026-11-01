@@ -39,6 +39,7 @@ export type {
   EditorNode,
   Endpoint,
   EditorEdge,
+  EdgeBounds,
   GraphSnapshot,
 } from './model/types';
 
@@ -115,6 +116,7 @@ export {
   DisconnectCommand,
   MoveNodeCommand,
   UpdateParamsCommand,
+  SetEdgeBoundsCommand,
   SetHiddenCommand,
   SetLockedCommand,
   RenameNodeCommand,

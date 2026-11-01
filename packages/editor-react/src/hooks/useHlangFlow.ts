@@ -64,7 +64,9 @@ function deriveNodes(core: EditorCore): HlangRFNode[] {
 function deriveEdges(core: EditorCore): HlangRFEdge[] {
   return core.model
     .getEdges()
-    .map(edge => toRFEdge(edge, core.model.getNode(edge.source.nodeId)));
+    .map(edge =>
+      toRFEdge(edge, core.model.getNode(edge.source.nodeId), { selected: core.selection.isSelected(edge.id) }),
+    );
 }
 
 export function useHlangFlow(core: EditorCore): HlangFlowProps {

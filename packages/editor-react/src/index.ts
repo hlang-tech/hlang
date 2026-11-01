@@ -33,7 +33,7 @@ export { useHlangFlow } from './hooks/useHlangFlow';
 export type { HlangFlowProps } from './hooks/useHlangFlow';
 
 export { toRFNode, toRFEdge, endpointsFromConnection } from './mapping/convert';
-export type { NodeViewState } from './mapping/convert';
+export type { NodeViewState, EdgeViewState } from './mapping/convert';
 export { findPort } from './mapping/types';
 export type {
   HlangNodeData,

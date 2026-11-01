@@ -13,6 +13,7 @@ export const RECONCILE_EVENTS: readonly EditorEventKind[] = [
   'nodeChanged',
   'edgeAdded',
   'edgeRemoved',
+  'edgeChanged',
   'viewStateChanged',
   'selectionChanged',
 ];

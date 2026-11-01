@@ -202,3 +202,12 @@
 .hl-runstats-cell.is-error dd {
   color: var(--hl-error);
 }
+
+/* A connection in the inspector: its glyph, and the note above its form. */
+.hl-inspector-kind.hl-connection {
+  --hl-kind: var(--hl-silver);
+}
+.hl-inspector-note {
+  text-align: left;
+  line-height: 1.5;
+}

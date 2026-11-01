@@ -9,6 +9,7 @@ import { AddNodeCommand } from '@hlang-org/editor-core';
 import { EditorProvider, useEditor } from '../src/context';
 import { useNodeChanges, useEdgeChanges } from '../src/hooks/useChanges';
 import { useHlangFlow } from '../src/hooks/useHlangFlow';
+import { ConnectCommand, SetEdgeBoundsCommand } from '@hlang-org/editor-core';
 import type { HlangRFNode, HlangRFEdge } from '../src/mapping/types';
 import { makeCore } from './fixtures/core';
 
@@ -149,6 +150,27 @@ describe('useHlangFlow', () => {
       result.current.onConnect(connection);
     });
     expect(result.current.edges).toHaveLength(1);
+  });
+
+  it('reflects an edge\'s selection and its bounds after they change in the core', () => {
+    const core = makeCore();
+    const r = core.registry.createNode('r', { x: 0, y: 0 });
+    const t = core.registry.createNode('t', { x: 1, y: 0 });
+    core.commands.execute(new AddNodeCommand(r));
+    core.commands.execute(new AddNodeCommand(t));
+    core.commands.execute(new ConnectCommand('e1', { nodeId: r.id, portId: 'Output' }, { nodeId: t.id, portId: 'Input' }));
+    const { result } = renderHook(() => useHlangFlow(core));
+
+    act(() => {
+      core.selection.selectEdges(['e1'], 'replace');
+    });
+    expect(result.current.edges[0]?.selected).toBe(true);
+
+    act(() => {
+      core.commands.execute(new SetEdgeBoundsCommand('e1', { capacity: 4 }));
+    });
+    expect(result.current.edges[0]?.data?.capacity).toBe(4);
+    expect(result.current.edges[0]?.selected).toBe(true);
   });
 
   it('does NOT commit intermediate drag frames, only the finished drag', () => {
