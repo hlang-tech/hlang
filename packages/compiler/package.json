@@ -1,6 +1,6 @@
 {
   "name": "@hlang-org/compiler",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Ahead-of-time compiler for hlang: compiles an IGraph program into a standalone ES module.",
   "keywords": [
     "fbp",
