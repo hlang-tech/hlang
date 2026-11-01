@@ -57,15 +57,22 @@ reference framework, read its actual source / `.d.ts`, not its docs.
 
 ## Architecture & layer boundaries (strict, one-directional)
 
-```
-runtime      @hlang-org/runtime      RxJS reactive engine (R/T/W nodes, Flow)   [existing]
-compiler     @hlang-org/compiler     AOT: IGraph -> JS program                   [existing]
-interpreter  @hlang-org/interpreter  evaluates IGraph in-process (RxJS-native)   depends on runtime
-editor-core  @hlang-org/editor-core  HEADLESS editor logic (DI, model, commands) depends on interpreter (types + exec seam)
+```text
+runtime      @hlang-org/runtime      RxJS reactive engine (R/T/W nodes, Flow)   CommonJS, stable 1.x
+ir           @hlang-org/ir           IGraph types + planGraph (validate, lower)  zero dependencies
+interpreter  @hlang-org/interpreter  executes the plan in-process (RxJS-native)  depends on ir, runtime
+compiler     @hlang-org/compiler     prints the plan as an ES module (ESTree)    depends on ir only
+editor-core  @hlang-org/editor-core  HEADLESS editor logic (DI, model, commands) depends on ir, interpreter (exec seam)
 editor-react @hlang-org/editor-react React bindings; the ONLY layer importing @xyflow/react in the STATE path
 editor-ui    @hlang-org/editor-ui    design-system components (built on editor-react)
 examples/editor-react-playground     the single, temporary verification app (Vite). NOT a product.
 ```
+
+**One front end, two backends.** Execution semantics are defined once, in
+`planGraph` (`@hlang-org/ir`). The interpreter executes the plan; the compiler
+prints the same plan. Never add a semantic rule to only one backend. The
+compiler's parity test runs one graph through both and compares the results;
+keep it passing.
 
 Dependencies point downward only, never upward or sideways in violation of:
 
@@ -143,15 +150,12 @@ Run from the repository root (Turborepo builds dependencies first):
 - `pnpm test` — jest (ts-jest).
 - `pnpm check` — build + typecheck + lint + test; the CI gate.
 - `pnpm lint:pkg` — publint + attw (package-publish validation).
+- `pnpm lint:docs` — markdownlint for the documentation; must be 0/0.
 - `pnpm changeset` — record a release note for a published package change.
+- `pnpm dev:playground` — the maintainer's dev server (builds dependencies first).
 
 Scope any task to one package with `--filter`, e.g.
 `pnpm --filter @hlang-org/editor-core test`.
-
-`@hlang-org/compiler` has no `test` task. Its `test:e2e` installs third-party
-`@hset/xlang-*` node packages from npm and listens on port 30000. It currently
-fails: those packages predate the runtime's `receive` port API. Run it on
-purpose with `pnpm --filter @hlang-org/compiler test:e2e`.
 
 The maintainer starts the example dev server themselves. Do NOT auto-launch a
 dev server on their behalf. For visual verification use `vite build` or a
@@ -161,8 +165,10 @@ temporary server on a non-default port, and never occupy port 5173.
 
 ## Testing policy — test behavior, not pixels
 
-- **interpreter, editor-core**: unit tests (pure logic, deterministic). Required,
-  failing-test-first. Near-100% on pure logic.
+- **ir, interpreter, compiler, editor-core**: unit tests (pure logic,
+  deterministic). Required, failing-test-first. Near-100% on pure logic. The
+  compiler additionally runs compiled programs in a child process and compares
+  them with the interpreter (parity).
 - **editor-react**: behavior tests (hook logic + mapping direction via
   `renderHook`) — NOT pixels. These guard the load-bearing bindings.
 - **editor-ui**: NO component/pixel tests. It is presentation — verified end to
@@ -174,9 +180,25 @@ temporary server on a non-default port, and never occupy port 5173.
 
 ---
 
+## Git workflow and releases
+
+git flow: `main` holds released code (every commit is a release), `develop`
+holds the next release. Work on `feature/<topic>` from `develop`; prepare
+releases on `release/<version>`; fix releases on `hotfix/<topic>` from `main`.
+Pull requests target `develop` (hotfixes target `main`). Commit messages use
+Conventional Commits in English.
+
+Every change to a published package needs a changeset. Releases publish the
+`@hlang-org/*` packages with Changesets, then mirror identical builds to the
+`@hlang-tech/*` scope. Both scopes always carry the same versions. Semver is
+binding: never ship a breaking change to existing users without a major
+version and a migration guide.
+
+---
+
 ## Do-not-touch
 
-- Do not modify `packages/runtime` or `packages/compiler` unless explicitly
-  asked — they are the existing stable base with their own (looser) config.
-- Do not commit or push unless asked. Never work directly on the default branch
-  without branching first.
+- `packages/runtime` is the stable 1.x engine with its own looser config.
+  Change it only when explicitly asked, without breaking its public API.
+- Do not commit or push unless asked. Never work directly on `main` or
+  `develop`; branch first.

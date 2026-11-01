@@ -40,7 +40,7 @@ function link(fromId: string, toId: string, toPort = 'Input', fromPort = 'Output
  * chain flowing rightward, with `compose` centred between its two inputs. A
  * curated template ships curated coordinates; auto-layout (`layoutLayered`)
  * still governs user-added nodes and arbitrary imported graphs. The scene is
- * kept compact (~820×360) so the canvas frames it at a readable zoom rather
+ * kept compact (~1100×430) so the canvas frames it at a readable zoom rather
  * than shrinking a sparse, wide DAG.
  */
 export function buildStarterFlow(): IGraph {
@@ -56,13 +56,13 @@ export function buildStarterFlow(): IGraph {
       'backdrop',
       'image-source',
       'R',
-      { x: 0, y: 220 },
+      { x: 0, y: 260 },
       { imageUrl: IMG('1470071459604-3b5ec3a7fe05'), caption: 'Location', role: 'Background' },
     ),
-    node('tone', 'map-scale', 'T', { x: 250, y: 268 }, { factor: 2 }),
-    node('compose', 'merge', 'T', { x: 470, y: 132 }),
-    node('grade', 'scan-sum', 'T', { x: 660, y: 132 }),
-    node('preview', 'console-sink', 'W', { x: 850, y: 132 }),
+    node('tone', 'map-scale', 'T', { x: 380, y: 330 }, { factor: 2 }),
+    node('compose', 'merge', 'T', { x: 600, y: 160 }),
+    node('grade', 'scan-sum', 'T', { x: 800, y: 160 }),
+    node('preview', 'console-sink', 'W', { x: 990, y: 160 }),
   ];
   const connections: IConnection[] = [
     link('character', 'compose', 'A'),
