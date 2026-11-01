@@ -7,7 +7,7 @@
  * published mark (`astack-logo.svg`, from astack-tech/astack, assets/brand).
  *
  * Usage (from the repository root): node media/showcase/generate.cjs
- * Then render each SVG at 1200 × 750 in a browser to the PNG of the same name.
+ * Then render each SVG at 1200 × 750, at 2x, in a browser to the PNG of the same name.
  */
 const fs = require('node:fs');
 const path = require('node:path');
@@ -26,18 +26,25 @@ const backdrop =
   `<filter id="shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity=".6"/></filter></defs>` +
   `<rect width="${W}" height="${H}" fill="${C.void}"/><rect width="${W}" height="${H}" fill="url(#grid)"/><rect width="${W}" height="${H}" fill="url(#glow)"/>`;
 
-/** A screenshot framed on the backdrop, cropped from the top to the frame. */
-function framedShot(href, label) {
+/**
+ * A screenshot framed on the backdrop. The frame takes the screenshot's own
+ * aspect ratio and the whole screenshot is shown: nothing is cropped, so no
+ * edge of the interface looks cut off.
+ */
+function framedShot(href, label, imageWidth, imageHeight) {
   const inset = 56;
-  const w = W - inset * 2;
-  const h = H - inset * 2;
+  const scale = Math.min((W - inset * 2) / imageWidth, (H - inset * 2) / imageHeight);
+  const w = Math.round(imageWidth * scale);
+  const h = Math.round(imageHeight * scale);
+  const x = Math.round((W - w) / 2);
+  const y = Math.round((H - h) / 2);
   const rx = 18;
   return svg(
     backdrop +
-      `<defs><clipPath id="shot"><rect x="${inset}" y="${inset}" width="${w}" height="${h}" rx="${rx}"/></clipPath></defs>` +
-      `<g filter="url(#shadow)"><rect x="${inset}" y="${inset}" width="${w}" height="${h}" rx="${rx}" fill="${C.surface}"/></g>` +
-      `<image href="${href}" x="${inset}" y="${inset}" width="${w}" height="${h}" preserveAspectRatio="xMidYMin slice" clip-path="url(#shot)"/>` +
-      `<rect x="${inset + 0.5}" y="${inset + 0.5}" width="${w - 1}" height="${h - 1}" rx="${rx}" fill="none" stroke="${C.silver}" stroke-opacity=".28"/>`,
+      `<defs><clipPath id="shot"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}"/></clipPath></defs>` +
+      `<g filter="url(#shadow)"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${C.surface}"/></g>` +
+      `<image href="${href}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet" clip-path="url(#shot)"/>` +
+      `<rect x="${x + 0.5}" y="${y + 0.5}" width="${w - 1}" height="${h - 1}" rx="${rx}" fill="none" stroke="${C.silver}" stroke-opacity=".28"/>`,
     label,
   );
 }
@@ -64,8 +71,8 @@ function astackCover() {
 }
 
 const outputs = {
-  'chinashop-2020.svg': framedShot('../ui.png', 'A node development tool built on hlang for a retail store operations solution, CHINASHOP 2020'),
-  'lumen.svg': framedShot('../lumen-editor.png', 'The Lumen editor for hlang'),
+  'chinashop-2020.svg': framedShot('../ui.png', 'A node development tool built on hlang for a retail store operations solution, CHINASHOP 2020', 1680, 1050),
+  'prism.svg': framedShot('../prism.png', 'Prism, a node-based tool for image and video creators, built on Lumen', 2000, 1250),
   'astack.svg': astackCover(),
 };
 

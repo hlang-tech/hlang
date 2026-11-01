@@ -1,0 +1,4 @@
+roots: a
+a.out -> b.in
+b.out -> c.in
+invalid-connection: Writable node "c" has no output ports and cannot be a connection source.

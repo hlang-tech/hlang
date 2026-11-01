@@ -49,7 +49,8 @@ Interface and headlines use Inter, with the system sans-serif as fallback. Code,
 | [`social-card.svg`](./social-card.svg) / [`social-card.png`](./social-card.png) | Social preview, 1280 × 640 (GitHub repository social preview) |
 | [`avatar.svg`](./avatar.svg) / [`avatar.png`](./avatar.png) | Organization avatar, 512 × 512 |
 | [`logo-construction.svg`](./logo-construction.svg) | Construction and rationale sheet, 1400 × 850 |
-| [`../lumen-editor.png`](../lumen-editor.png) | Product screenshot of the Lumen editor |
+| [`../lumen-editor.png`](../lumen-editor.png) | The Lumen editor running a flow of generic stream nodes |
+| [`../prism.png`](../prism.png) | Case screenshot: Prism, a tool for image and video creators built on Lumen |
 | [`../ui.png`](../ui.png) | Case screenshot: a node development tool built on hlang for the CHINASHOP 2020 retail solution |
 
 ## Writing

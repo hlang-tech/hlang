@@ -1,7 +1,24 @@
 packages:
   - "packages/*"
   - "examples/*"
+  - "website"
 
 # Allow install scripts only for dependencies that need a native build step.
 onlyBuiltDependencies:
   - esbuild
+
+# Security overrides for development tooling. Each forces a fixed release where
+# the package that depends on it has not moved yet; remove one when its parent
+# depends on a fixed version.
+overrides:
+  # GHSA-g3hv-75wg-m249 (minimatch < 11.0.1). Scoped to the packages that use
+  # only the named exports minimatch 11 keeps (`minimatch`, `Minimatch`). Glob 7
+  # (Jest 29) relies on minimatch 3 internals, @eslint/eslintrc on its default
+  # export and TypeDoc on `Minimatch#matchOne`, which minimatch 11 removed, so
+  # those keep their own minimatch until they move.
+  '@eslint/config-array>minimatch': ^11.0.3
+  '@typescript-eslint/typescript-estree>minimatch': ^11.0.3
+  # re2js < 2.8.7 (quadratic lookbehind), via markdownlint, which pins 2.8.6.
+  re2js: ^2.8.7
+  # katex < 0.18.2 (prototype pollution bypass), via markdownlint's math extension.
+  katex: ^0.18.2

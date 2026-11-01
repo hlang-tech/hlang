@@ -178,16 +178,20 @@ The language, the execution backends, and the editors are separate layers. Anyth
       <p>A composable TypeScript framework for AI applications. Components, ports, and pipelines on hlang's computational model.</p>
     </td>
     <td width="33%" valign="top">
-      <a href="#lumen"><img src="./media/showcase/lumen.png" alt="The Lumen editor" width="100%"></a>
-      <p><b>Lumen</b><br><sub>Editor stack · in development</sub></p>
-      <p>The node editor developed in this repository: a headless core, React bindings, and a design system for creative tools.</p>
+      <a href="./examples/editor-react-playground"><img src="./media/showcase/prism.png" alt="Prism, a node-based tool for image and video creators, built on Lumen" width="100%"></a>
+      <p><b>Prism</b><br><sub>Image and video creation · in development</sub></p>
+      <p>A node-based tool for creators, built on Lumen. Its image sources, intent nodes, and render preview are hlang nodes, and what it builds is an IGraph.</p>
     </td>
   </tr>
 </table>
 
 ### Lumen
 
-Lumen edits an `IGraph` and runs it with the interpreter. Its three layers depend in one direction only, and each can be replaced.
+Lumen edits an `IGraph` and runs it with the interpreter. It is generic: it knows nodes, ports, and graphs, and nothing about any one product. Its three layers depend in one direction only, and each can be replaced.
+
+<p align="center">
+  <img src="./media/lumen-editor.png" alt="The Lumen editor running a flow of generic stream nodes, with the outline, the canvas, and the inspector" width="100%">
+</p>
 
 | | `editor-core` | `editor-react` | `editor-ui` |
 | --- | --- | --- | --- |

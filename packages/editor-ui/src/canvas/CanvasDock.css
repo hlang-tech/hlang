@@ -80,3 +80,30 @@
 .hl-dock-zoom:hover {
   background: rgba(255, 255, 255, 0.07);
 }
+
+/* A narrow canvas (a phone, or an editor embedded in a column) gets a tighter
+   dock. Below 400px the zoom readout is the one fit-view control. */
+@container hl-canvas (max-width: 460px) {
+  .hl-dock {
+    bottom: 12px;
+    gap: 1px;
+    padding: 4px;
+  }
+  .hl-dock-btn {
+    width: 30px;
+    height: 30px;
+  }
+  .hl-dock-zoom {
+    min-width: 42px;
+    height: 30px;
+    padding: 0 6px;
+  }
+  .hl-dock-sep {
+    margin: 0 2px;
+  }
+}
+@container hl-canvas (max-width: 400px) {
+  .hl-dock-fit {
+    display: none;
+  }
+}

@@ -4,7 +4,7 @@
 
 # @hlang-org/editor-ui
 
-The Lumen design system for hlang: React components for a node editor built on React Flow and [`@hlang-org/editor-react`](https://www.npmjs.com/package/@hlang-org/editor-react). Black and silver surfaces, image and intent nodes, live edges, and the panels around the canvas.
+The Lumen design system for hlang: React components for a node editor built on React Flow and [`@hlang-org/editor-react`](https://www.npmjs.com/package/@hlang-org/editor-react). Black and silver surfaces, pill and asset node chrome, live edges, and the panels around the canvas. It is generic: products add their own node types through its extension points.
 
 [![npm](https://img.shields.io/npm/v/@hlang-org/editor-ui?color=c8ccd4&labelColor=0f1114)](https://www.npmjs.com/package/@hlang-org/editor-ui)
 [![license](https://img.shields.io/npm/l/@hlang-org/editor-ui?color=c8ccd4&labelColor=0f1114)](https://github.com/hlang-tech/hlang/blob/main/LICENSE)
@@ -12,7 +12,7 @@ The Lumen design system for hlang: React components for a node editor built on R
 > **Status:** 0.x, in active development. The API can change in any minor release.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hlang-tech/hlang/main/media/lumen-editor.png" alt="The Lumen editor built with editor-ui" width="100%">
+  <img src="https://raw.githubusercontent.com/hlang-tech/hlang/main/media/lumen-editor.png" alt="The Lumen editor built with editor-ui, running a flow of generic stream nodes" width="100%">
 </p>
 
 ## Install

@@ -1,5 +1,6 @@
 /**
- * Playground app: assembles a headless EditorCore (interpreter-backed) and
+ * Prism, in development: a node-based tool for image and video creators, built
+ * on the Lumen editor packages. The app assembles a headless EditorCore (interpreter-backed) and
  * drives a React Flow canvas via @hlang-org/editor-react, composed from the
  * @hlang-org/editor-ui design system. On start it loads a small starter flow
  * (a plain IGraph — the editor has no notion of templates), auto-lays it out,
@@ -455,7 +456,7 @@ function EditorBody(): ReactElement {
             title={
               <>
                 <span className="hl-toolbar-glyph" aria-hidden="true" />
-                <span className="hl-toolbar-wordmark">Lumen</span>
+                <span className="hl-toolbar-wordmark">Prism</span>
                 <span className="hl-toolbar-divider" aria-hidden="true" />
                 <ProjectTitle name={projectName} onRename={setProjectName} />
               </>

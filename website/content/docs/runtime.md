@@ -1,0 +1,52 @@
+---
+title: Nodes and ports
+description: The runtime's nodes, ports and flows, and the rules they enforce.
+group: Language
+order: 3
+package: runtime
+---
+
+`@hlang-org/runtime` is the engine. It has three node base classes, a `Port` factory and `Flow`.
+
+## Nodes
+
+| Class | Kind | Ports | Implement |
+| --- | --- | --- | --- |
+| `ReadableNode` | R | outputs, plus `@node/error` | `_read($o)` |
+| `TransformNode` | T | inputs and outputs, plus `@node/error` | `_transform($i, $o)` |
+| `WriteableNode` | W | inputs only, no error port | `_write($i)` |
+
+Create ports in the constructor with `Port.I(name).attach(this)` and `Port.O(name).attach(this)`. The constructor argument is stored as `this.opts`. The interpreter and the compiler pass `{ nodeId, flowId, env, middleware, config, signal }`; a node's parameters are in `this.opts.config.params`.
+
+The runtime calls `_read`, `_transform` or `_write` once per flow. `$i(name)` and `$o(name)` return the node's input and output ports. Inside a node, `this.I(name)`, `this.O(name)` and `this.E()` (the error port) return the same ports. Readable and Transform nodes have `throw(error)`, which sends `error` on `@node/error`.
+
+```js file=lib/nodes.mjs
+```
+
+## Ports
+
+A port wraps an RxJS `Subject`.
+
+| Method | Effect |
+| --- | --- |
+| `send(message)` | Emits `message`. |
+| `receive(listener)` | Subscribes `listener` and returns the RxJS `Subscription`. |
+| `pipe(...operators)` | Applies RxJS operators to what the port emits and returns `{ receive }`. |
+| `connect(input)` | Connects this output port to an input port. Throws unless the direction is output to input. |
+
+Ports are multicast: one output can feed several inputs, and an input can receive from several outputs.
+
+## Flows
+
+`new Flow().run(readable)` collects the nodes reachable from the Readable root. It starts the Writable nodes first, then the Transform nodes, then the root, so every subscriber exists before data is sent. `run` throws if its argument is not a Readable node; run each Readable root of a graph.
+
+```js file=runtime.mjs
+```
+
+```text output=runtime
+```
+
+> [!WARNING]
+> Transform nodes can form a cycle. Bound a feedback loop, for example with `take` or a counter, so it ends.
+
+The full API is in the [runtime reference](/docs/api/runtime).

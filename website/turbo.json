@@ -1,0 +1,17 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/media/**"],
+      "outputs": [".next/**", "!.next/cache/**", ".generated/**", "public/media/**"],
+      "env": ["SITE_URL", "VERCEL_PROJECT_PRODUCTION_URL"]
+    },
+    "typecheck": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/media/**"]
+    },
+    "test": {
+      "outputs": []
+    }
+  }
+}
