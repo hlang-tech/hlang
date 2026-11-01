@@ -12,7 +12,7 @@
   <a href="https://github.com/hlang-tech/hlang/actions/workflows/ci.yml"><img src="https://github.com/hlang-tech/hlang/actions/workflows/ci.yml/badge.svg?branch=develop" alt="CI"></a>
   <a href="https://www.npmjs.com/package/@hlang-org/runtime"><img src="https://img.shields.io/npm/v/@hlang-org/runtime?label=%40hlang-org%2Fruntime&color=c8ccd4&labelColor=0f1114" alt="npm"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-c8ccd4?labelColor=0f1114" alt="MIT license"></a>
-  <a href="https://www.hlang.tech/docs"><img src="https://img.shields.io/badge/docs-hlang.tech-c8ccd4?labelColor=0f1114" alt="Documentation"></a>
+  <a href="https://hlang.tech/docs"><img src="https://img.shields.io/badge/docs-hlang.tech-c8ccd4?labelColor=0f1114" alt="Documentation"></a>
 </p>
 
 <p align="center">
