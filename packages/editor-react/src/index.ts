@@ -20,6 +20,7 @@ export type { HistoryState } from './hooks/useHistory';
 export { useSelection } from './hooks/useSelection';
 export type { SelectionState } from './hooks/useSelection';
 export { useViewState } from './hooks/useViewState';
+export { useReadOnly } from './hooks/useReadOnly';
 export type { ViewStateState } from './hooks/useViewState';
 export { useClipboard } from './hooks/useClipboard';
 export type { ClipboardState } from './hooks/useClipboard';
