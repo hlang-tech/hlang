@@ -19,14 +19,17 @@
     "typecheck": "turbo run typecheck",
     "lint:pkg": "turbo run lint:pkg",
     "check": "turbo run build typecheck lint test",
-    "dev:playground": "pnpm --filter @hlang-org/example-editor-react-playground dev",
+    "dev:playground": "turbo run dev --filter=@hlang-org/example-editor-react-playground",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build lint:pkg && changeset publish"
+    "release": "turbo run build lint:pkg && changeset publish",
+    "lint:docs": "markdownlint-cli2 \"**/*.md\" \"#**/node_modules\" \"#**/CHANGELOG.md\" \"#.playwright-mcp\" \"#.serena\"",
+    "release:mirror": "node scripts/release/mirror-scope.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
+    "markdownlint-cli2": "^0.24.0",
     "turbo": "^2.11.10"
   }
 }

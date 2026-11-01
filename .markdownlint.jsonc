@@ -1,0 +1,15 @@
+// markdownlint configuration for the repository's documentation.
+{
+  "default": true,
+  // Tables and code samples are easier to read without a hard wrap.
+  "MD013": false,
+  // GitHub READMEs open with a centered banner instead of a heading.
+  "MD041": false,
+  // Inline HTML only for layout that Markdown cannot express on GitHub:
+  // centered banners and badge rows, and the all-contributors table.
+  "MD033": {
+    "allowed_elements": ["p", "a", "img", "b", "br", "table", "tbody", "tr", "td", "sub"]
+  },
+  // Repeated headings are allowed in different sections (for example "Usage").
+  "MD024": { "siblings_only": true }
+}

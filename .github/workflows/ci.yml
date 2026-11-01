@@ -35,3 +35,9 @@ jobs:
 
       - name: Validate publishable packages
         run: pnpm lint:pkg
+
+      - name: Lint documentation
+        run: pnpm lint:docs
+
+      - name: Verify brand assets
+        run: node media/brand/check.cjs
