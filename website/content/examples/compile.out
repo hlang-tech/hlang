@@ -72,6 +72,9 @@ export function run(options = {}) {
       for (const callback of stopCallbacks) {
         callback();
       }
+      if (typeof flow.dispose === "function") {
+        flow.dispose();
+      }
     }
   };
 }

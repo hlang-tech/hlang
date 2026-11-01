@@ -1,7 +1,7 @@
 import Port from '../base/port';
 import { ERROR_PORT_NAME, NODE_TYPE } from '../type';
 import Node from './node';
-import type { NodeOptions, PortAccessor } from './node';
+import type { NodeOptions, PortAccessor, Teardown } from './node';
 
 /** A transform: it receives on inputs and sends on outputs and an error output. */
 export default class TransformNode<TOptions extends object = NodeOptions> extends Node<TOptions> {
@@ -24,8 +24,8 @@ export default class TransformNode<TOptions extends object = NodeOptions> extend
     return this.#errorPort;
   }
 
-  /** Called once when the flow runs; receive through `$i` and send through `$o`. */
-  _transform(_$i: PortAccessor, _$o: PortAccessor): void {
+  /** Called once when the flow runs; receive through `$i` and send through `$o`. It may return a teardown, run when the flow is disposed. */
+  _transform(_$i: PortAccessor, _$o: PortAccessor): Teardown | void {
     // Nothing to transform by default.
   }
 }

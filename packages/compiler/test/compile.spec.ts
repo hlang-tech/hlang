@@ -20,6 +20,7 @@ import Faulty from './fixtures/nodes/faulty.mts';
 import Pair from './fixtures/nodes/pair.mts';
 import Scale from './fixtures/nodes/scale.mts';
 import Source from './fixtures/nodes/source.mts';
+import TeardownTicker from './fixtures/nodes/teardown-ticker.mts';
 import Ticker from './fixtures/nodes/ticker.mts';
 import type { SinkEntry } from './fixtures/nodes/support.mts';
 import type { IConnection, IGraph, INodeInfo, NodeKind, ParamBag } from '@hlang-org/ir';
@@ -36,6 +37,7 @@ const FIXTURE_NODES: Readonly<Record<string, NodeConstructor>> = {
   collect: Collect,
   faulty: Faulty,
   ticker: Ticker,
+  'teardown-ticker': TeardownTicker,
 };
 
 /** Each node code imports the default export of its fixture module. */
@@ -231,6 +233,27 @@ describe('compile', () => {
       ].join('\n'),
     );
     // The process exiting at all proves no interval outlived dispose().
+    expect(JSON.parse(output)).toEqual({ ticked: true, stable: true });
+  });
+
+  it('disposes the runtime flow on dispose, so node teardowns run', () => {
+    const graph: IGraph = {
+      nodeList: [node('tick', 'teardown-ticker', 'R'), node('out', 'collect', 'W')],
+      connections: [link('tick', 'out')],
+    };
+    const output = runCompiled(
+      compile(graph, { nodes: NODES }).code,
+      [
+        'const entries = [];',
+        'const handle = program.run({ middleware: { record: (entry) => entries.push(entry) } });',
+        'await new Promise((resolve) => setTimeout(resolve, 60));',
+        'handle.dispose();',
+        'const stopped = entries.length;',
+        'await new Promise((resolve) => setTimeout(resolve, 60));',
+        'console.log(JSON.stringify({ ticked: stopped > 0, stable: entries.length === stopped }));',
+      ].join('\n'),
+    );
+    // The process exiting at all proves the teardown cleared the interval.
     expect(JSON.parse(output)).toEqual({ ticked: true, stable: true });
   });
 

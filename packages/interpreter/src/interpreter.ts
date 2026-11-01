@@ -167,13 +167,15 @@ export function interpret(
   }
 
   return createHandle(flowId, roots, instances, errorStream, activityStream, () => {
-    // Stop: signal nodes to cancel long-lived work, run onStop callbacks, and
-    // unsubscribe the interpreter's own port observations.
+    // Stop: signal nodes to cancel long-lived work, run onStop callbacks,
+    // dispose the runtime flow (node teardowns, closed ports), and unsubscribe
+    // the interpreter's own port observations.
     stop$.next();
     stop$.complete();
     for (const cb of onStopCallbacks) {
       cb();
     }
+    flow.dispose?.();
     for (const teardown of teardowns) {
       teardown();
     }

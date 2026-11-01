@@ -14,7 +14,7 @@ import {
   TransformNode as RuntimeTransformNode,
   WriteableNode as RuntimeWriteableNode,
 } from '@hlang-org/runtime';
-import type { PortAccessor } from '@hlang-org/runtime';
+import type { PortAccessor, Teardown } from '@hlang-org/runtime';
 import { interval, takeUntil } from 'rxjs';
 import type {
   INodeConstructionOptions,
@@ -41,6 +41,31 @@ export class ValueSourceNode extends ReadableNode {
     const params = this.opts.config.params;
     o('Output').send(isRecord(params) ? (params.value ?? null) : null);
   }
+}
+
+/**
+ * A streaming R node that ignores the stop signal and returns a runtime
+ * teardown instead, so only the flow's own disposal can stop it.
+ */
+export function makeTeardownSource(emitted: number[], periodMs: number): NodeConstructor {
+  class TeardownSourceNode extends ReadableNode {
+    constructor(opts: INodeConstructionOptions) {
+      super(opts);
+      Port.O('Output').attach(this);
+    }
+    override _read(o: PortAccessor): Teardown {
+      let n = 0;
+      const timer = setInterval(() => {
+        n += 1;
+        emitted.push(n);
+        o('Output').send(n);
+      }, periodMs);
+      return () => {
+        clearInterval(timer);
+      };
+    }
+  }
+  return TeardownSourceNode;
 }
 
 /**
