@@ -7,7 +7,7 @@
     "type": "git",
     "url": "git+https://github.com/hlang-tech/hlang.git"
   },
-  "homepage": "https://www.hlang.tech",
+  "homepage": "https://hlang.tech",
   "packageManager": "pnpm@10.34.9",
   "engines": {
     "node": ">=20"
