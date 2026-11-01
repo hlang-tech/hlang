@@ -1,7 +1,9 @@
 import type { Subscription } from 'rxjs';
 import build from '../core/build';
+import { ConnectionState, InputGate, OutputRoom } from '../core/backpressure';
+import type { Waiting } from '../core/backpressure';
 import { DeliveryQueue } from '../core/delivery';
-import type { SliceOptions } from '../core/delivery';
+import type { DeliveryTimer, SliceOptions } from '../core/delivery';
 import type { AnyNode, Teardown } from '../node';
 import { nodeInternals } from '../node/node';
 import { NODE_TYPE, STREAM_TYPE } from '../type';
@@ -22,10 +24,20 @@ export interface DeliveryEvent {
   /**
    * How long the target's handlers took, in milliseconds. Messages they send
    * are queued, not delivered inside this one, so this is their own work.
-   * Work a handler schedules for later (a timer, a promise, an asynchronous
-   * pipe) is not included.
+   * Work a handler schedules for later (a timer, an asynchronous pipe) is
+   * not included; a promise a handler returns is (RFC 0001), when the
+   * delivery passes its input's gate.
    */
   readonly duration: number;
+}
+
+/** A message a full `drop-oldest` connection let go of (RFC 0001). */
+export interface DroppedEvent {
+  readonly source: AnyNode;
+  readonly sourcePort: string;
+  readonly target: AnyNode;
+  readonly targetPort: string;
+  readonly message: unknown;
 }
 
 /** A handler failing on a port, as a `FlowObserver` sees it. */
@@ -46,6 +58,7 @@ export interface FailureEvent {
  */
 export interface FlowObserver {
   readonly delivered?: (event: DeliveryEvent) => void;
+  readonly dropped?: (event: DroppedEvent) => void;
   readonly failed?: (event: FailureEvent) => void;
 }
 
@@ -99,6 +112,12 @@ export default class Flow {
   readonly #connections: Subscription[] = [];
   /** The nodes this flow started, in the order it started them. */
   readonly #started: Started[] = [];
+  /** Each gated input's in-flight count and waiting messages (RFC 0001). */
+  readonly #gates = new Map<Port, InputGate>();
+  /** Each output's bounded connections and the senders waiting for room. */
+  readonly #rooms = new Map<Port, OutputRoom>();
+  /** Stops the fast routes from listening for their input becoming gated. */
+  readonly #stopListening: (() => void)[] = [];
   #disposed = false;
 
   constructor(options: FlowOptions = {}) {
@@ -125,6 +144,15 @@ export default class Flow {
       throw new Error('Flow must run with a READABLE node.');
     }
     const graph = build(root);
+    // An input fed by a bounded connection takes one message at a time
+    // unless it asks otherwise; mark it before any message moves.
+    for (const outgoing of graph.connections.values()) {
+      for (const { dst, capacity } of outgoing) {
+        if (Number.isFinite(capacity)) {
+          portInternals.markBoundedInput(dst);
+        }
+      }
+    }
     const nodes: readonly AnyNode[] = [...graph.writable, ...graph.transform, ...graph.readable];
     const failed = this.#observer?.failed;
     for (const node of nodes) {
@@ -171,6 +199,15 @@ export default class Flow {
     }
     this.#disposed = true;
     this.#deliveries.close();
+    for (const stop of this.#stopListening.splice(0)) {
+      stop();
+    }
+    for (const room of this.#rooms.values()) {
+      room.dispose();
+    }
+    for (const gate of this.#gates.values()) {
+      gate.clear();
+    }
     for (const connection of this.#connections.splice(0)) {
       connection.unsubscribe();
     }
@@ -207,35 +244,161 @@ export default class Flow {
     return [...nodeInternals.portsOf(node, STREAM_TYPE.I), ...nodeInternals.portsOf(node, STREAM_TYPE.O)];
   }
 
-  /** Subscribes each connection once: what its output sends is delivered to its input. */
+  /**
+   * Subscribes each connection once: what its output sends is delivered to
+   * its input. An unbounded connection into an input without a concurrency
+   * limit goes straight to the delivery queue; any other passes the input's
+   * gate (RFC 0001).
+   */
   #wire(connections: readonly IPortDesc[]): void {
-    const delivered = this.#observer?.delivered;
-    const deliveries = this.#deliveries;
-    for (const { src, dst, source, target } of connections) {
+    for (const desc of connections) {
+      const { src, dst } = desc;
       const key = `${src.id}@${dst.id}`;
       if (this.#wired.has(key)) {
         continue;
       }
       this.#wired.add(key);
-      this.#connections.push(
-        src.receive(
-          delivered === undefined
-            ? (message) => {
-                deliveries.deliver(dst, message);
-              }
-            : (message) => {
-                deliveries.deliver(dst, message, (duration) => {
-                  if (this.#disposed) {
-                    return;
-                  }
-                  this.#notify(() => {
-                    delivered({ source, sourcePort: src.name, target, targetPort: dst.name, message, duration });
-                  });
-                });
-              },
-        ),
-      );
+      const connection = new ConnectionState(desc);
+      if (connection.bounded) {
+        this.#roomFor(src).connections.push(connection);
+      }
+      if (connection.bounded || portInternals.isGated(dst)) {
+        this.#connections.push(this.#gatedRoute(connection));
+        continue;
+      }
+      // The fast route: straight to the delivery queue. If the input becomes
+      // gated later (its node asks for a concurrency when it starts), the
+      // connection switches to the gated route; the check costs nothing per
+      // message.
+      const fast = this.#fastRoute(desc);
+      this.#connections.push(fast);
+      // Dispose stops this listener, so it only runs while the flow does.
+      const stopListening = portInternals.whenGated(dst, () => {
+        fast.unsubscribe();
+        this.#connections.push(this.#gatedRoute(connection));
+      });
+      this.#stopListening.push(stopListening);
     }
+  }
+
+  /** Subscribes a connection straight to the delivery queue. */
+  #fastRoute(desc: IPortDesc): Subscription {
+    const { src, dst } = desc;
+    const deliveries = this.#deliveries;
+    if (this.#observer?.delivered === undefined) {
+      return src.receive((message) => {
+        deliveries.deliver(dst, message);
+      });
+    }
+    return src.receive((message) => {
+      deliveries.deliver(dst, message, this.#timerFor(desc, message));
+    });
+  }
+
+  /** Subscribes a connection through its input's gate. */
+  #gatedRoute(connection: ConnectionState): Subscription {
+    return connection.desc.src.receive((message) => {
+      this.#offer(connection, message);
+    });
+  }
+
+  /** The output's room, made and handed to the port the first time it is needed. */
+  #roomFor(port: Port): OutputRoom {
+    let room = this.#rooms.get(port);
+    if (room === undefined) {
+      room = new OutputRoom();
+      this.#rooms.set(port, room);
+      portInternals.setSenderState(port, room);
+    }
+    return room;
+  }
+
+  #gateFor(port: Port): InputGate {
+    let gate = this.#gates.get(port);
+    if (gate === undefined) {
+      gate = new InputGate();
+      this.#gates.set(port, gate);
+    }
+    return gate;
+  }
+
+  /**
+   * A message arrives at a gated input: the connection counts it, a full
+   * `drop-oldest` connection lets its oldest waiting message go, and the
+   * message waits its turn.
+   */
+  #offer(connection: ConnectionState, message: unknown): void {
+    const { desc } = connection;
+    const gate = this.#gateFor(desc.dst);
+    if (connection.bounded) {
+      connection.occupancy += 1;
+      if (connection.occupancy > desc.capacity && desc.overflow === 'drop-oldest') {
+        const dropped = gate.removeOldestOf(connection);
+        if (dropped !== undefined) {
+          connection.occupancy -= 1;
+          this.#reportDropped(desc, dropped.message);
+        }
+      }
+    }
+    gate.push({ connection, message });
+    this.#pump(gate, desc.dst);
+  }
+
+  /** Starts as many waiting messages as the input's concurrency allows. */
+  #pump(gate: InputGate, port: Port): void {
+    const limit = portInternals.concurrencyOf(port);
+    while (gate.inFlight < limit) {
+      const next = gate.shift();
+      if (next === undefined) {
+        return;
+      }
+      gate.inFlight += 1;
+      this.#deliveries.deliver(port, next.message, this.#timerFor(next.connection.desc, next.message), () => {
+        this.#settle(gate, port, next);
+      });
+    }
+  }
+
+  /** A message's handlers have settled: free its place, let senders go, start the next. */
+  #settle(gate: InputGate, port: Port, entry: Waiting): void {
+    if (this.#disposed) {
+      return;
+    }
+    gate.inFlight -= 1;
+    const { connection } = entry;
+    if (connection.bounded) {
+      connection.occupancy -= 1;
+      this.#rooms.get(connection.desc.src)?.check();
+    }
+    this.#pump(gate, port);
+  }
+
+  /** Times a delivery for the observer, if there is one. */
+  #timerFor(desc: IPortDesc, message: unknown): DeliveryTimer | undefined {
+    const delivered = this.#observer?.delivered;
+    if (delivered === undefined) {
+      return undefined;
+    }
+    const { src, dst, source, target } = desc;
+    return (duration) => {
+      if (this.#disposed) {
+        return;
+      }
+      this.#notify(() => {
+        delivered({ source, sourcePort: src.name, target, targetPort: dst.name, message, duration });
+      });
+    };
+  }
+
+  #reportDropped(desc: IPortDesc, message: unknown): void {
+    const dropped = this.#observer?.dropped;
+    if (dropped === undefined) {
+      return;
+    }
+    const { src, dst, source, target } = desc;
+    this.#notify(() => {
+      dropped({ source, sourcePort: src.name, target, targetPort: dst.name, message });
+    });
   }
 
   /** Runs an observer callback; one that throws is reported, never propagated. */

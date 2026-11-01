@@ -114,6 +114,36 @@ A node holds its own options and ports and nothing else: it cannot reach the flo
 
 Transform nodes can form cycles, so a graph can contain feedback loops. Bound a feedback loop, for example with `take` or a counter, so it ends.
 
+### Back-pressure: bounded connections
+
+A connection can have a capacity, as connections do in Flow-Based Programming ([RFC 0001](../../rfcs/0001-bounded-connections.md)). It holds the messages waiting for its input and the ones the input is still working on; when it is full, the sender waits.
+
+```ts
+source.O("frames").connect(encoder.I("frames"), { capacity: 4 });
+
+// In the source: wait for room before each frame (FBP's suspending send).
+await $o("frames").write(frame);
+
+// Or the non-blocking form, as with Node.js streams.
+if (!$o("frames").send(frame)) {
+  await $o("frames").ready();
+}
+
+// In the encoder: a handler that returns a promise works on one frame at a
+// time; the next one waits in the connection until this one is done.
+$i("frames").receive(async (frame) => {
+  await encode(frame);
+});
+```
+
+- `send` returns whether every bounded connection of the port still has room. It accepts the message either way; `ready()` resolves when there is room again, and `write()` waits for it, then sends.
+- A handler may return a promise; until it settles, the message counts against its connection. A rejected promise is a failure, routed like a throw (a Transform's error port, otherwise `onError`).
+- An input fed by a bounded connection works on one message at a time. `receive(handler, { concurrency: n })` sets another limit, bounded or not.
+- `{ capacity, overflow: "drop-oldest" }` drops the oldest waiting message of a full connection instead of holding more (JavaFBP's `dropOldest`); the observer's `dropped` reports each one. A message being worked on is never dropped.
+- When one output feeds several bounded connections, it waits for the slowest.
+- Disposing the flow rejects pending `ready()` and `write()` with `FlowDisposedError`.
+- An unbounded connection into an input without a concurrency limit delivers exactly as before, at the same speed.
+
 ### Sharing the thread
 
 By default a flow delivers everything a send causes before the send returns. That is the fastest way to run, but work that never ends by itself, such as a feedback loop between Transforms with no asynchronous step (feedback is legal), then holds the thread for good: a page freezes, a server stops answering, and nothing can call `dispose`.
