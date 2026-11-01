@@ -37,7 +37,7 @@ export function runProgram(code: TransformCode, text: string): readonly string[]
     .register('print', NODES.print);
   const handle = interpret(
     liveGraph(code),
-    { registry, createFlow: () => new Flow() },
+    { registry, createFlow: (options) => new Flow(options) },
     { middleware: { input$: new BehaviorSubject(text), emit: (value: string) => { received.push(value); } } },
   );
   handle.dispose();

@@ -35,6 +35,19 @@ export interface INodeActivityEvent {
   readonly portId: string;
 }
 
+/** A message delivered on one connection, reported when the run is traced. */
+export interface INodeDeliveryEvent {
+  /** The sending node's graph `nodeId` and output port. */
+  readonly sourceNodeId: string;
+  readonly sourcePortId: string;
+  /** The receiving node's graph `nodeId` and input port. */
+  readonly targetNodeId: string;
+  readonly targetPortId: string;
+  readonly message: unknown;
+  /** How long the receiving node's handlers took, in milliseconds. */
+  readonly duration: number;
+}
+
 /** Options controlling interpretation. */
 export interface IInterpretOptions {
   /**
@@ -49,6 +62,11 @@ export interface IInterpretOptions {
    * Nodes read their own middleware keys.
    */
   readonly middleware?: Readonly<Record<string, unknown>>;
+  /**
+   * Report every delivery through `onDelivery`, with its timing. Off by
+   * default: an untraced run reads no clock and records nothing per message.
+   */
+  readonly trace?: boolean;
 }
 
 /**
@@ -62,11 +80,20 @@ export interface IExecutionHandle extends IDisposable {
   readonly roots: readonly IRuntimeNode[];
   /** Resolve a constructed node instance by its graph `nodeId`. */
   getNode(nodeId: string): IRuntimeNode | undefined;
-  /** Subscribe to errors emitted by any node's `@node/error` port. */
+  /**
+   * Subscribe to node errors: what any node sends on its `@node/error` port,
+   * and a Writable node's handler throwing (it has no error port).
+   */
   onError(listener: (event: INodeErrorEvent) => void): IDisposable;
   /**
    * Subscribe to output-port emissions across all nodes — the "living stream"
    * signal. Fires each time a node pushes a message on a non-error output port.
    */
   onActivity(listener: (event: INodeActivityEvent) => void): IDisposable;
+  /**
+   * Subscribe to every delivery, with its timing, when the run is traced
+   * (`trace: true`); an untraced run reports none. Recent deliveries are
+   * replayed to a listener attached after `interpret` returns.
+   */
+  onDelivery(listener: (event: INodeDeliveryEvent) => void): IDisposable;
 }

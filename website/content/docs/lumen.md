@@ -46,7 +46,7 @@ import { NodeRegistry } from '@hlang-org/interpreter';
 import { createEditorCore, InterpreterGraphRunner } from '@hlang-org/editor-core';
 
 const runtimeNodes = new NodeRegistry().register('numbers', Numbers);
-const core = createEditorCore({ graphRunner: new InterpreterGraphRunner(runtimeNodes, () => new Flow()) });
+const core = createEditorCore({ graphRunner: new InterpreterGraphRunner(runtimeNodes, (options) => new Flow(options)) });
 
 const handle = core.execution?.run(core.model);
 handle?.dispose();

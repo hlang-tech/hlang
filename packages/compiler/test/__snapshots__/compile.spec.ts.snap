@@ -104,7 +104,21 @@ export function run(options = {}) {
   nodes["double"].O("out").connect(nodes["join"].I("a"));
   nodes["words"].O("out").connect(nodes["join"].I("b"));
   nodes["join"].O("out").connect(nodes["joined"].I("in"));
-  const flow = new Flow();
+  const flow = new Flow({
+    onError: (error, node) => {
+      const entry = Object.entries(nodes).find(pair => pair[1] === node);
+      if (entry !== undefined && options.onError) {
+        options.onError({
+          nodeId: entry[0],
+          error
+        });
+        return;
+      }
+      queueMicrotask(() => {
+        throw error;
+      });
+    }
+  });
   flow.run(nodes["numbers"]);
   flow.run(nodes["words"]);
   return {

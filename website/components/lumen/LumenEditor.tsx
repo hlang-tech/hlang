@@ -120,7 +120,7 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
     const kit = createLumenKit(value => {
       setLog(previous => [{ id: (previous[0]?.id ?? 0) + 1, text: String(value) }, ...previous].slice(0, OUTPUT_LINES));
     });
-    const editor = createEditorCore({ graphRunner: new InterpreterGraphRunner(kit.registry, () => new Flow()) });
+    const editor = createEditorCore({ graphRunner: new InterpreterGraphRunner(kit.registry, (options) => new Flow(options)) });
     for (const descriptor of kit.descriptors) {
       editor.registry.register(descriptor);
     }

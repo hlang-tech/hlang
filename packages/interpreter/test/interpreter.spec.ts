@@ -4,11 +4,12 @@
  * TDD: these are written before the implementation and must fail first.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { Subject } from 'rxjs';
 import { interpret, NodeRegistry } from '../src';
 import type { IInterpreterDeps } from '../src';
 import type { IGraph, ParamValue } from '../src';
-import type { IRuntimeFlow } from '../src';
+import type { IRuntimeFlow, IRuntimeFlowOptions, INodeDeliveryEvent, INodeErrorEvent } from '../src';
 import {
   Flow,
   ValueSourceNode,
@@ -19,6 +20,7 @@ import {
   makeStreamingSource,
   makeTeardownSource,
   makePairSink,
+  makeThrowingSink,
 } from './fixtures/nodes';
 
 /** Build interpreter deps from the real runtime Flow + a fresh registry. */
@@ -27,7 +29,7 @@ function makeDeps(register: (r: NodeRegistry) => void): IInterpreterDeps {
   register(registry);
   return {
     registry,
-    createFlow: (): IRuntimeFlow => new Flow({}),
+    createFlow: (options: IRuntimeFlowOptions): IRuntimeFlow => new Flow(options),
   };
 }
 
@@ -321,5 +323,149 @@ describe('interpret', () => {
     interpret(graph, deps);
 
     expect(received).toEqual({ Left: ['v'], Right: ['v'] });
+  });
+});
+
+describe('tracing', () => {
+  const chain: IGraph = {
+    nodeList: [rNode('r1', 'src', 'hi'), tNode('t1', 'wrap'), wNode('w1', 'sink')],
+    connections: [edge('r1', 't1'), edge('t1', 'w1')],
+  };
+  const register = (r: NodeRegistry): void => {
+    r.register('src', ValueSourceNode);
+    r.register('wrap', WrapTransformNode);
+    r.register('sink', makeCollectorSink([]));
+  };
+
+  it('reports every delivery by graph node id when trace is on', () => {
+    const handle = interpret(chain, makeDeps(register), { trace: true });
+    const events: INodeDeliveryEvent[] = [];
+    // Attached after the synchronous run: the run's deliveries are replayed.
+    handle.onDelivery(event => events.push(event));
+
+    expect(
+      events.map(({ sourceNodeId, sourcePortId, targetNodeId, targetPortId }) =>
+        `${sourceNodeId}.${sourcePortId}->${targetNodeId}.${targetPortId}`,
+      ),
+    ).toEqual(['r1.Output->t1.Input', 't1.Output->w1.Input']);
+    expect(events[0]?.message).toBe('hi');
+    expect(events.every(event => typeof event.duration === 'number' && event.duration >= 0)).toBe(true);
+    handle.dispose();
+  });
+
+  it('reports no deliveries and gives the flow no observer without trace', () => {
+    const seen: IRuntimeFlowOptions[] = [];
+    const deps = makeDeps(register);
+    const handle = interpret(chain, {
+      ...deps,
+      createFlow: options => {
+        seen.push(options);
+        return deps.createFlow(options);
+      },
+    });
+    const events: INodeDeliveryEvent[] = [];
+    handle.onDelivery(event => events.push(event));
+
+    expect(events).toEqual([]);
+    expect(seen.map(options => options.observer)).toEqual([undefined]);
+    handle.dispose();
+  });
+
+  it('reports a Writable handler failure through onError with its node id', () => {
+    const failure = new Error('sink failed');
+    const handle = interpret(
+      { nodeList: [rNode('r1', 'src', 'x'), wNode('w1', 'bad')], connections: [edge('r1', 'w1')] },
+      makeDeps(r => {
+        r.register('src', ValueSourceNode);
+        r.register('bad', makeThrowingSink(failure));
+      }),
+    );
+    const errors: INodeErrorEvent[] = [];
+    handle.onError(event => errors.push(event));
+
+    expect(errors).toEqual([{ nodeId: 'w1', error: failure }]);
+    handle.dispose();
+  });
+
+  it('still runs with a flow factory that takes no options', () => {
+    const received: unknown[] = [];
+    const handle = interpret(
+      { nodeList: [rNode('r1', 'src', 'x'), wNode('w1', 'sink')], connections: [edge('r1', 'w1')] },
+      {
+        registry: makeDeps(r => {
+          r.register('src', ValueSourceNode);
+          r.register('sink', makeCollectorSink(received));
+        }).registry,
+        createFlow: (): IRuntimeFlow => new Flow(),
+      },
+      { trace: true },
+    );
+    expect(received).toEqual(['x']);
+    handle.dispose();
+  });
+
+  it('stops delivering to a listener once its subscription is disposed', async () => {
+    const handle = interpret(
+      { nodeList: [rNode('r1', 'tick'), wNode('w1', 'sink')], connections: [edge('r1', 'w1')] },
+      makeDeps(r => {
+        r.register('tick', makeTeardownSource([], 5));
+        r.register('sink', makeCollectorSink([]));
+      }),
+      { trace: true },
+    );
+    const disposed: INodeDeliveryEvent[] = [];
+    const kept: INodeDeliveryEvent[] = [];
+    const subscription = handle.onDelivery(event => disposed.push(event));
+    handle.onDelivery(event => kept.push(event));
+    await new Promise(resolve => setTimeout(resolve, 30));
+    subscription.dispose();
+    const atDispose = disposed.length;
+    await new Promise(resolve => setTimeout(resolve, 30));
+
+    expect(atDispose).toBeGreaterThan(0);
+    expect(disposed).toHaveLength(atDispose);
+    expect(kept.length).toBeGreaterThan(atDispose);
+    handle.dispose();
+  });
+
+  it('ignores what the flow reports about nodes outside the graph', async () => {
+    const failure = new Error('unattributed');
+    const stranger = new ValueSourceNode({
+      nodeId: 'x', flowId: 'f', env: 'test', middleware: {}, config: {},
+      signal: { observable: new Subject<void>().asObservable(), onStop: () => undefined },
+    });
+    const rethrown = new Promise<unknown>(resolve => {
+      const original = globalThis.queueMicrotask;
+      vi.spyOn(globalThis, 'queueMicrotask').mockImplementationOnce(task => {
+        original(() => {
+          try {
+            task();
+          } catch (error: unknown) {
+            resolve(error);
+          }
+        });
+      });
+    });
+    const handle = interpret(chain, {
+      registry: makeDeps(register).registry,
+      createFlow: options => ({
+        run: () => {
+          options.observer?.delivered?.({
+            source: stranger, sourcePort: 'Output', target: stranger, targetPort: 'Input', message: 1, duration: 0,
+          });
+          options.onError?.(failure, null);
+        },
+      }),
+    }, { trace: true });
+    const events: INodeDeliveryEvent[] = [];
+    const errors: INodeErrorEvent[] = [];
+    handle.onDelivery(event => events.push(event));
+    handle.onError(event => errors.push(event));
+
+    expect(events).toEqual([]);
+    expect(errors).toEqual([]);
+    await expect(rethrown).resolves.toBe(failure);
+    vi.restoreAllMocks();
+    handle.dispose();
   });
 });

@@ -270,8 +270,57 @@ function runBody(plan: ExecutionPlan, localByCode: ReadonlyMap<string, string>):
     );
   }
 
-  // 4. Run every Readable root.
-  body.push(constant('flow', construct(id('Flow'))));
+  // 4. Run every Readable root. As in the interpreter, the flow reports a
+  //    Writable's handler failure (it has no error port) to `onError` with the
+  //    node's id; a failure it cannot attribute is rethrown asynchronously.
+  const element = (array: Expression, position: number): MemberExpression => ({
+    type: 'MemberExpression',
+    object: array,
+    property: num(position),
+    computed: true,
+    optional: false,
+  });
+  body.push(
+    constant(
+      'flow',
+      construct(id('Flow'), [
+        object([
+          property(
+            'onError',
+            arrow(
+              [id('error'), id('node')],
+              block([
+                constant(
+                  'entry',
+                  call(member(call(member(id('Object'), 'entries'), [nodes]), 'find'), [
+                    arrow([id('pair')], binary('===', element(id('pair'), 1), id('node'))),
+                  ]),
+                ),
+                {
+                  type: 'IfStatement',
+                  test: logical('&&', binary('!==', id('entry'), id('undefined')), member(options, 'onError')),
+                  consequent: block([
+                    statement(
+                      call(member(options, 'onError'), [
+                        object([property('nodeId', element(id('entry'), 0)), property('error', id('error'), true)]),
+                      ]),
+                    ),
+                    { type: 'ReturnStatement', argument: null },
+                  ]),
+                  alternate: null,
+                },
+                statement(
+                  call(id('queueMicrotask'), [
+                    arrow([], block([{ type: 'ThrowStatement', argument: id('error') }])),
+                  ]),
+                ),
+              ]),
+            ),
+          ),
+        ]),
+      ]),
+    ),
+  );
   for (const root of plan.roots) {
     body.push(statement(call(member(id('flow'), 'run'), [nodeRef(root)])));
   }
