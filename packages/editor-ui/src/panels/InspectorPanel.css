@@ -4,6 +4,10 @@
   gap: 18px;
   padding: 14px;
   height: 100%;
+  min-height: 0;
+  /* Its own scroll region: a tall node (or a short pane) never clips it. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .hl-inspector-empty {

@@ -38,6 +38,26 @@ export function useNodeLiveState(nodeId: string): NodeLiveState {
   );
 }
 
+/** How many messages a node has handled or sent this run; it changes each time the node runs. */
+export function useNodePulse(nodeId: string): number {
+  const store = useContext(LiveSignalContext);
+  return useSyncExternalStore(
+    onChange => (store === null ? () => undefined : store.subscribeNode(nodeId, onChange)),
+    () => (store === null ? 0 : store.getNodePulse(nodeId)),
+    () => 0,
+  );
+}
+
+/** How many messages an edge has carried this run. */
+export function useEdgePulse(edgeId: string): number {
+  const store = useContext(LiveSignalContext);
+  return useSyncExternalStore(
+    onChange => (store === null ? () => undefined : store.subscribeEdge(edgeId, onChange)),
+    () => (store === null ? 0 : store.getEdgePulse(edgeId)),
+    () => 0,
+  );
+}
+
 /** Subscribe to a single edge's flowing state. False when no store is present. */
 export function useEdgeFlowing(edgeId: string): boolean {
   const store = useContext(LiveSignalContext);

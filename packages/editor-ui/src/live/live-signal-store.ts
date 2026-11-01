@@ -26,12 +26,29 @@ function portKey(nodeId: string, portId: string): string {
   return `${nodeId}@${portId}`;
 }
 
-/** Minimal edge shape the store needs to map a source-port pulse to edges. */
+/**
+ * Minimal edge shape the store needs to map a signal to edges. With its
+ * target, a delivery lights exactly the edge that carried it.
+ */
 export interface EdgeIndexEntry {
   readonly id: string;
   readonly sourceNodeId: string;
   readonly sourcePortId: string;
+  readonly targetNodeId?: string;
+  readonly targetPortId?: string;
   readonly isError: boolean;
+}
+
+/** A message delivered on one connection: its source ran and sent it, its target ran to handle it. */
+export interface DeliverySignal {
+  readonly sourceNodeId: string;
+  readonly sourcePortId: string;
+  readonly targetNodeId: string;
+  readonly targetPortId: string;
+}
+
+function connectionKey(sourceNodeId: string, sourcePortId: string, targetNodeId: string, targetPortId: string): string {
+  return `${portKey(sourceNodeId, sourcePortId)}->${portKey(targetNodeId, targetPortId)}`;
 }
 
 /** Injected clock + scheduler so the store is deterministic and testable. */
@@ -73,6 +90,14 @@ export class LiveSignalStore {
   private readonly lastEdgeFlowing = new Map<string, boolean>();
   /** Edges sourced by a given (nodeId@portId), for pulse -> edge mapping. */
   private edgesBySourcePort = new Map<string, EdgeIndexEntry[]>();
+  /** Edges by the connection they carry (source port -> target port). */
+  private edgesByConnection = new Map<string, EdgeIndexEntry[]>();
+  /** How many messages each node has handled or sent, and each edge carried, this run. */
+  private readonly nodePulse = new Map<string, number>();
+  private readonly edgePulse = new Map<string, number>();
+  /** The pulse counts last notified, so a new message notifies even while the state stays active. */
+  private readonly lastNodePulse = new Map<string, number>();
+  private readonly lastEdgePulse = new Map<string, number>();
   private rafHandle: number | null = null;
   private running = false;
 
@@ -93,6 +118,44 @@ export class LiveSignalStore {
       }
     }
     this.edgesBySourcePort = next;
+    const byConnection = new Map<string, EdgeIndexEntry[]>();
+    for (const edge of edges) {
+      if (edge.targetNodeId !== undefined && edge.targetPortId !== undefined) {
+        const key = connectionKey(edge.sourceNodeId, edge.sourcePortId, edge.targetNodeId, edge.targetPortId);
+        byConnection.set(key, [...(byConnection.get(key) ?? []), edge]);
+      }
+    }
+    this.edgesByConnection = byConnection;
+  }
+
+  /**
+   * Record a message delivered on a connection, when it happens: its source
+   * and its target each pulse once (each ran), and so does the edge that
+   * carried it, and only that edge. Subscribers are notified on the next
+   * frame, once however many messages arrived in it.
+   */
+  markDelivery(signal: DeliverySignal): void {
+    const t = this.deps.now();
+    for (const nodeId of [signal.sourceNodeId, signal.targetNodeId]) {
+      this.nodeActiveAt.set(nodeId, t);
+      this.nodePulse.set(nodeId, this.getNodePulse(nodeId) + 1);
+    }
+    const key = connectionKey(signal.sourceNodeId, signal.sourcePortId, signal.targetNodeId, signal.targetPortId);
+    for (const edge of this.edgesByConnection.get(key) ?? []) {
+      this.edgeFlowAt.set(edge.id, t);
+      this.edgePulse.set(edge.id, this.getEdgePulse(edge.id) + 1);
+    }
+    this.ensureLoop();
+  }
+
+  /** How many messages a node has handled or sent this run; it changes each time the node runs. */
+  getNodePulse(nodeId: string): number {
+    return this.nodePulse.get(nodeId) ?? 0;
+  }
+
+  /** How many messages an edge has carried this run. */
+  getEdgePulse(edgeId: string): number {
+    return this.edgePulse.get(edgeId) ?? 0;
   }
 
   /** Record a node emitting on an output port (drives node + edge activity). */
@@ -119,6 +182,8 @@ export class LiveSignalStore {
     this.nodeActiveAt.clear();
     this.erroredNodes.clear();
     this.edgeFlowAt.clear();
+    this.nodePulse.clear();
+    this.edgePulse.clear();
     this.stopLoop();
     this.flushNotifications();
   }
@@ -211,8 +276,10 @@ export class LiveSignalStore {
       if (state !== 'idle') {
         anyLive = anyLive || state === 'active';
       }
-      if (this.lastNodeState.get(nodeId) !== state) {
+      const pulse = this.getNodePulse(nodeId);
+      if (this.lastNodeState.get(nodeId) !== state || this.lastNodePulse.get(nodeId) !== pulse) {
         this.lastNodeState.set(nodeId, state);
+        this.lastNodePulse.set(nodeId, pulse);
         for (const listener of listeners) {
           listener();
         }
@@ -222,8 +289,10 @@ export class LiveSignalStore {
     for (const [edgeId, listeners] of this.edgeListeners) {
       const flowing = this.isEdgeFlowing(edgeId);
       anyLive = anyLive || flowing;
-      if (this.lastEdgeFlowing.get(edgeId) !== flowing) {
+      const pulse = this.getEdgePulse(edgeId);
+      if (this.lastEdgeFlowing.get(edgeId) !== flowing || this.lastEdgePulse.get(edgeId) !== pulse) {
         this.lastEdgeFlowing.set(edgeId, flowing);
+        this.lastEdgePulse.set(edgeId, pulse);
         for (const listener of listeners) {
           listener();
         }

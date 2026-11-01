@@ -16,6 +16,7 @@ import { SignalBar } from './SignalBar';
 import { PortRow } from './PortRow';
 import { NodeBodySlot } from './NodeBodySlot';
 import { useNodeLiveState } from '../live/LiveSignalContext';
+import { LivePulse } from '../live/LivePulse';
 import { AssetNodeChrome } from './AssetNode';
 import { PillNodeChrome } from './PillNode';
 import './HlangNode.css';
@@ -43,6 +44,7 @@ export function NodeChrome({ node, selected, body }: NodeChromeProps): ReactElem
 
   return (
     <div className={className} data-kind={node.kind}>
+      <LivePulse nodeId={node.id} />
       <SignalBar />
       <header className="hl-head">
         <span className="hl-kind">{node.kind}</span>

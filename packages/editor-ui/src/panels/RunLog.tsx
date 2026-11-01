@@ -7,10 +7,11 @@
  * `<RunTraceProvider>` and renders nothing without one.
  */
 
-import { useLayoutEffect, useRef, useState } from 'react';
-import type { ReactElement, UIEvent } from 'react';
+import { useState } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import type { EditorCore } from '@hlang-org/editor-core';
 import { useSelection } from '@hlang-org/editor-react';
+import { useFollowScroll } from '../hooks/useFollowScroll';
 import { formatDuration, formatElapsed } from '../live/format';
 import { previewValue } from '../live/preview';
 import { involves } from '../live/run-trace';
@@ -18,35 +19,27 @@ import type { RunLogEntry } from '../live/run-trace';
 import { useRunTraceStore, useRunTraceVersion } from '../live/RunTraceContext';
 import './RunLog.css';
 
-/** Within this many pixels of the bottom, the log keeps following new entries. */
-const FOLLOW_SLACK_PX = 24;
-
 export interface RunLogProps {
   readonly core: EditorCore;
   /** Also called when a row is chosen, after its node is selected (e.g. to bring it into view). */
   readonly onSelectNode?: (nodeId: string) => void;
+  /** The log's name, shown at the start of its header and used as its accessible name. */
   readonly title?: string;
+  /** Shown at the start of the header in place of the title, e.g. the host's tabs. */
+  readonly leading?: ReactNode;
 }
 
-export function RunLog({ core, onSelectNode, title = 'Run log' }: RunLogProps): ReactElement | null {
+export function RunLog({ core, onSelectNode, title = 'Run log', leading }: RunLogProps): ReactElement | null {
   const trace = useRunTraceStore();
   useRunTraceVersion(trace);
   const selection = useSelection(core);
   const [onlySelected, setOnlySelected] = useState(false);
-  const [follow, setFollow] = useState(true);
-  const bodyRef = useRef<HTMLOListElement>(null);
+  const { ref: bodyRef, onScroll, follow, setFollow } = useFollowScroll<HTMLOListElement>();
 
   const all = trace === null ? [] : trace.entries();
   const selectedId = selection.selectedNodes.length === 1 ? selection.selectedNodes[0] : undefined;
   const filterId = onlySelected ? selectedId : undefined;
   const entries = filterId === undefined ? all : all.filter(entry => involves(entry, filterId));
-
-  useLayoutEffect(() => {
-    const body = bodyRef.current;
-    if (follow && body !== null) {
-      body.scrollTop = body.scrollHeight;
-    }
-  });
 
   if (trace === null) {
     return null;
@@ -57,15 +50,11 @@ export function RunLog({ core, onSelectNode, title = 'Run log' }: RunLogProps): 
     core.selection.selectNodes([nodeId], 'replace');
     onSelectNode?.(nodeId);
   };
-  const onScroll = (event: UIEvent<HTMLOListElement>): void => {
-    const body = event.currentTarget;
-    setFollow(body.scrollHeight - body.scrollTop - body.clientHeight <= FOLLOW_SLACK_PX);
-  };
 
   return (
     <section className="hl-runlog" aria-label={title}>
       <header className="hl-runlog-head">
-        <span className="hl-runlog-title">{title}</span>
+        {leading ?? <span className="hl-runlog-title">{title}</span>}
         <span className="hl-runlog-count hl-mono">
           {entries.length === all.length
             ? `${String(all.length)} events`
@@ -90,7 +79,7 @@ export function RunLog({ core, onSelectNode, title = 'Run log' }: RunLogProps): 
             className={`hl-runlog-toggle${follow ? ' is-on' : ''}`}
             aria-pressed={follow}
             onClick={() => {
-              setFollow(value => !value);
+              setFollow(!follow);
             }}
           >
             Follow

@@ -13,6 +13,7 @@
 @import './nodes/HlangNode.css';
 @import './nodes/AssetNode.css';
 @import './nodes/PillNode.css';
+@import './live/LivePulse.css';
 @import './edges/FlowEdge.css';
 @import './shell/EditorShell.css';
 @import './toolbar/Toolbar.css';

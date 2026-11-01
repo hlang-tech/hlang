@@ -80,3 +80,85 @@
 .hl-region-footer {
   flex-shrink: 0;
 }
+
+/* A resizable footer: its height is set by `useFooterResize`, its content
+   fills it, and the grab handle straddles its top edge. */
+.hl-region-footer.is-resizable {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.hl-region-footer.is-resizable > :not(.hl-footer-resizer) {
+  flex: 1;
+  min-height: 0;
+}
+/* While dragging, nothing in the editor gets selected and the cursor stays. */
+.hl-shell:has(.hl-region-footer.is-resizing) {
+  cursor: row-resize;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hl-footer-resizer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -6px;
+  height: 12px;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  cursor: row-resize;
+  /* The handle owns its drags: no scrolling or zooming of the page under it. */
+  touch-action: none;
+  outline: none;
+}
+.hl-footer-resizer::before {
+  /* The edge itself lights up while the handle is in use. */
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 5px;
+  height: 2px;
+  background: transparent;
+  transition: background 0.14s var(--hl-ease);
+}
+.hl-footer-resizer::after {
+  /* The grip: a short silver bar in the middle of the edge. */
+  content: '';
+  width: 36px;
+  height: 4px;
+  border-radius: var(--hl-r-pill);
+  background: var(--hl-silver-lo);
+  opacity: 0;
+  transition: opacity 0.14s var(--hl-ease), background 0.14s var(--hl-ease);
+}
+.hl-footer-resizer:hover::after,
+.hl-footer-resizer:focus-visible::after,
+.hl-footer-resizer.is-dragging::after {
+  opacity: 1;
+}
+.hl-footer-resizer:hover::before,
+.hl-footer-resizer:focus-visible::before,
+.hl-footer-resizer.is-dragging::before {
+  background: color-mix(in oklab, var(--hl-silver) 45%, transparent);
+}
+.hl-footer-resizer.is-dragging::after {
+  background: var(--hl-silver-hi);
+}
+
+/* A finger needs a larger target, and a grip that shows without hovering. */
+@media (pointer: coarse) {
+  .hl-footer-resizer {
+    top: -14px;
+    height: 28px;
+  }
+  .hl-footer-resizer::before {
+    top: 13px;
+  }
+  .hl-footer-resizer::after {
+    width: 44px;
+    opacity: 0.7;
+  }
+}
