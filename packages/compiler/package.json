@@ -3,14 +3,21 @@
   "version": "2.0.0",
   "description": "Ahead-of-time compiler for hlang: compiles an IGraph program into a standalone ES module.",
   "keywords": [
-    "hlang",
-    "flow-based-programming",
     "fbp",
+    "fbp-runtime",
+    "javascript",
+    "flow",
+    "creative-coding",
+    "fbp-protocol",
+    "flow-based-programming",
+    "visual-programming-language",
+    "flow-based",
+    "internal-dsl",
+    "hlang",
     "compiler",
     "code-generation",
     "igraph",
-    "estree",
-    "visual-programming-language"
+    "estree"
   ],
   "homepage": "https://github.com/hlang-tech/hlang/tree/main/packages/compiler#readme",
   "bugs": {

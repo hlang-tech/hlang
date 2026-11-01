@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hlang-tech/hlang/main/media/logo.png" width="88" alt="hlang">
+  <img src="https://raw.githubusercontent.com/hlang-tech/hlang/main/media/brand/packages/compiler.png" alt="hlang compiler" width="100%">
 </p>
 
 # @hlang-org/compiler
