@@ -8,7 +8,7 @@
  * (I port). Getting this backwards is the single most error-prone mistake.
  */
 
-import type { IGraph } from '@hlang-org/interpreter';
+import type { IGraph } from '@hlang-org/ir';
 import { createDecorator } from '../di';
 import type { GraphSnapshot } from '../model/types';
 import type { IGraphModel } from './interfaces';

@@ -1,7 +1,31 @@
 {
   "name": "@hlang-org/editor-core",
-  "version": "1.0.0",
-  "description": "Headless, framework-agnostic core for the hlang visual editor: graph model, commands, history, validation, serialization and execution — zero React, zero pixels.",
+  "version": "0.1.0",
+  "description": "Headless core of the Lumen editor for hlang: graph model, reversible commands, validation, diagnostics, and IGraph serialization. No React, no DOM.",
+  "keywords": [
+    "hlang",
+    "lumen",
+    "node-editor",
+    "headless",
+    "visual-programming-language",
+    "undo-redo",
+    "dependency-injection"
+  ],
+  "homepage": "https://github.com/hlang-tech/hlang/tree/main/packages/editor-core#readme",
+  "bugs": {
+    "url": "https://github.com/hlang-tech/hlang/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hlang-tech/hlang.git",
+    "directory": "packages/editor-core"
+  },
+  "license": "MIT",
+  "author": "hlang-tech",
+  "contributors": [
+    "Archer <qddegtya@gmail.com>",
+    "archersado <archersado@hotmail.com>"
+  ],
   "type": "commonjs",
   "sideEffects": false,
   "engines": {
@@ -23,22 +47,13 @@
     }
   },
   "files": [
-    "lib"
+    "lib",
+    "README.md",
+    "LICENSE"
   ],
-  "keywords": [
-    "hlang",
-    "visual-programming-language",
-    "node-editor",
-    "headless",
-    "flow-based-programming",
-    "dependency-injection"
-  ],
-  "homepage": "https://github.com/hlang-tech/hlang#readme",
-  "contributors": [
-    "archer <qddegtya@gmail.com>",
-    "archersado <archersado@hotmail.com>"
-  ],
-  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "test": "jest --coverage",
@@ -48,7 +63,8 @@
     "clean": "rm -rf lib coverage"
   },
   "dependencies": {
-    "@hlang-org/interpreter": "workspace:^"
+    "@hlang-org/interpreter": "workspace:^",
+    "@hlang-org/ir": "workspace:^"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.4",

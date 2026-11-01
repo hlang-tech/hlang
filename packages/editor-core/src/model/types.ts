@@ -13,14 +13,15 @@ export type EdgeId = string;
 /** A port's name, e.g. "Input" | "Output" | "@node/error". */
 export type PortId = string;
 
-/** The three hlang node kinds, matching `IGraph`'s `type` field. */
-export type NodeKind = 'R' | 'T' | 'W';
+/** The three hlang node kinds, defined once in the IR. */
+import type { NodeKind } from '@hlang-org/ir';
+export type { NodeKind };
 
 /** Stream direction of a port, matching the runtime's `STREAM_TYPE`. */
 export type PortDirection = 'I' | 'O';
 
 /** Canonical name of the error port dug on every R and T node. */
-export const ERROR_PORT_NAME = '@node/error';
+export { ERROR_PORT_NAME } from '@hlang-org/ir';
 
 /** A point on the canvas. */
 export interface Point {

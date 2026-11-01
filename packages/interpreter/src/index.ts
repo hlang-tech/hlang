@@ -34,7 +34,11 @@ export type {
   IPackageInfo,
   ParamBag,
   ParamValue,
-} from './igraph';
+} from '@hlang-org/ir';
+
+// The shared front end, re-exported for consumers of the interpreter.
+export { planGraph, GraphError } from '@hlang-org/ir';
+export type { ExecutionPlan, PlannedNode, PlannedConnection, PlannedEndpoint, GraphErrorCode } from '@hlang-org/ir';
 
 export type {
   IDisposable,

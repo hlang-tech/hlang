@@ -1,7 +1,32 @@
 {
   "name": "@hlang-org/interpreter",
   "version": "1.0.0",
-  "description": "The interpreter for hlang: a first-class, host-agnostic execution engine that evaluates an hlang IGraph program into a live reactive object graph, without code generation.",
+  "description": "In-process interpreter for hlang: evaluates an IGraph program into a live RxJS object graph, with no code generation.",
+  "keywords": [
+    "hlang",
+    "flow-based-programming",
+    "fbp",
+    "interpreter",
+    "igraph",
+    "reactive",
+    "rxjs",
+    "visual-programming-language"
+  ],
+  "homepage": "https://github.com/hlang-tech/hlang/tree/main/packages/interpreter#readme",
+  "bugs": {
+    "url": "https://github.com/hlang-tech/hlang/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hlang-tech/hlang.git",
+    "directory": "packages/interpreter"
+  },
+  "license": "MIT",
+  "author": "hlang-tech",
+  "contributors": [
+    "Archer <qddegtya@gmail.com>",
+    "archersado <archersado@hotmail.com>"
+  ],
   "type": "commonjs",
   "sideEffects": false,
   "engines": {
@@ -23,24 +48,13 @@
     }
   },
   "files": [
-    "lib"
+    "lib",
+    "README.md",
+    "LICENSE"
   ],
-  "keywords": [
-    "fbp",
-    "fbp-runtime",
-    "hlang",
-    "interpreter",
-    "flow-based-programming",
-    "visual-programming-language",
-    "reactive",
-    "rxjs"
-  ],
-  "homepage": "https://github.com/hlang-tech/hlang#readme",
-  "contributors": [
-    "archer <qddegtya@gmail.com>",
-    "archersado <archersado@hotmail.com>"
-  ],
-  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "test": "jest --coverage",
@@ -50,6 +64,7 @@
     "clean": "rm -rf lib coverage"
   },
   "dependencies": {
+    "@hlang-org/ir": "workspace:^",
     "@hlang-org/runtime": "workspace:^",
     "rxjs": "^6.6.7"
   },
