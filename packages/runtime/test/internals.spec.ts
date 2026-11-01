@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { portInternals } from "../src/base/port";
 import build from "../src/core/build";
 import uuid from "../src/utils/uuid";
 import { Apply, Collect, Values } from "./helpers";
@@ -42,17 +43,50 @@ describe("build", () => {
     expect(graph.connections.get(b.id)?.[0]?.dst).toBe(a.I("in"));
   });
 
-  it("builds a chain of 50,000 nodes, ten times the old recursion limit, without recursion", () => {
-    const source = new Values([]);
-    let previous: Values | Apply = source;
-    for (let index = 0; index < 50_000; index += 1) {
-      const step = new Apply((value) => value);
-      previous.O("out").connect(step.I("in"));
-      previous = step;
-    }
-    expect(build(source).transform).toHaveLength(50_000);
+  it("builds at the same stack depth however long the chain is", () => {
+    expect(deepestBuild(5000)).toBe(deepestBuild(10));
   });
 });
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+/**
+ * The stack depth when building a chain of `length` Transforms reaches its last
+ * node: where a recursive build would be deepest. Read once, as reading a stack
+ * is costly where source maps are applied.
+ */
+function deepestBuild(length: number): number {
+  const source = new Values([]);
+  let previous: Values | Apply = source;
+  for (let index = 0; index < length; index += 1) {
+    const step = new Apply((value) => value);
+    previous.O("out").connect(step.I("in"));
+    previous = step;
+  }
+  const last = previous.O("out");
+  const peersOf = portInternals.peersOf;
+  let depth = 0;
+  vi.spyOn(portInternals, "peersOf").mockImplementation((port) => {
+    if (port === last) depth = stackDepth();
+    return peersOf(port);
+  });
+  expect(build(source).transform).toHaveLength(length);
+  vi.restoreAllMocks();
+  return depth;
+}
+
+/** The number of frames on the call stack where it is called. */
+function stackDepth(): number {
+  const limit = Error.stackTraceLimit;
+  Error.stackTraceLimit = Number.POSITIVE_INFINITY;
+  try {
+    return (new Error().stack ?? "").split("\n").length;
+  } finally {
+    Error.stackTraceLimit = limit;
+  }
+}
 
 describe("uuid", () => {
   it("hands out distinct v4 ids without remembering them", () => {
