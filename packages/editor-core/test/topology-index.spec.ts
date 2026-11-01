@@ -4,6 +4,7 @@
  * the UI relies on so it never rescans the graph itself.
  */
 
+import { describe, it, expect } from 'vitest';
 import { createEditorCore, AddNodeCommand, ConnectCommand } from '../src';
 import { TopologyIndex } from '../src/services/topology-index';
 import {

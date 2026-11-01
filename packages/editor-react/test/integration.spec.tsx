@@ -2,7 +2,8 @@
  * Context, change-translation, and the aggregate useHlangFlow hook.
  */
 
-import { renderHook, act, render } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { renderHook, act, render, cleanup } from '@testing-library/react';
 import type { NodeChange, EdgeChange, Connection } from '@xyflow/react';
 import { AddNodeCommand } from '@hlang-org/editor-core';
 import { EditorProvider, useEditor } from '../src/context';
@@ -10,6 +11,10 @@ import { useNodeChanges, useEdgeChanges } from '../src/hooks/useChanges';
 import { useHlangFlow } from '../src/hooks/useHlangFlow';
 import type { HlangRFNode, HlangRFEdge } from '../src/mapping/types';
 import { makeCore } from './fixtures/core';
+
+// Testing Library unmounts after each test only through an explicit cleanup
+// when the test API is imported rather than global.
+afterEach(cleanup);
 
 describe('EditorProvider / useEditor', () => {
   it('provides the core to descendants', () => {
@@ -22,7 +27,7 @@ describe('EditorProvider / useEditor', () => {
 
   it('throws when used outside a provider', () => {
     // Silence the expected React error log for this negative case.
-    const spy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     expect(() => renderHook(() => useEditor())).toThrow(/EditorProvider/);
     spy.mockRestore();
   });

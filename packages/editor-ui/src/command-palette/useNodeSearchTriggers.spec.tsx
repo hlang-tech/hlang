@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  *
  * Behavior test for the node-search trigger hook + controller working together
  * against a REAL editor core. This covers the exact glue that the browser E2E
@@ -14,7 +14,8 @@
  * needed. Everything else (registry, validator, commands, history) is real.
  */
 
-import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { renderHook, act, cleanup } from '@testing-library/react';
 import { createEditorCore } from '@hlang-org/editor-core';
 import type {
   EditorCore,
@@ -24,7 +25,11 @@ import type {
 import { useNodeSearch } from './useNodeSearch';
 import { useNodeSearchTriggers } from './useNodeSearchTriggers';
 
-jest.mock('@xyflow/react', () => ({
+// Testing Library unmounts after each test only through an explicit cleanup
+// when the test API is imported rather than global.
+afterEach(cleanup);
+
+vi.mock('@xyflow/react', () => ({
   useReactFlow: () => ({
     screenToFlowPosition: (p: { x: number; y: number }) => p,
   }),

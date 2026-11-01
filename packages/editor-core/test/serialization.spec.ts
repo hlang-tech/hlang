@@ -3,6 +3,7 @@
  * invariant (edge source -> connection.Output, edge target -> connection.Input).
  */
 
+import { describe, it, expect } from 'vitest';
 import { createEditorCore, AddNodeCommand, ConnectCommand } from '../src';
 import type { Endpoint } from '../src';
 import type { IGraph } from '@hlang-org/interpreter';

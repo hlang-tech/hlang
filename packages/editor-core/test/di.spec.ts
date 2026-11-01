@@ -4,6 +4,7 @@
  * TDD: written before wiring real services; verifies the container mechanics.
  */
 
+import { describe, it, expect } from 'vitest';
 import {
   createDecorator,
   ServiceCollection,

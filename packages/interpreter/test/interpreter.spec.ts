@@ -4,6 +4,7 @@
  * TDD: these are written before the implementation and must fail first.
  */
 
+import { describe, it, expect } from 'vitest';
 import { interpret, NodeRegistry } from '../src';
 import type { IInterpreterDeps } from '../src';
 import type { IGraph } from '../src';

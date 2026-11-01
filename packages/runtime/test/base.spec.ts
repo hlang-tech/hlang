@@ -1,8 +1,9 @@
+import { test } from 'vitest';
 import { Flow } from "../src/index";
 import Console from "./fixtures/base/console";
 import TimestampNode from "./fixtures/base/timestamp";
 
-test("test base flow", (done) => {
+test("test base flow", async () => {
   const flow = new Flow({});
 
   const $time = new TimestampNode({
@@ -25,7 +26,5 @@ test("test base flow", (done) => {
   // run
   flow.run($time);
 
-  setTimeout(() => {
-    done();
-  }, 3000);
+  await new Promise((resolve) => setTimeout(resolve, 3000));
 });

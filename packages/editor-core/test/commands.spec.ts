@@ -2,6 +2,7 @@
  * Commands, history (undo/redo), and cascade delete.
  */
 
+import { describe, it, expect } from 'vitest';
 import {
   createEditorCore,
   AddNodeCommand,
