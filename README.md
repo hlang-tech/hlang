@@ -157,40 +157,44 @@ const { code, imports } = compile(graph, {
 
 ## Built on hlang
 
-The language, the execution backends, and the editors are separate layers. Anything that produces an `IGraph` can use the interpreter or the compiler, so different products build their own surface on the same engine.
+The language, the execution backends, and the editors are separate layers. Anything that produces an `IGraph` can run it with the interpreter or ship it with the compiler, so each product builds its own surface on the same engine.
 
-### Retail store operations (CHINASHOP 2020)
-
-<p align="center">
-  <img src="./media/ui.png" alt="A node development tool built on hlang: Readable, Transform, and Writable nodes with named ports on a canvas, a property panel, and a log console" width="100%">
-</p>
-
-At CHINASHOP 2020, the 22nd China Retail Expo, Rex, the commercial platform of Freshippo, presented a digital solution for store operations. hlang was its logic orchestration engine: store operation logic was built, demonstrated, and debugged as flows. The screenshot shows a node development tool built on hlang for that work, with Readable, Transform, and Writable nodes, named ports, a property panel, and a run log. [Read about the event](https://www.xiaoa.name/events/hlang-chinashop-2020/).
-
-### AStack
-
-[AStack](https://github.com/astack-tech/astack) is a composable TypeScript framework for AI agents and workflows. It builds its components, ports, and pipelines on hlang's computational model.
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <a href="https://www.xiaoa.name/events/hlang-chinashop-2020/"><img src="./media/showcase/chinashop-2020.png" alt="A node development tool built on hlang, with Readable, Transform, and Writable nodes" width="100%"></a>
+      <p><b>Retail store operations</b><br><sub>Freshippo Rex · CHINASHOP 2020</sub></p>
+      <p>The logic orchestration engine of Rex's store operations solution. Store logic was built, demonstrated, and debugged as flows.</p>
+    </td>
+    <td width="33%" valign="top">
+      <a href="https://github.com/astack-tech/astack"><img src="./media/showcase/astack.png" alt="AStack" width="100%"></a>
+      <p><b>AStack</b><br><sub>AI agents and workflows</sub></p>
+      <p>A composable TypeScript framework for AI applications. Components, ports, and pipelines on hlang's computational model.</p>
+    </td>
+    <td width="33%" valign="top">
+      <a href="#lumen"><img src="./media/showcase/lumen.png" alt="The Lumen editor" width="100%"></a>
+      <p><b>Lumen</b><br><sub>Editor stack · in development</sub></p>
+      <p>The node editor developed in this repository, and the foundation of Prism, a tool for image and video creators.</p>
+    </td>
+  </tr>
+</table>
 
 ### Lumen
 
-<p align="center">
-  <img src="./media/lumen-editor.png" alt="The Lumen editor: an outline of the flow on the left, image and intent nodes on the canvas, and the render preview and inspector on the right" width="100%">
-</p>
+Lumen edits an `IGraph` and runs it with the interpreter. Its three layers depend in one direction only, and each can be replaced.
 
-Lumen is the editor stack developed in this repository. It edits an `IGraph` and runs it through the interpreter. It has three layers with one-way dependencies:
+| | `editor-core` | `editor-react` | `editor-ui` |
+| --- | --- | --- | --- |
+| **Layer** | Model | Binding | Design |
+| **Depends on** | `ir`, `interpreter` | `editor-core`, React Flow | `editor-react` |
+| **Owns** | Commands with undo and redo, connection validation, edit-time diagnostics, `IGraph` serialization. No React, no DOM. | Hooks that bind the core to [React Flow](https://reactflow.dev). Output ports map to sources, input ports to targets. | Image and intent nodes, live edges, outline, inspector, node search, context menu, shortcuts. |
 
-- **`editor-core`** has no React and no DOM. Every change goes through a command, so undo and redo cover all edits. It validates connections (output to input, kinds, port types), reports edit-time diagnostics, and serializes to `IGraph`.
-- **`editor-react`** binds the core to [React Flow](https://reactflow.dev). It maps output ports to React Flow sources and input ports to targets.
-- **`editor-ui`** is the design system: framed image nodes, intent pills, live edges, an outline tree, an inspector, node search, a context menu, and keyboard shortcuts.
-
-Any layer can be replaced: a different design system can sit on `editor-react`, and a different framework binding can sit on `editor-core`. The [playground](./examples/editor-react-playground) assembles all three layers:
+A different design system can sit on `editor-react`, and a different framework binding on `editor-core`. Try the [playground](./examples/editor-react-playground):
 
 ```sh
 pnpm install
 pnpm dev:playground
 ```
-
-Lumen is in active development and is the foundation of Prism, a node-based tool for image and video creators.
 
 ## Architecture
 
