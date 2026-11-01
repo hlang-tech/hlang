@@ -6,8 +6,8 @@
  * and lets you edit it: add nodes, wire ports, edit params, and Run it.
  *
  * Note on execution: Run here interprets the graph IN THE BROWSER. That is a
- * portability BONUS for verifying the full pipeline end to end; in the Prism
- * product, execution is dispatched to a server-side interpreter.
+ * portability BONUS for verifying the full pipeline end to end; in a product,
+ * execution is dispatched to a server-side interpreter.
  *
  * Layers, end to end on our own packages: editor-core (model/commands) ->
  * editor-react (bindings) -> editor-ui (design system) -> Run serializes to

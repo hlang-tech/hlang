@@ -1,7 +1,7 @@
 /**
  * `InterpreterGraphRunner` — production `IGraphRunner` backed by
  * `@hlang-org/interpreter`. The runtime node registry and flow factory are
- * supplied by the assembling application (e.g. Prism), so editor-core never
+ * supplied by the assembling host application, so editor-core never
  * hard-codes concrete node classes or touches RxJS itself.
  */
 

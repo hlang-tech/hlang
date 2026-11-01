@@ -90,7 +90,7 @@ Dependencies point downward only, never upward or sideways in violation of:
   scanning `document` for `.react-flow__*` classes.
 - **AI/media specifics do not live in editor-ui.** editor-ui is a generic,
   embeddable node editor. Anything that must know "this is an image / video /
-  model" belongs in the Prism app and plugs in through editor-ui's extension
+  model" belongs in the host application and plugs in through editor-ui's extension
   registries — editor-ui never imports it.
 
 Mutations to the graph go through `ICommandService` (so undo/redo/validation are

@@ -25,4 +25,4 @@ Workspace packages are linked by pnpm. Turborepo builds them before the dev serv
 
 The node kit is in [`src/nodes/kit`](./src/nodes/kit): sources, transforms, and sinks written against `@hlang-org/runtime`.
 
-Running the interpreter in the browser verifies the full stack. In Prism, the product built on Lumen, execution runs on a server.
+Running the interpreter in the browser verifies the full stack. A production host would usually run graphs on a server.
