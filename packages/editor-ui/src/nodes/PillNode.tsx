@@ -112,12 +112,13 @@ export function PillNodeChrome({ node, selected }: PillNodeChromeProps): ReactEl
         />
       ) : (
         <span
-          className="hl-pill-name nodrag"
-          onClick={e => {
-            // Single detector only: React Flow swallows the native dblclick on a
-            // node child, so we detect a double-click from two rapid clicks. Kept
-            // as the sole path to avoid an inconsistent second (native) handler.
-            e.stopPropagation();
+          className="hl-pill-name"
+          onClick={() => {
+            // The name covers most of the capsule, so it behaves like the node:
+            // the click also reaches React Flow (which selects the node) and a
+            // press here drags the node. React Flow swallows the native dblclick
+            // on a node child, so a double-click is detected from two rapid
+            // clicks; it is the only rename path.
             onNameClick();
           }}
           title="Double-click to rename"

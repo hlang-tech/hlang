@@ -99,6 +99,7 @@ export type { FuzzyMatch, FuzzyCandidate, FuzzyResult } from './command-palette/
 
 // Editor interactions: keyboard shortcuts + right-click node menu
 export { useEditorHotkeys, isEditableTarget } from './hooks/useEditorHotkeys';
+export type { EditorHotkeysOptions } from './hooks/useEditorHotkeys';
 export { NodeContextMenu } from './context-menu/NodeContextMenu';
 export type { NodeContextMenuProps, ContextMenuItem } from './context-menu/NodeContextMenu';
 export { useNodeContextMenu } from './context-menu/useNodeContextMenu';

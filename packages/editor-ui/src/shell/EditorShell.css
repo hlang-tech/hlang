@@ -43,6 +43,9 @@
   flex: 1;
   position: relative;
   min-width: 0;
+  /* Canvas chrome (the dock) adapts to the canvas width, not the window's:
+     the editor may be embedded in a narrow column of a larger page. */
+  container: hl-canvas / inline-size;
 }
 /* A soft ambient pool of light in the canvas centre gives the glass panels and
    nodes something luminous to sit over — depth, the opposite of a flat void. */

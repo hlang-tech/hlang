@@ -142,7 +142,7 @@ export function CanvasDock({
       <button className="hl-dock-btn" onClick={onZoomIn} title="Zoom in" aria-label="Zoom in">
         <span className="hl-dock-glyph">+</span>
       </button>
-      <button className="hl-dock-btn" onClick={onFitView} title="Fit view" aria-label="Fit view">
+      <button className="hl-dock-btn hl-dock-fit" onClick={onFitView} title="Fit view" aria-label="Fit view">
         <FitIcon />
       </button>
     </div>
