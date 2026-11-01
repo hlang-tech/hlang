@@ -1,0 +1,75 @@
+/**
+ * EditorShell layout. A column of [toolbar / body / footer]; the body is a row
+ * of [left | canvas | right]. Panels are fixed-width, the canvas flexes.
+ */
+
+.hl-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  /* A faint silver ambient wash from the top — expensive, calm, no color cast. */
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(200, 204, 212, 0.05), transparent 60%),
+    var(--hl-void);
+  color: var(--hl-ink);
+  font-family: var(--hl-font-ui);
+}
+
+.hl-region-toolbar {
+  flex-shrink: 0;
+}
+
+.hl-region-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* Side panels are frosted glass, so the canvas beneath washes through their
+   edges — this is what makes the material read as glass, not flat panels. */
+.hl-region-left {
+  width: 248px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--hl-line);
+  background: var(--hl-glass);
+  backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  -webkit-backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  box-shadow: var(--hl-glass-edge);
+  overflow: hidden; /* children own their scroll regions */
+}
+
+.hl-region-canvas {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+/* A soft ambient pool of light in the canvas centre gives the glass panels and
+   nodes something luminous to sit over — depth, the opposite of a flat void. */
+.hl-region-canvas::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    60% 55% at 50% 42%,
+    rgba(200, 204, 212, 0.05),
+    transparent 70%
+  );
+  z-index: 0;
+}
+
+.hl-region-right {
+  width: 312px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--hl-line);
+  background: var(--hl-glass);
+  backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  -webkit-backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  box-shadow: var(--hl-glass-edge);
+  overflow: hidden; /* children own their scroll regions */
+}
+
+.hl-region-footer {
+  flex-shrink: 0;
+}

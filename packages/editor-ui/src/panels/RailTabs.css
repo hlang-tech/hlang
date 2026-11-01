@@ -1,0 +1,34 @@
+/** RailTabs — segmented glass tab strip for a side rail. */
+
+.hl-railtabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 12px 12px 6px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--hl-line);
+  border-radius: var(--hl-r-sm);
+}
+
+.hl-railtab {
+  flex: 1;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  color: var(--hl-ink-3);
+  font-family: var(--hl-font-ui);
+  font-size: 12px;
+  font-weight: 550;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.14s var(--hl-ease), color 0.14s var(--hl-ease);
+}
+.hl-railtab:hover {
+  color: var(--hl-ink-2);
+}
+.hl-railtab.is-active {
+  color: var(--hl-ink);
+  background: color-mix(in oklab, var(--hl-silver) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hl-silver) 24%, transparent);
+}

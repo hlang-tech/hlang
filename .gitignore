@@ -1,23 +1,25 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Dependencies
+node_modules/
 
-# dependencies
-/node_modules
-/packages/*/node_modules
+# Build output
+packages/*/lib/
+examples/*/dist/
 
-# testing
-/packages/*/coverage
+# Test output
+coverage/
 
-# production
-/packages/*/lib
+# Tooling caches
+.turbo/
 
-# misc
-/packages/*/.editorconfig
+# Misc
+packages/*/.editorconfig
 .DS_Store
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+*.tgz
 
-# lock files
-*.lock
-*-lock.*
+# Local AI tooling
+/.playwright-mcp
+/.serena
+
+# Compiler test output
+packages/compiler/test/.generated/

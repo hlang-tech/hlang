@@ -1,0 +1,82 @@
+/** CanvasDock — centred bottom glass toolbar (pan/zoom/add), black & silver. */
+
+.hl-dock {
+  position: absolute;
+  z-index: 8;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px;
+  background: var(--hl-glass-2);
+  backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  -webkit-backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  border: 1px solid var(--hl-line-strong);
+  border-radius: var(--hl-r-pill);
+  box-shadow: var(--hl-glass-edge), 0 14px 34px -18px rgba(0, 0, 0, 0.85);
+}
+
+.hl-dock-btn {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  color: var(--hl-ink-2);
+  border-radius: var(--hl-r-pill);
+  cursor: pointer;
+  transition: background 0.14s var(--hl-ease), color 0.14s var(--hl-ease);
+}
+.hl-dock-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--hl-ink);
+}
+.hl-dock-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+/* The active interaction mode reads in silver. */
+.hl-dock-btn.is-active {
+  background: color-mix(in oklab, var(--hl-silver) 22%, transparent);
+  color: var(--hl-silver-hi);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hl-silver) 30%, transparent);
+}
+
+/* Add-node is the one lightly-emphasised action. */
+.hl-dock-add {
+  color: var(--hl-ink);
+}
+.hl-dock-add:hover {
+  background: color-mix(in oklab, var(--hl-silver) 18%, transparent);
+}
+
+.hl-dock-glyph {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.hl-dock-sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: var(--hl-line-strong);
+}
+
+.hl-dock-zoom {
+  min-width: 48px;
+  height: 34px;
+  padding: 0 8px;
+  border: none;
+  background: transparent;
+  color: var(--hl-ink);
+  font-size: 12px;
+  border-radius: var(--hl-r-sm);
+  cursor: pointer;
+  transition: background 0.14s var(--hl-ease);
+}
+.hl-dock-zoom:hover {
+  background: rgba(255, 255, 255, 0.07);
+}

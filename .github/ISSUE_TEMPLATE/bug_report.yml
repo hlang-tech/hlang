@@ -1,0 +1,45 @@
+name: Bug report
+description: Something does not work as documented.
+labels: [bug]
+body:
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      options:
+        - "@hlang-org/runtime"
+        - "@hlang-org/ir"
+        - "@hlang-org/interpreter"
+        - "@hlang-org/compiler"
+        - "@hlang-org/editor-core"
+        - "@hlang-org/editor-react"
+        - "@hlang-org/editor-ui"
+        - Playground or repository tooling
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: "1.0.6"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: The smallest graph or code that shows the problem.
+      render: ts
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "Node.js 24.11, macOS 15 / Chrome 140"

@@ -1,0 +1,80 @@
+/**
+ * Living-stream edge — THE signature. At rest an edge is a quiet silver
+ * hairline. While a flow is running, a cold spark marches along it O -> I —
+ * the one bold, memorable, hlang-unique moment (a static board can't do this).
+ * `value` sources show a solid overlay (change-only, no marching). Flow is
+ * gated by `.is-flowing` (driven by live signals). Reduced motion disables the
+ * march (handled globally in tokens.css).
+ */
+
+.hl-edge-base {
+  stroke: var(--hl-line-strong);
+  stroke-width: 1.25;
+  fill: none;
+}
+
+/* Resting overlay: a calm silver line, no glow, no march. */
+.hl-edge-flow {
+  stroke: color-mix(in oklab, var(--hl-silver) 55%, transparent);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  fill: none;
+  opacity: 0.8;
+}
+
+/* Live (hot) streams march; value streams are solid. */
+.hl-edge.is-live .hl-edge-flow {
+  stroke-dasharray: 2 10;
+  animation: hl-flow 0.9s linear infinite;
+}
+
+/* During execution, an edge whose source just emitted lights with the cold
+   spark and quickens — the visible living-stream pulse (via useLiveSignals). */
+.hl-edge.is-flowing .hl-edge-flow {
+  stroke: var(--hl-spark);
+  stroke-width: 1.75;
+  opacity: 1;
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--hl-spark) 70%, transparent));
+  animation-duration: 0.4s;
+}
+.hl-edge.is-error.is-flowing .hl-edge-flow {
+  stroke: var(--hl-error);
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--hl-error) 70%, transparent));
+}
+.hl-edge.is-value .hl-edge-flow {
+  stroke-dasharray: none;
+  opacity: 0.5;
+}
+
+.hl-edge.is-error .hl-edge-flow {
+  stroke: color-mix(in oklab, var(--hl-error) 60%, transparent);
+}
+
+.hl-edge:hover .hl-edge-base {
+  stroke: color-mix(in oklab, var(--hl-silver) 45%, var(--hl-line-strong));
+}
+
+@keyframes hl-flow {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+/* Semantic label riding the edge midpoint — a frosted glass pill naming what
+   the wire carries (Character / Background …). Reads the source node's role. */
+.hl-edge-label {
+  position: absolute;
+  pointer-events: none;
+  z-index: 6; /* ride above node cards so a short-edge label is never clipped */
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--hl-ink);
+  background: var(--hl-glass-2);
+  backdrop-filter: blur(10px) saturate(1.1);
+  -webkit-backdrop-filter: blur(10px) saturate(1.1);
+  border: 1px solid color-mix(in oklab, var(--hl-silver) 22%, var(--hl-line));
+  border-radius: var(--hl-r-pill);
+  padding: 2px 9px;
+  box-shadow: var(--hl-glass-edge), 0 2px 8px -3px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+}

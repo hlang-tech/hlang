@@ -1,0 +1,216 @@
+/**
+ * Playground-local styles. The shell, toolbar, canvas chrome, node/edge, and
+ * inspector styling all come from @hlang-org/editor-ui (styles.css). What
+ * remains here is only the playground's own add-node rail and output strip —
+ * the node PALETTE moves into editor-ui in M-UI-4, at which point this shrinks
+ * further.
+ */
+
+/* Hide every scrollbar app-wide while keeping regions scrollable — content that
+   overflows a short window scrolls, but no scrollbar chrome ever appears. One
+   global rule so no scroll region (rails, inspector, cheatsheet, outline,
+   asset grid, search, output) can drift and expose a native bar. React Flow
+   pans/zooms via transform, not native scrollbars, so this doesn't affect it. */
+* {
+  scrollbar-width: none; /* Firefox */
+}
+*::-webkit-scrollbar {
+  display: none; /* WebKit / Chromium / Electron */
+}
+
+/* --- Canvas wrapper: mode-driven cursor so pan vs select is felt, not just
+   shown as a pressed button. Pan = grab/grabbing; select = default arrow. --- */
+.hl-canvas {
+  width: 100%;
+  height: 100%;
+}
+.hl-canvas-pan .react-flow__pane {
+  cursor: grab;
+}
+.hl-canvas-pan .react-flow__pane.dragging {
+  cursor: grabbing;
+}
+
+/* --- Top-bar project title (host state: the flow/project name) --- */
+.hl-toolbar-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--hl-line-strong);
+}
+.hl-project-name,
+.hl-project-input {
+  font-family: var(--hl-font-ui);
+  font-size: 13px;
+  color: var(--hl-ink-2);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: text;
+}
+.hl-project-name:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--hl-ink);
+}
+.hl-project-input {
+  color: var(--hl-ink);
+  border-color: color-mix(in oklab, var(--hl-silver) 45%, var(--hl-line-strong));
+  background: rgba(255, 255, 255, 0.06);
+  outline: none;
+}
+
+/* --- Add-node rail (temporary; becomes editor-ui NodePalette in M-UI-4) --- */
+.hl-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 12px;
+}
+.hl-rail-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--hl-ink-3);
+  padding: 14px 16px 8px;
+}
+.hl-chip {
+  --hl-kind: var(--hl-silver);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border-radius: var(--hl-r-sm);
+  border: 1px solid var(--hl-line-strong);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--hl-ink);
+  font-family: var(--hl-font-ui);
+  font-size: 12.5px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s var(--hl-ease), background 0.15s var(--hl-ease);
+}
+.hl-chip-r { --hl-kind: var(--hl-r); }
+.hl-chip-t { --hl-kind: var(--hl-t); }
+.hl-chip-w { --hl-kind: var(--hl-w); }
+/* Hover lifts with light + a silver edge — no horizontal shift (which the
+   sidebar used to clip). */
+.hl-chip:hover {
+  border-color: color-mix(in oklab, var(--hl-silver) 45%, var(--hl-line-strong));
+  background: rgba(255, 255, 255, 0.06);
+}
+.hl-chip:focus-visible {
+  outline: 2px solid var(--hl-kind);
+  outline-offset: 2px;
+}
+.hl-chip-kind {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--hl-void);
+  background: var(--hl-kind);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.hl-chip-label {
+  color: var(--hl-ink-2);
+}
+.hl-chip:hover .hl-chip-label {
+  color: var(--hl-ink);
+}
+
+/* --- Output strip --- */
+.hl-output {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-height: 148px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--hl-line);
+  background: var(--hl-void-2);
+  overflow: auto;
+}
+.hl-output-tag {
+  flex-shrink: 0;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--hl-silver);
+  padding-top: 2px;
+}
+.hl-output-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12.5px;
+  color: var(--hl-ink);
+}
+.hl-output-line {
+  display: flex;
+  gap: 8px;
+}
+.hl-output-arrow {
+  color: var(--hl-silver);
+  opacity: 0.7;
+}
+
+/* One-line explainer at the top of Insert/Assets so their distinct roles read
+   clearly (node TYPES vs static MEDIA). */
+.hl-rail-hint {
+  margin: 4px 0 8px;
+  padding: 0 14px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--hl-ink-3);
+}
+
+/* Node palette chips scroll when the list is long. */
+.hl-rail-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 12px 12px;
+  overflow-y: auto;
+}
+
+/* Left rail: a three-tab panel (Outline / Insert / Assets). The tab strip is
+   fixed at the top; the active tab body scrolls as a whole when the window is
+   short (hidden scrollbar), so its content is never squeezed. */
+.hl-leftrail {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.hl-leftrail-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Right stack: render preview + position + inspector as one vertical column.
+   When the window gets short the whole column scrolls (hidden scrollbar) rather
+   than squeezing the square preview frame — every block keeps its natural
+   height. */
+.hl-rightstack {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+/* All three blocks keep their intrinsic height; the column scrolls as a whole. */
+.hl-rightstack .hl-preview,
+.hl-rightstack .hl-position,
+.hl-rightstack .hl-inspector {
+  flex: none;
+}
+/* The inspector defaults to height:100% (to fill its own pane); inside the
+   scrolling column it must grow to its content instead, or it collapses. */
+.hl-rightstack .hl-inspector {
+  height: auto;
+}

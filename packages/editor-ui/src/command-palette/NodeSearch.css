@@ -1,0 +1,153 @@
+/**
+ * NodeSearch palette — a floating deep-space glass command menu. Anchored at a
+ * fixed screen point; a full-viewport scrim catches outside clicks. Electric-
+ * blue focus accent, kind-tinted result chips, fuzzy-match emphasis.
+ */
+
+.hl-node-search-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.hl-node-search {
+  position: fixed;
+  z-index: 41;
+  width: 320px;
+  max-height: 360px;
+  display: flex;
+  flex-direction: column;
+  /* Nearly opaque so canvas content does not bleed through and muddy the
+     panel's layering; the slight translucency + blur keeps it feeling like
+     glass floating above the graph, not a flat modal. */
+  background: color-mix(in oklab, var(--hl-surface) 98%, transparent);
+  border: 1px solid var(--hl-line-strong);
+  border-radius: var(--hl-r-lg);
+  box-shadow: var(--hl-shadow-node), 0 24px 48px -24px rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(20px) saturate(1.3);
+  overflow: hidden;
+  color: var(--hl-ink);
+  font-family: var(--hl-font-ui);
+  animation: hl-node-search-in 140ms var(--hl-ease);
+}
+
+@keyframes hl-node-search-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.hl-node-search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--hl-line);
+}
+
+.hl-node-search-glyph {
+  color: var(--hl-silver);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.hl-node-search-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--hl-ink);
+  /* UI font (not mono) to sit consistently with the result labels below;
+     mono is reserved for the kind chips and port tags where it reads as code. */
+  font-family: var(--hl-font-ui);
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.hl-node-search-input::placeholder {
+  color: var(--hl-ink-3);
+}
+
+.hl-node-search-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hl-node-search-empty {
+  padding: 12px;
+  color: var(--hl-ink-3);
+  font-size: 12px;
+  text-align: center;
+}
+
+.hl-node-search-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--hl-r-sm);
+  cursor: pointer;
+  transition: background-color 120ms var(--hl-ease);
+}
+
+.hl-node-search-item.is-active {
+  background: var(--hl-surface-2);
+  box-shadow: inset 0 0 0 1px var(--hl-line-strong);
+}
+
+.hl-node-search-kind {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--hl-r-sm);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--hl-void);
+}
+
+.hl-node-search-kind.hl-kind-r {
+  background: var(--hl-r);
+}
+.hl-node-search-kind.hl-kind-t {
+  background: var(--hl-t);
+}
+.hl-node-search-kind.hl-kind-w {
+  background: var(--hl-w);
+}
+
+.hl-node-search-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hl-node-search-hit {
+  background: transparent;
+  color: var(--hl-silver);
+  font-weight: 600;
+}
+
+.hl-node-search-port {
+  flex: none;
+  font-size: 11px;
+  color: var(--hl-ink-3);
+  padding: 2px 6px;
+  border: 1px solid var(--hl-line);
+  border-radius: 999px;
+}

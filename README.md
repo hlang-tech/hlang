@@ -1,123 +1,240 @@
-# Hlang
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hlang-tech/hlang/main/media/logo.png" width="256" height="256" />
-  <br />
-  <br />
+  <img src="./media/brand/readme-banner.svg" alt="hlang — flow-based programming on live streams" width="100%">
 </p>
 
 <p align="center">
-<b style="font-size: 32px;line-height: 32px;">A FBP-Inspired language for building universal applications.</b>
-<br />
-<em>Hlang aims to make programming easier, faster and more comfortable. It avoids coding, repetition and frustration.</em>
-<br />
-<br />
+  <a href="https://github.com/hlang-tech/hlang/actions/workflows/ci.yml"><img src="https://github.com/hlang-tech/hlang/actions/workflows/ci.yml/badge.svg?branch=develop" alt="CI"></a>
+  <a href="https://www.npmjs.com/package/@hlang-org/runtime"><img src="https://img.shields.io/npm/v/@hlang-org/runtime?label=%40hlang-org%2Fruntime&color=c8ccd4&labelColor=0f1114" alt="npm"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-c8ccd4?labelColor=0f1114" alt="MIT license"></a>
+  <a href="https://deepwiki.com/hlang-tech/hlang"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
 </p>
-
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/hlang-tech/hlang)
-
----
-
-### Ecosystem
-
-#### UI & Devtool
 
 <p align="center">
-  <img width="800" src="https://raw.githubusercontent.com/hlang-tech/hlang/main/media/ui.png" alt="devtool">
+  <b>English</b> · <a href="./README.zh-CN.md">简体中文</a>
 </p>
 
-### Feature
+hlang is a flow-based programming language for TypeScript and JavaScript. A program is a graph of nodes. Nodes exchange data through named ports, and every port is an RxJS stream. Connections stay live: data moves through the graph as long as the sources keep emitting.
 
-* 😊 Another FBP-Inspired System, but totally `Reactive`.
-* 🚀 Powerful ecosystem, abundant internal nodes.
-* 👬 Just use Node-Like `Readable` | `Writable` | `Transform` Stream API to become a node developer.
-* ✊ Production-ready and Enterprise-ready, High Performance.
+You can write a graph in code with the runtime, store it as a JSON program (`IGraph`), run that program with the interpreter, or compile it to an ES module. hlang does not depend on any editor: a visual tool only has to produce an `IGraph`. Teams have built their own editors and platforms on hlang, and this repository develops Lumen, an editor stack for creative tools.
 
-### 🌰 Quick Start
+## Contents
 
-```javascript
-const {
-  Flow,
-  ReadableNode,
-  WriteableNode,
-  TransformNode,
-  Port,
-} = require("@hlang-org/runtime");
+- [Core concepts](#core-concepts)
+- [Packages](#packages)
+- [Quick start](#quick-start)
+- [Built on hlang](#built-on-hlang)
+- [Architecture](#architecture)
+- [Development](#development)
+- [Brand](#brand)
+- [Contributors](#contributors)
 
-const flowIns = new Flow();
+## Core concepts
 
-class OneReadableNode extends ReadableNode {
-  constructor() {
-    super();
+| Concept | In hlang |
+| --- | --- |
+| **Node** | A unit of computation. There are three kinds. |
+| **Readable (R)** | A source. It has output ports only. `_read($o)` pushes data. |
+| **Transform (T)** | It has input and output ports. `_transform($i, $o)` maps inputs to outputs. |
+| **Writable (W)** | A sink. It has input ports only. `_write($i)` consumes data. |
+| **Port** | A named RxJS `Subject`. `send()` calls `next()`; `receive()` subscribes. A node can have any number of ports. |
+| **Error port** | Readable and Transform nodes have an output port named `@node/error` for errors. |
+| **Connection** | `output.connect(input)`. The runtime throws for any other direction. Transform-to-Transform cycles are allowed, so feedback loops are possible. |
+| **Flow** | `flow.run(readable)` builds the graph that is reachable from a Readable root. It subscribes the downstream nodes first, then lets the source emit. |
+| **IGraph** | The JSON form of a program: `nodeList` and `connections`. It is the input of the interpreter, the compiler, and the editor. |
 
-    // dig a port named `out`
-    Port.O("out").attach(this);
+## Packages
+
+All packages are published under the `@hlang-org` scope. Identical builds are also published under `@hlang-tech`. Use one scope in a project.
+
+| Package | Version | Purpose |
+| --- | --- | --- |
+| [`@hlang-org/runtime`](./packages/runtime) | ![npm version of @hlang-org/runtime](https://img.shields.io/npm/v/@hlang-org/runtime?label=&color=c8ccd4&labelColor=0f1114) | Nodes, ports, and flows on RxJS. The engine every other package builds on. |
+| [`@hlang-org/ir`](./packages/ir) | ![npm version of @hlang-org/ir](https://img.shields.io/npm/v/@hlang-org/ir?label=&color=c8ccd4&labelColor=0f1114) | `IGraph` types and `planGraph`, the validation and lowering step shared by the interpreter and the compiler. |
+| [`@hlang-org/interpreter`](./packages/interpreter) | ![npm version of @hlang-org/interpreter](https://img.shields.io/npm/v/@hlang-org/interpreter?label=&color=c8ccd4&labelColor=0f1114) | Runs an `IGraph` in the current process. No code generation. Works in Node.js and browsers. |
+| [`@hlang-org/compiler`](./packages/compiler) | ![npm version of @hlang-org/compiler](https://img.shields.io/npm/v/@hlang-org/compiler?label=&color=c8ccd4&labelColor=0f1114) | Compiles an `IGraph` to a standalone ES module with the same behavior as the interpreter. |
+| [`@hlang-org/editor-core`](./packages/editor-core) | ![npm version of @hlang-org/editor-core](https://img.shields.io/npm/v/@hlang-org/editor-core?label=&color=c8ccd4&labelColor=0f1114) | Lumen: the headless editor model. Commands, undo and redo, validation, diagnostics, `IGraph` serialization. |
+| [`@hlang-org/editor-react`](./packages/editor-react) | ![npm version of @hlang-org/editor-react](https://img.shields.io/npm/v/@hlang-org/editor-react?label=&color=c8ccd4&labelColor=0f1114) | Lumen: React hooks that bind `editor-core` to React Flow. |
+| [`@hlang-org/editor-ui`](./packages/editor-ui) | ![npm version of @hlang-org/editor-ui](https://img.shields.io/npm/v/@hlang-org/editor-ui?label=&color=c8ccd4&labelColor=0f1114) | Lumen: the design system. Nodes, edges, panels, and the editor shell. |
+
+The Lumen packages (`editor-*`, version 0.x) are in active development. Their APIs can change in any minor release.
+
+## Quick start
+
+### Write a graph in code
+
+```sh
+npm install @hlang-org/runtime
+```
+
+```js
+const { Flow, ReadableNode, TransformNode, WriteableNode, Port } = require('@hlang-org/runtime');
+
+class Greeting extends ReadableNode {
+  constructor(opts) {
+    super(opts);
+    Port.O('out').attach(this);
   }
-
   _read($o) {
-    // send packet to `out` port
-    $o("out").send({ payload: "hello, world" });
+    $o('out').send('hello, hlang');
   }
 }
 
-class OneTransformNode extends TransformNode {
-  constructor() {
-    super();
-
-    // dig `in` `out` port
-    Port.I("in").attach(this);
-    Port.O("out").attach(this);
+class Uppercase extends TransformNode {
+  constructor(opts) {
+    super(opts);
+    Port.I('in').attach(this);
+    Port.O('out').attach(this);
   }
-
   _transform($i, $o) {
-    $i("in").receive((payload) => {
-      $o("out").send(payload);
-    });
+    $i('in').receive((text) => $o('out').send(text.toUpperCase()));
   }
 }
 
-class OneWriteableNode extends WriteableNode {
-  constructor() {
-    super();
-    Port.I("in").attach(this);
+class Print extends WriteableNode {
+  constructor(opts) {
+    super(opts);
+    Port.I('in').attach(this);
   }
-
   _write($i) {
-    $i("in").receive(console.log);
+    $i('in').receive((text) => console.log(text));
   }
 }
 
-const $R = new OneReadableNode();
-const $T = new OneTransformNode();
-const $W = new OneWriteableNode();
+const greeting = new Greeting();
+const uppercase = new Uppercase();
+const print = new Print();
 
-// connect
-$R.O("out").connect($T.I("in"));
-$T.O("out").connect($W.I("in"));
+greeting.O('out').connect(uppercase.I('in'));
+uppercase.O('out').connect(print.I('in'));
 
-// for fun!
-flowIns.run($R);
+new Flow().run(greeting); // HELLO, HLANG
 ```
 
-## Become a contributer ?
+### Run the same graph as data
 
-### Install
+An `IGraph` describes the same program as JSON. A connection's `Output` is the upstream port and its `Input` is the downstream port.
 
-#### step-1
+```js
+const { Flow } = require('@hlang-org/runtime');
+const { interpret, NodeRegistry } = require('@hlang-org/interpreter');
 
-```bash
-npm install
+const registry = new NodeRegistry()
+  .register('greeting', Greeting)
+  .register('uppercase', Uppercase)
+  .register('print', Print);
+
+const graph = {
+  nodeList: [
+    { nodeId: 'a', code: 'greeting', name: 'Greeting', type: 'R' },
+    { nodeId: 'b', code: 'uppercase', name: 'Uppercase', type: 'T' },
+    { nodeId: 'c', code: 'print', name: 'Print', type: 'W' },
+  ],
+  connections: [
+    { Output: { nodeId: 'a', portConf: { id: 'out' } }, Input: { nodeId: 'b', portConf: { id: 'in' } } },
+    { Output: { nodeId: 'b', portConf: { id: 'out' } }, Input: { nodeId: 'c', portConf: { id: 'in' } } },
+  ],
+};
+
+const handle = interpret(graph, { registry, createFlow: () => new Flow() });
+handle.onError(({ nodeId, error }) => console.error(nodeId, error));
+handle.dispose(); // stops long-running nodes
 ```
 
-#### step-2
+### Compile it to a module
 
-```bash
-npm run pm_install
+```js
+import { compile } from '@hlang-org/compiler';
+
+const { code, imports } = compile(graph, {
+  nodes: {
+    greeting: { from: './nodes/greeting.js' },
+    uppercase: { from: './nodes/uppercase.js' },
+    print: { from: './nodes/print.js' },
+  },
+});
+// `code` is an ES module that exports run(options). `imports` lists the modules it needs.
 ```
+
+## Built on hlang
+
+The language, the execution backends, and the editors are separate layers. Anything that produces an `IGraph` can use the interpreter or the compiler, so different products build their own surface on the same engine.
+
+### Retail store operations (CHINASHOP 2020)
+
+<p align="center">
+  <img src="./media/ui.png" alt="A node development tool built on hlang: Readable, Transform, and Writable nodes with named ports on a canvas, a property panel, and a log console" width="100%">
+</p>
+
+At CHINASHOP 2020, the 22nd China Retail Expo, Rex, the commercial platform of Freshippo, presented a digital solution for store operations. hlang was its logic orchestration engine: store operation logic was built, demonstrated, and debugged as flows. The screenshot shows a node development tool built on hlang for that work, with Readable, Transform, and Writable nodes, named ports, a property panel, and a run log. [Read about the event](https://www.xiaoa.name/events/hlang-chinashop-2020/).
+
+### AStack
+
+[AStack](https://github.com/astack-tech/astack) is a composable TypeScript framework for AI agents and workflows. It builds its components, ports, and pipelines on hlang's computational model.
+
+### Lumen
+
+<p align="center">
+  <img src="./media/lumen-editor.png" alt="The Lumen editor: an outline of the flow on the left, image and intent nodes on the canvas, and the render preview and inspector on the right" width="100%">
+</p>
+
+Lumen is the editor stack developed in this repository. It edits an `IGraph` and runs it through the interpreter. It has three layers with one-way dependencies:
+
+- **`editor-core`** has no React and no DOM. Every change goes through a command, so undo and redo cover all edits. It validates connections (output to input, kinds, port types), reports edit-time diagnostics, and serializes to `IGraph`.
+- **`editor-react`** binds the core to [React Flow](https://reactflow.dev). It maps output ports to React Flow sources and input ports to targets.
+- **`editor-ui`** is the design system: framed image nodes, intent pills, live edges, an outline tree, an inspector, node search, a context menu, and keyboard shortcuts.
+
+Any layer can be replaced: a different design system can sit on `editor-react`, and a different framework binding can sit on `editor-core`. The [playground](./examples/editor-react-playground) assembles all three layers:
+
+```sh
+pnpm install
+pnpm dev:playground
+```
+
+Lumen is in active development and is the foundation of Prism, a node-based tool for image and video creators.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph Language
+    runtime["@hlang-org/runtime<br/>nodes · ports · flow"]
+    ir["@hlang-org/ir<br/>IGraph · planGraph"]
+    interpreter["@hlang-org/interpreter<br/>run in process"]
+    compiler["@hlang-org/compiler<br/>emit an ES module"]
+  end
+  subgraph Lumen["Lumen editor (0.x)"]
+    core["editor-core<br/>headless model"]
+    react["editor-react<br/>React Flow bindings"]
+    ui["editor-ui<br/>design system"]
+  end
+  ir --> interpreter
+  ir --> compiler
+  runtime --> interpreter
+  interpreter --> core
+  ir --> core
+  core --> react --> ui
+  custom["Your editor or platform<br/>produces an IGraph"] --> interpreter
+  custom --> compiler
+```
+
+The interpreter and the compiler share one front end. `planGraph` validates an `IGraph` and lowers it to an execution plan. The interpreter executes the plan in the current process. The compiler prints the same plan as an ES module. A test runs one graph through both backends and compares the results.
+
+## Development
+
+The repository is a [pnpm](https://pnpm.io) workspace with [Turborepo](https://turborepo.com) tasks and [Changesets](https://github.com/changesets/changesets) for releases. Use the Node.js version in [`.nvmrc`](./.nvmrc).
+
+```sh
+pnpm install        # install and link the workspace
+pnpm build          # build every package
+pnpm check          # build, typecheck, lint, and test; the CI gate
+pnpm lint:pkg       # validate the publishable packages (publint + attw)
+```
+
+`main` holds released code and `develop` holds the next release. Start work on a `feature/*` branch from `develop`. See [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for the workflow, the quality bar, and the release process. Engineering rules for people and coding agents are in [AGENTS.md](./AGENTS.md).
+
+## Brand
+
+The hlang mark is a node with one connection: a cube, an output terminal, a trace that forms the H, and an input terminal. See the [brand guide](./media/brand/README.md) for the construction, colors, and files.
 
 ## Contributors
 
@@ -137,10 +254,7 @@ npm run pm_install
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
 
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
+## License
 
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+[MIT](./LICENSE) © hlang-tech

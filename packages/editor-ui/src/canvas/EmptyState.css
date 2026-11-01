@@ -1,0 +1,23 @@
+.hl-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.hl-empty-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  color: var(--hl-ink-2);
+}
+.hl-empty-hint {
+  margin: 0;
+  font-family: var(--hl-font-mono);
+  font-size: 12px;
+  color: var(--hl-ink-3);
+}

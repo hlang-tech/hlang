@@ -1,0 +1,45 @@
+/** Theme React Flow's built-in controls + minimap to the design tokens. */
+
+.hl-controls.react-flow__controls {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--hl-line);
+  box-shadow: none;
+}
+.hl-controls .react-flow__controls-button {
+  background: var(--hl-surface);
+  border-bottom: 1px solid var(--hl-line);
+  color: var(--hl-ink-2);
+}
+.hl-controls .react-flow__controls-button:hover {
+  background: var(--hl-surface-2);
+  color: var(--hl-ink);
+}
+.hl-controls .react-flow__controls-button svg {
+  fill: currentColor;
+}
+
+/* A discreet frosted minimap that recedes into the canvas at rest and lifts on
+   hover — furniture, not a focal point. */
+.hl-minimap.react-flow__minimap {
+  width: 168px;
+  height: 118px;
+  background: var(--hl-glass);
+  backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  -webkit-backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  border: 1px solid var(--hl-line);
+  border-radius: 12px;
+  box-shadow: var(--hl-glass-edge), 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+  opacity: 0.42;
+  transition: opacity 0.2s var(--hl-ease);
+}
+.hl-minimap.react-flow__minimap:hover {
+  opacity: 1;
+}
+
+/* Connection line while dragging out a new edge. */
+.react-flow__connection-path {
+  stroke: var(--hl-silver);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 4px color-mix(in oklab, var(--hl-silver) 50%, transparent));
+}

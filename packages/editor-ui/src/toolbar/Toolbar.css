@@ -1,0 +1,126 @@
+/** Frosted-glass toolbar with a wordmark and a right-aligned action cluster. */
+
+.hl-toolbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 54px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--hl-line);
+  background: var(--hl-glass);
+  backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  -webkit-backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  box-shadow: var(--hl-glass-edge);
+}
+
+/* The centre tool cluster is absolutely centred so it never shifts with the
+   width of the brand or the action cluster on either side. */
+.hl-toolbar-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.hl-toolbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hl-toolbar-glyph {
+  width: 14px;
+  height: 14px;
+  border-radius: 5px;
+  /* A brushed-silver bead with a faint kind shimmer — subtle, not rainbow. */
+  background: radial-gradient(circle at 30% 25%, var(--hl-silver-hi), var(--hl-silver-lo) 70%);
+  box-shadow: 0 0 10px -3px var(--hl-silver), var(--hl-glass-edge-hi);
+}
+.hl-toolbar-wordmark {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--hl-ink);
+}
+
+.hl-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Read-only stat pill (node/vertex count). */
+.hl-toolbar-stat {
+  font-size: 11.5px;
+  color: var(--hl-ink-2);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--hl-line);
+  border-radius: var(--hl-r-pill);
+  padding: 5px 11px;
+}
+
+/* Ghost glass buttons for secondary actions (undo/redo). */
+.hl-toolbar-btn {
+  font-family: var(--hl-font-ui);
+  font-size: 12.5px;
+  font-weight: 550;
+  color: var(--hl-ink-2);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--hl-line-strong);
+  border-radius: var(--hl-r-sm);
+  padding: 7px 13px;
+  cursor: pointer;
+  transition: color 0.15s var(--hl-ease), border-color 0.15s var(--hl-ease),
+    background 0.15s var(--hl-ease);
+}
+.hl-toolbar-btn:hover:not(:disabled) {
+  color: var(--hl-ink);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: color-mix(in oklab, var(--hl-silver) 40%, var(--hl-line-strong));
+}
+.hl-toolbar-btn:focus-visible {
+  outline: 2px solid var(--hl-silver);
+  outline-offset: 2px;
+}
+.hl-toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* The primary action — a brushed-silver frosted capsule. The hero button. */
+.hl-toolbar-run {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #14161a;
+  border-radius: var(--hl-r-pill);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: linear-gradient(180deg, var(--hl-silver-hi), var(--hl-silver) 60%, var(--hl-silver-lo));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 2px 8px -2px rgba(0, 0, 0, 0.5), 0 0 20px -8px var(--hl-silver);
+  font-weight: 600;
+  padding: 7px 16px;
+}
+.hl-toolbar-run:hover:not(:disabled) {
+  color: #14161a;
+  background: linear-gradient(180deg, #ffffff, var(--hl-silver-hi) 60%, var(--hl-silver));
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.hl-toolbar-run-icon {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #14161a;
+  opacity: 0.85;
+  transition: border-radius 0.15s var(--hl-ease);
+}
+/* While running, the icon becomes a square (Stop) and pulses. */
+.hl-toolbar-run-icon.is-stop {
+  border-radius: 1px;
+  animation: hl-toolbar-pulse 0.9s var(--hl-ease) infinite;
+}
+@keyframes hl-toolbar-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}

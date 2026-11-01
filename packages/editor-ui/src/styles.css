@@ -1,0 +1,33 @@
+/**
+ * @hlang-org/editor-ui — single stylesheet entry.
+ *
+ * Import this once at your app root to get the full design system: design
+ * tokens plus every component's structural styling. Because the components'
+ * `import './*.css'` statements are compiled to no-ops (the JS bundle carries
+ * no CSS), this aggregated stylesheet is the delivery path for all styles.
+ *
+ *   import '@hlang-org/editor-ui/styles.css';
+ */
+
+@import './tokens/tokens.css';
+@import './nodes/HlangNode.css';
+@import './nodes/AssetNode.css';
+@import './nodes/PillNode.css';
+@import './edges/FlowEdge.css';
+@import './shell/EditorShell.css';
+@import './toolbar/Toolbar.css';
+@import './toolbar/ToolCluster.css';
+@import './canvas/CanvasChrome.css';
+@import './canvas/CanvasDock.css';
+@import './canvas/EmptyState.css';
+@import './panels/ParamForm.css';
+@import './panels/InspectorPanel.css';
+@import './panels/OutlineTree.css';
+@import './panels/PreviewPanel.css';
+@import './panels/RailTabs.css';
+@import './panels/AssetGrid.css';
+@import './panels/PositionPanel.css';
+@import './command-palette/NodeSearch.css';
+@import './context-menu/NodeContextMenu.css';
+@import './overlays/Cheatsheet.css';
+@import './overlays/Toast.css';

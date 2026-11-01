@@ -1,0 +1,146 @@
+/**
+ * AssetNode — a framed photograph as a node. The image is the hero; a thin
+ * frosted-glass frame + silver edge holds it, a gradient scrim carries the
+ * caption. Output ports ride the right edge, revealed on hover/selection so the
+ * resting card stays clean (nover-style: the picture, not the plumbing).
+ */
+
+.hl-asset {
+  position: relative;
+  width: 232px;
+  border-radius: var(--hl-r-md);
+  padding: 5px;
+  background: var(--hl-glass);
+  backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  -webkit-backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
+  box-shadow: var(--hl-glass-edge), var(--hl-shadow-node);
+  transition: box-shadow 0.2s var(--hl-ease), transform 0.14s var(--hl-ease);
+}
+.hl-asset:hover {
+  box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node);
+  transform: translateY(-1px);
+}
+.hl-asset.is-selected {
+  box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node), var(--hl-glow-silver);
+}
+.hl-asset.is-active {
+  box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node),
+    0 0 0 1px color-mix(in oklab, var(--hl-spark) 70%, transparent),
+    0 0 28px -6px var(--hl-spark);
+  animation: hl-asset-pulse 0.7s var(--hl-ease);
+}
+@keyframes hl-asset-pulse {
+  0% {
+    box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node),
+      0 0 0 2px var(--hl-spark), 0 0 36px -4px var(--hl-spark);
+  }
+}
+.hl-asset.is-live-error {
+  box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node),
+    0 0 0 1px var(--hl-error), 0 0 22px -4px color-mix(in oklab, var(--hl-error) 75%, transparent);
+}
+
+.hl-asset-frame {
+  position: relative;
+  border-radius: calc(var(--hl-r-md) - 4px);
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--hl-void-2);
+}
+.hl-asset-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.hl-asset-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--hl-surface-2), var(--hl-void-2));
+}
+
+/* Bottom scrim so the caption is legible over any image. */
+.hl-asset-scrim {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 56%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72), transparent);
+  pointer-events: none;
+}
+.hl-asset-caption {
+  position: absolute;
+  inset: auto 10px 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hl-asset-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Semantic role tag (Character / Product / Background…) — a frosted pill. */
+.hl-asset-role {
+  flex: none;
+  font-size: 9.5px;
+  color: var(--hl-ink);
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--hl-r-pill);
+  padding: 1px 8px;
+}
+
+/* Output ports centered on the right edge, revealed on hover/select. Each row
+   is a fixed box so its absolutely-positioned Handle anchors cleanly to the
+   card's right edge (not bunched near the middle). */
+.hl-asset-ports {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  opacity: 0;
+  transition: opacity 0.16s var(--hl-ease);
+}
+.hl-asset:hover .hl-asset-ports,
+.hl-asset.is-selected .hl-asset-ports {
+  opacity: 1;
+}
+.hl-asset-ports .hl-port {
+  position: relative;
+  height: 14px;
+  width: 14px;
+}
+.hl-asset-ports .hl-port-label {
+  display: none;
+}
+
+/* Clean SILVER filled port on the photo edge — not the dark hollow node dot. */
+.hl-asset-ports .hl-handle.hl-handle {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--hl-silver);
+  border: 2px solid var(--hl-void);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 0 10px -2px color-mix(in oklab, var(--hl-silver) 70%, transparent);
+  transition: transform 0.12s var(--hl-ease), background 0.12s var(--hl-ease);
+}
+.hl-asset-ports .hl-handle.hl-handle:hover {
+  background: var(--hl-silver-hi);
+  transform: scale(1.2);
+}
