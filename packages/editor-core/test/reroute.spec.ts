@@ -1,7 +1,6 @@
 import { createEditorCore, planInsertOnEdge, distanceToSegment } from '../src';
 import { AddNodeCommand, ConnectCommand } from '../src';
 import { readableDescriptor, transformDescriptor, writableDescriptor } from './fixtures/descriptors';
-import type { EditorEdge } from '../src';
 
 describe('distanceToSegment', () => {
   const a = { x: 0, y: 0 };
@@ -41,7 +40,10 @@ function setup() {
   core.commands.execute(
     new ConnectCommand('e-ab', { nodeId: a.id, portId: 'Output' }, { nodeId: b.id, portId: 'Input' }),
   );
-  const edge = core.model.getEdge('e-ab') as EditorEdge;
+  const edge = core.model.getEdge('e-ab');
+  if (edge === undefined) {
+    throw new Error('fixture: edge e-ab was not created');
+  }
   return { core, edge };
 }
 
