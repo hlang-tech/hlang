@@ -17,6 +17,7 @@ import {
   EchoTransformNode,
   makeCollectorSink,
   makeStreamingSource,
+  makeTeardownSource,
   makePairSink,
 } from './fixtures/nodes';
 
@@ -132,6 +133,43 @@ describe('interpret', () => {
     // After dispose, no further ticks should be recorded.
     await new Promise(resolve => setTimeout(resolve, 80));
     expect(emitted.length).toBe(countAtStop);
+  });
+
+  it('case 2d: dispose() disposes the runtime flow, running node teardowns', async () => {
+    const emitted: number[] = [];
+    const received: unknown[] = [];
+    const deps = makeDeps(r => {
+      r.register('stream', makeTeardownSource(emitted, 10));
+      r.register('sink', makeCollectorSink(received));
+    });
+    const graph: IGraph = {
+      nodeList: [rNode('r1', 'stream'), wNode('w1', 'sink')],
+      connections: [edge('r1', 'w1')],
+    };
+
+    const handle = interpret(graph, deps);
+    await new Promise(resolve => setTimeout(resolve, 50));
+    expect(received.length).toBeGreaterThan(0);
+
+    handle.dispose();
+    const emittedAtStop = emitted.length;
+    const receivedAtStop = received.length;
+    await new Promise(resolve => setTimeout(resolve, 50));
+    expect(emitted.length).toBe(emittedAtStop);
+    expect(received.length).toBe(receivedAtStop);
+  });
+
+  it('case 2e: dispose() works with a flow that has no dispose', () => {
+    const runs: unknown[] = [];
+    const deps: IInterpreterDeps = {
+      registry: makeDeps(r => {
+        r.register('src', ValueSourceNode);
+      }).registry,
+      createFlow: (): IRuntimeFlow => ({ run: root => runs.push(root) }),
+    };
+    const handle = interpret({ nodeList: [rNode('r1', 'src', 'x')], connections: [] }, deps);
+    expect(runs).toHaveLength(1);
+    expect(() => handle.dispose()).not.toThrow();
   });
 
   it('case 3: direction is Output=source, Input=target (reversed wiring does not deliver)', () => {

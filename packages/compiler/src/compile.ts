@@ -33,6 +33,7 @@ import {
   spread,
   statement,
   str,
+  typeOf,
   valueToExpression,
 } from './estree';
 
@@ -294,6 +295,14 @@ function runBody(plan: ExecutionPlan, localByCode: ReadonlyMap<string, string>):
               left: { type: 'VariableDeclaration', kind: 'const', declarations: [{ type: 'VariableDeclarator', id: id('callback'), init: null }] },
               right: id('stopCallbacks'),
               body: block([statement(call(id('callback')))]),
+            },
+            // Dispose the flow (node teardowns, closed ports) on a runtime
+            // that provides it, as the interpreter does.
+            {
+              type: 'IfStatement',
+              test: binary('===', typeOf(member(id('flow'), 'dispose')), str('function')),
+              consequent: block([statement(call(member(id('flow'), 'dispose')))]),
+              alternate: null,
             },
           ]),
         ),

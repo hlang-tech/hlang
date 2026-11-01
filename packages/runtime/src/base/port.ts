@@ -14,6 +14,21 @@ export type MessageHandler = (message: unknown) => void;
 /** Reports a failure the graph itself cannot carry (see `Port#receive`). */
 export type FailureHandler = (error: unknown, node: AnyNode | null) => void;
 
+/**
+ * Hands a failure the graph cannot carry to `handler`, or rethrows it
+ * asynchronously when there is none, so it is never lost and never unwinds
+ * the code that reported it.
+ */
+export function reportFailure(handler: FailureHandler | undefined, error: unknown, node: AnyNode | null): void {
+  if (handler !== undefined) {
+    handler(error, node);
+    return;
+  }
+  queueMicrotask(() => {
+    throw error;
+  });
+}
+
 interface PortOptions {
   readonly type: STREAM_TYPE;
   readonly name?: string;
@@ -28,6 +43,8 @@ export let portInternals: {
   readonly peersOf: (port: Port) => readonly Port[];
   readonly ownerOf: (port: Port) => AnyNode | null;
   readonly setFailureHandler: (port: Port, handler: FailureHandler | undefined) => void;
+  /** Completes the port's stream: every receiver ends and later sends are dropped. */
+  readonly close: (port: Port) => void;
 };
 
 /**
@@ -43,6 +60,9 @@ class Port {
       ownerOf: (port) => port.#owner,
       setFailureHandler: (port, handler) => {
         port.#onFailure = handler;
+      },
+      close: (port) => {
+        port.#stream.complete();
       },
     };
   }
@@ -86,7 +106,10 @@ class Port {
     return this.#piped ?? this.#stream.asObservable();
   }
 
-  /** Pushes `message` into the port's stream; a pipe applies to what receivers get. */
+  /**
+   * Pushes `message` into the port's stream; a pipe applies to what receivers
+   * get. Once the flow that started the port's node is disposed, it is dropped.
+   */
   send(message: unknown): void {
     this.#stream.next(message);
   }
@@ -136,14 +159,7 @@ class Port {
       owner.E().send(error);
       return;
     }
-    const handler = this.#onFailure;
-    if (handler !== undefined) {
-      handler(error, owner);
-      return;
-    }
-    queueMicrotask(() => {
-      throw error;
-    });
+    reportFailure(this.#onFailure, error, owner);
   }
 }
 

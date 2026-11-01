@@ -114,6 +114,35 @@ A node holds its own options and ports and nothing else: it cannot reach the flo
 
 Transform nodes can form cycles, so a graph can contain feedback loops. Bound a feedback loop, for example with `take` or a counter, so it ends.
 
+### Stopping a flow
+
+A flow owns the nodes it starts, and `flow.dispose()` ends them. `_read`, `_transform`, and `_write` may return a teardown: a function that releases what the node acquired, such as a timer or a socket. `dispose`:
+
+1. cuts the flow's connections, so nothing more is delivered (messages already queued are dropped);
+2. runs each node's teardown once, the last started first. A teardown that throws goes to `onError` (or is rethrown asynchronously), and the others still run;
+3. completes every port of those nodes, which ends each subscription made on them; later sends are dropped.
+
+```ts
+class Ticker extends ReadableNode {
+  constructor() {
+    super({});
+    Port.O("tick").attach(this);
+  }
+
+  override _read($o: PortAccessor): Teardown {
+    const timer = setInterval(() => $o("tick").send(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }
+}
+
+const flow = new Flow();
+flow.run(ticker);
+// later
+flow.dispose();
+```
+
+`dispose` can be called more than once and from inside a handler. `flow.disposed` tells whether it has been called, and `run` throws on a disposed flow. Nodes started by another flow are left running.
+
 ## TypeScript
 
 The package is typed without `any`.

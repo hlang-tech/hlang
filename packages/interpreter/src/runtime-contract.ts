@@ -91,6 +91,12 @@ export type NodeConstructor = new (opts: INodeConstructionOptions) => IRuntimeNo
 /** A runtime `Flow`. `run` must be called with a Readable (R) root node. */
 export interface IRuntimeFlow {
   run(rootNode: IRuntimeNode): void;
+  /**
+   * Ends every node the flow started: cuts its connections, runs the nodes'
+   * teardowns and completes their ports. `@hlang-org/runtime` 2.1 and later
+   * provide it; the interpreter calls it, when present, on `dispose`.
+   */
+  dispose?(): void;
 }
 
 /** Factory that produces a fresh `Flow` instance. */
