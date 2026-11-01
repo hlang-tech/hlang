@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { defineConfig } from 'vitest/config';
 
 /**
@@ -5,6 +6,9 @@ import { defineConfig } from 'vitest/config';
  */
 export default defineConfig({
   test: {
+    // Each package keeps its own module cache: Vitest's default is one directory
+    // at the workspace root, which packages tested in parallel would share.
+    fsModuleCachePath: join(import.meta.dirname, 'node_modules', '.vitest-cache'),
     include: ['src/**/*.spec.{ts,tsx}', 'test/**/*.spec.{ts,tsx}'],
     environment: 'jsdom',
     clearMocks: true,

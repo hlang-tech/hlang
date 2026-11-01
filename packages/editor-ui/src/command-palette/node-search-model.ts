@@ -78,7 +78,7 @@ export function connectableCandidates(
   query: string,
   descriptors: readonly NodeDescriptor[],
   pending: PendingConnection,
-  validator: IConnectionValidator,
+  validator: Pick<IConnectionValidator, 'canLink'>,
 ): readonly ConnectableResult[] {
   const ranked = searchNodes(query, descriptors);
   const out: ConnectableResult[] = [];
@@ -100,7 +100,7 @@ export function connectableCandidates(
 function firstCompletingPort(
   ports: readonly PortDescriptor[],
   pending: PendingConnection,
-  validator: IConnectionValidator,
+  validator: Pick<IConnectionValidator, 'canLink'>,
 ): string | undefined {
   for (const port of ports) {
     const ok =

@@ -9,7 +9,8 @@
  *     so only the components whose state actually flips re-render.
  *   - Edge "flowing" state is computed from an injected edge index, not by
  *     reaching into another layer's model at paint time.
- *   - A single rAF loop advances decay and notifies only changed ids.
+ *   - A single rAF loop advances decay and notifies only changed ids, once per
+ *     frame however many signals arrived in it.
  */
 
 /** Live state of a node during execution. */
@@ -165,9 +166,14 @@ export class LiveSignalStore {
     };
   }
 
+  /**
+   * Arms the frame loop if it is not running. Signals only record state; the
+   * next frame notifies, so a burst of signals costs one pass over the
+   * subscribers per frame, not one per signal, and every change shows within a
+   * frame.
+   */
   private ensureLoop(): void {
     if (this.running) {
-      this.flushNotifications();
       return;
     }
     this.running = true;

@@ -36,7 +36,7 @@ interface BorderBeamProps {
   /**
    * The style of the border beam.
    */
-  style?: React.CSSProperties;
+  style?: MotionStyle;
   /**
    * Whether to reverse the animation direction.
    */
@@ -64,14 +64,20 @@ export const BorderBeam = ({
   initialOffset = 0,
   borderWidth = 1,
 }: BorderBeamProps) => {
+  const frameStyle: React.CSSProperties & Record<'--border-beam-width', string> = {
+    '--border-beam-width': `${String(borderWidth)}px`,
+  };
+  const beamStyle: MotionStyle & Record<'--color-from' | '--color-to', string> = {
+    width: size,
+    offsetPath: `rect(0 auto auto 0 round ${String(size)}px)`,
+    '--color-from': colorFrom,
+    '--color-to': colorTo,
+    ...style,
+  };
   return (
     <div
       className="pointer-events-none absolute inset-0 rounded-[inherit] border-(length:--border-beam-width) border-transparent mask-[linear-gradient(transparent,transparent),linear-gradient(#000,#000)] mask-intersect [mask-clip:padding-box,border-box]"
-      style={
-        {
-          '--border-beam-width': `${String(borderWidth)}px`,
-        } as React.CSSProperties
-      }
+      style={frameStyle}
     >
       <motion.div
         className={cn(
@@ -79,15 +85,7 @@ export const BorderBeam = ({
           'bg-linear-to-l from-(--color-from) via-(--color-to) to-transparent',
           className
         )}
-        style={
-          {
-            width: size,
-            offsetPath: `rect(0 auto auto 0 round ${String(size)}px)`,
-            '--color-from': colorFrom,
-            '--color-to': colorTo,
-            ...style,
-          } as MotionStyle
-        }
+        style={beamStyle}
         initial={{ offsetDistance: `${String(initialOffset)}%` }}
         animate={{
           offsetDistance: reverse

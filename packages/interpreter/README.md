@@ -12,7 +12,7 @@ Runs an hlang program (`IGraph`) in the current process. It builds the nodes, co
 ## Install
 
 ```sh
-npm install @hlang-org/interpreter @hlang-org/runtime
+npm install @hlang-org/interpreter @hlang-org/runtime rxjs
 ```
 
 The same build is published as `@hlang-tech/interpreter`. ESM and CommonJS builds with type declarations.

@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { interpret, NodeRegistry } from '../src';
 import type { IGraph, IInterpreterDeps, IRuntimeFlow } from '../src';
-import { Flow, asNodeConstructor, ValueSourceNode, makeCollectorSink } from './fixtures/nodes';
+import { Flow, ValueSourceNode, makeCollectorSink } from './fixtures/nodes';
 
 describe('NodeRegistry', () => {
   it('registers, resolves, reports membership and lists codes in order', () => {
@@ -14,11 +14,11 @@ describe('NodeRegistry', () => {
     expect(registry.get('src')).toBeUndefined();
 
     registry
-      .register('src', asNodeConstructor(ValueSourceNode))
+      .register('src', ValueSourceNode)
       .register('sink', makeCollectorSink([]));
 
     expect(registry.has('src')).toBe(true);
-    expect(registry.get('src')).toBe(asNodeConstructor(ValueSourceNode));
+    expect(registry.get('src')).toBe(ValueSourceNode);
     expect(registry.codes()).toEqual(['src', 'sink']);
   });
 
@@ -41,7 +41,7 @@ describe('interpret edge cases', () => {
 
   it('throws when a connection references an unknown node', () => {
     const d = deps(r => {
-      r.register('src', asNodeConstructor(ValueSourceNode));
+      r.register('src', ValueSourceNode);
       r.register('sink', makeCollectorSink([]));
     });
     const graph: IGraph = {
@@ -59,7 +59,7 @@ describe('interpret edge cases', () => {
   });
 
   it('honors flowId and env options on the handle', () => {
-    const d = deps(r => r.register('src', asNodeConstructor(ValueSourceNode)));
+    const d = deps(r => r.register('src', ValueSourceNode));
     const graph: IGraph = {
       nodeList: [
         { code: 'src', name: 'src', type: 'R', nodeId: 'r1', bizData: { params: {} } },
@@ -71,7 +71,7 @@ describe('interpret edge cases', () => {
   });
 
   it('onError subscription can be disposed and the handle can be torn down', () => {
-    const d = deps(r => r.register('src', asNodeConstructor(ValueSourceNode)));
+    const d = deps(r => r.register('src', ValueSourceNode));
     const graph: IGraph = {
       nodeList: [
         { code: 'src', name: 'src', type: 'R', nodeId: 'r1', bizData: { params: {} } },
@@ -89,7 +89,7 @@ describe('interpret edge cases', () => {
   it('defaults bizData to an empty params bag when omitted', () => {
     const received: unknown[] = [];
     const d = deps(r => {
-      r.register('src', asNodeConstructor(ValueSourceNode));
+      r.register('src', ValueSourceNode);
       r.register('sink', makeCollectorSink(received));
     });
     const graph: IGraph = {

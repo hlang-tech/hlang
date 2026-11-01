@@ -5,7 +5,7 @@
  */
 
 import { defineNode } from '../../define-node';
-import { asCtor, rt } from '../../runtime-boundary';
+import { rt } from '../../runtime-boundary';
 import type { INodeConstructionOptions, RuntimePortLike } from '../../runtime-boundary';
 
 class Merge extends rt.TransformNode {
@@ -15,7 +15,7 @@ class Merge extends rt.TransformNode {
     rt.Port.I('B').attach(this);
     rt.Port.O('Output').attach(this);
   }
-  _transform(i: (name: string) => RuntimePortLike, o: (name: string) => RuntimePortLike): void {
+  override _transform(i: (name: string) => RuntimePortLike, o: (name: string) => RuntimePortLike): void {
     i('A').receive((payload: unknown) => {
       o('Output').send(payload);
     });
@@ -37,5 +37,5 @@ export const merge = defineNode({
     { id: 'Output', direction: 'O', name: 'Output', dataType: { name: 'DTO', kind: 'interface' }, isError: false },
     { id: '@node/error', direction: 'O', name: 'error', dataType: { name: 'DTO', kind: 'interface' }, isError: true },
   ],
-  ctor: asCtor(Merge),
+  ctor: Merge,
 });

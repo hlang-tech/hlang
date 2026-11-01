@@ -34,11 +34,13 @@ class ArrayLogger implements ILogger {
 }
 
 describe('createDecorator', () => {
-  it('returns a stable identifier per service name', () => {
+  it('creates one identifier per service name and refuses a second', () => {
     const a = createDecorator<ILogger>('shared-name');
-    const b = createDecorator<ILogger>('shared-name');
-    expect(a).toBe(b);
     expect(a.serviceName).toBe('shared-name');
+    expect(String(a)).toBe('shared-name');
+    expect(Object.isFrozen(a)).toBe(true);
+    // A second identifier for the name could resolve the service as another type.
+    expect(() => createDecorator<IClock>('shared-name')).toThrow('"shared-name" already has an identifier');
   });
 });
 

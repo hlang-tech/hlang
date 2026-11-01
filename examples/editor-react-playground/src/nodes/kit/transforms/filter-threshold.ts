@@ -4,7 +4,7 @@
  */
 
 import { defineNode } from '../../define-node';
-import { rt, paramsOf, asCtor } from '../../runtime-boundary';
+import { rt, paramsOf } from '../../runtime-boundary';
 import type { INodeConstructionOptions, RuntimePortLike } from '../../runtime-boundary';
 
 class FilterThreshold extends rt.TransformNode {
@@ -13,7 +13,7 @@ class FilterThreshold extends rt.TransformNode {
     rt.Port.I('Input').attach(this);
     rt.Port.O('Output').attach(this);
   }
-  _transform(i: (name: string) => RuntimePortLike, o: (name: string) => RuntimePortLike): void {
+  override _transform(i: (name: string) => RuntimePortLike, o: (name: string) => RuntimePortLike): void {
     const params = paramsOf(this);
     const min = typeof params.min === 'number' ? params.min : 0;
     i('Input').receive((payload: unknown) => {
@@ -30,5 +30,5 @@ export const filterThreshold = defineNode({
   displayName: 'Filter · ≥ min',
   group: 'transforms',
   defaultParams: { min: 0 },
-  ctor: asCtor(FilterThreshold),
+  ctor: FilterThreshold,
 });

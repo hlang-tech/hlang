@@ -3,9 +3,9 @@ import ReadableNode from './readable';
 import WriteableNode from './writeable';
 import TransformNode from './transform';
 
+/** A node of one of the three kinds, told apart by its `type`. */
+export type AnyNode = ReadableNode<object> | TransformNode<object> | WriteableNode<object>;
+
+export type { NodeOptions, PortAccessor } from './node';
 export default Node;
-export {
-  ReadableNode,
-  WriteableNode,
-  TransformNode,
-};
+export { ReadableNode, WriteableNode, TransformNode };

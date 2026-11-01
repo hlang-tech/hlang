@@ -49,8 +49,11 @@ export interface IRuntimeNode {
   I(name: string): IRuntimePort;
   /** Resolve an Output port by name. */
   O(name: string): IRuntimePort;
-  /** Resolve the error Output port (`@node/error`). Present on R and T only. */
-  E(): IRuntimePort;
+  /**
+   * Resolve the error Output port (`@node/error`). Readable and Transform nodes
+   * have one; a Writable node has none and returns `undefined`.
+   */
+  E(): IRuntimePort | undefined;
 }
 
 /**

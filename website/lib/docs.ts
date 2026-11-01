@@ -46,7 +46,7 @@ export interface NavGroup {
 }
 
 function isGroup(value: unknown): value is GuideGroup {
-  return typeof value === 'string' && (GUIDE_GROUPS as readonly string[]).includes(value);
+  return GUIDE_GROUPS.some(group => group === value);
 }
 
 function requireString(data: Readonly<Record<string, unknown>>, key: string, file: string): string {

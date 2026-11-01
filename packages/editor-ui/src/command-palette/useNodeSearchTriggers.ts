@@ -17,13 +17,7 @@
 
 import { useCallback, useRef } from 'react';
 import { useReactFlow } from '@xyflow/react';
-import type {
-  OnConnectStart,
-  OnConnectEnd,
-  OnConnectStartParams,
-  FinalConnectionState,
-} from '@xyflow/react';
-import type { MouseEvent as ReactMouseEvent } from 'react';
+import type { OnConnectStartParams } from '@xyflow/react';
 import type { EditorCore, PortDescriptor } from '@hlang-org/editor-core';
 import type { NodeSearchController } from './useNodeSearch';
 import type { PendingConnection } from './node-search-model';
@@ -39,12 +33,31 @@ export interface NodeSearchTriggerOptions {
   readonly now?: () => number;
 }
 
-/** Handlers to spread onto the `<ReactFlow>` element. */
+/** Where a pointer is, as mouse events (DOM and React) report it. */
+export interface PointerPosition {
+  readonly clientX: number;
+  readonly clientY: number;
+}
+
+/** Where touches ended, as touch events report it. */
+export interface TouchPositions {
+  readonly changedTouches: ArrayLike<PointerPosition>;
+}
+
+/** How a connection drag ended: on a node, or (`toNode: null`) in empty space. */
+export interface ConnectionEnd {
+  readonly toNode: object | null;
+}
+
+/**
+ * Handlers to spread onto the `<ReactFlow>` element. Each declares only what it
+ * reads, so React Flow's full events and states fit them.
+ */
 export interface NodeSearchTriggers {
-  readonly onConnectStart: OnConnectStart;
-  readonly onConnectEnd: OnConnectEnd;
+  readonly onConnectStart: (event: unknown, params: OnConnectStartParams) => void;
+  readonly onConnectEnd: (event: PointerPosition | TouchPositions, connectionState: ConnectionEnd) => void;
   /** Attach to `<ReactFlow onPaneClick>`; a rapid second click opens the palette. */
-  onPaneClick(event: ReactMouseEvent): void;
+  readonly onPaneClick: (event: PointerPosition) => void;
 }
 
 export function useNodeSearchTriggers(
@@ -62,12 +75,12 @@ export function useNodeSearchTriggers(
   // Timestamp of the last pane click, for double-click detection.
   const lastPaneClickRef = useRef<number>(Number.NEGATIVE_INFINITY);
 
-  const onConnectStart = useCallback<OnConnectStart>((_event, params) => {
+  const onConnectStart = useCallback((_event: unknown, params: OnConnectStartParams): void => {
     startRef.current = params;
   }, []);
 
-  const onConnectEnd = useCallback<OnConnectEnd>(
-    (event, connectionState: FinalConnectionState) => {
+  const onConnectEnd = useCallback(
+    (event: PointerPosition | TouchPositions, connectionState: ConnectionEnd): void => {
       const start = startRef.current;
       startRef.current = null;
       // Only act when the drag ended in empty space (no destination node/handle).
@@ -104,7 +117,7 @@ export function useNodeSearchTriggers(
   );
 
   const onPaneClick = useCallback(
-    (event: ReactMouseEvent): void => {
+    (event: PointerPosition): void => {
       const t = now();
       const isDouble = t - lastPaneClickRef.current <= doubleClickMs;
       lastPaneClickRef.current = t;
@@ -136,7 +149,7 @@ function resolvePort(
 }
 
 /** Extract client pointer coords from a mouse or touch connect-end event. */
-function pointerOf(event: MouseEvent | TouchEvent): { x: number; y: number } | null {
+function pointerOf(event: PointerPosition | TouchPositions): { x: number; y: number } | null {
   if ('clientX' in event) {
     return { x: event.clientX, y: event.clientY };
   }
