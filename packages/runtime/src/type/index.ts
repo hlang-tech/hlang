@@ -1,9 +1,15 @@
 import type Port from '../base/port';
+import type { AnyNode } from '../node';
 
-/** A connection between two ports: an output (`src`) feeding an input (`dst`). */
+/**
+ * A connection between two ports: an output (`src`) of the `source` node
+ * feeding an input (`dst`) of the `target` node.
+ */
 export interface IPortDesc {
   readonly src: Port;
   readonly dst: Port;
+  readonly source: AnyNode;
+  readonly target: AnyNode;
 }
 
 /** The name of the output port on which Readable and Transform nodes report errors. */

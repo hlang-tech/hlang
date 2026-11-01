@@ -56,7 +56,7 @@ export default function build(root: AnyNode): FlowGraph {
         if (target === null) {
           throw new Error(`Port "${dst.name}" is connected but not attached to a node.`);
         }
-        outgoing.push({ src, dst });
+        outgoing.push({ src, dst, source: node, target });
         discover(target);
       }
     }

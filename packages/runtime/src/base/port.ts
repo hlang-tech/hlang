@@ -14,6 +14,9 @@ export type MessageHandler = (message: unknown) => void;
 /** Reports a failure the graph itself cannot carry (see `Port#receive`). */
 export type FailureHandler = (error: unknown, node: AnyNode | null) => void;
 
+/** Sees every failure of a handler on a port, before it is routed. */
+export type FailureObserver = (error: unknown, port: Port) => void;
+
 /**
  * Hands a failure the graph cannot carry to `handler`, or rethrows it
  * asynchronously when there is none, so it is never lost and never unwinds
@@ -43,6 +46,7 @@ export let portInternals: {
   readonly peersOf: (port: Port) => readonly Port[];
   readonly ownerOf: (port: Port) => AnyNode | null;
   readonly setFailureHandler: (port: Port, handler: FailureHandler | undefined) => void;
+  readonly setFailureObserver: (port: Port, observer: FailureObserver | undefined) => void;
   /** Completes the port's stream: every receiver ends and later sends are dropped. */
   readonly close: (port: Port) => void;
 };
@@ -61,6 +65,9 @@ class Port {
       setFailureHandler: (port, handler) => {
         port.#onFailure = handler;
       },
+      setFailureObserver: (port, observer) => {
+        port.#observeFailure = observer;
+      },
       close: (port) => {
         port.#stream.complete();
       },
@@ -78,6 +85,7 @@ class Port {
   readonly #peers: Port[] = [];
   #owner: AnyNode | null = null;
   #onFailure: FailureHandler | undefined = undefined;
+  #observeFailure: FailureObserver | undefined = undefined;
 
   /** A new input port. */
   static I(name: string): Port {
@@ -154,6 +162,7 @@ class Port {
   }
 
   #fail(error: unknown): void {
+    this.#observeFailure?.(error, this);
     const owner = this.#owner;
     if (owner !== null && this.type === STREAM_TYPE.I && owner.type === NODE_TYPE.TRANSFORM) {
       owner.E().send(error);
