@@ -62,7 +62,7 @@
     "build": "tsup && node scripts/copy-css.mjs",
     "test": "vitest run --coverage",
     "lint": "eslint \"src/**/*.ts\" \"src/**/*.tsx\"",
-    "lint:pkg": "publint && attw --pack --exclude-entrypoints ./tokens.css ./styles.css",
+    "lint:pkg": "publint && attw --pack",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "clean": "rm -rf lib coverage"
   },

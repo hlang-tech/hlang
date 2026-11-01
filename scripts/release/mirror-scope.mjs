@@ -118,11 +118,9 @@ function mirrorPackage(name, packages, workDir) {
   // 5. Verify, then publish.
   run('npx', ['--no-install', 'publint', pkgDir], { cwd: dir, stdio: 'inherit' });
   const mirrorTarball = join(workDir, run('npm', ['pack', '--silent', '--pack-destination', workDir], { cwd: pkgDir }).split('\n').pop());
-  const attwArgs = ['--no-install', 'attw', mirrorTarball];
-  if (manifest.exports?.['./styles.css'] !== undefined) {
-    attwArgs.push('--exclude-entrypoints', './styles.css', './tokens.css');
-  }
-  run('npx', attwArgs, { cwd: dir, stdio: 'inherit' });
+  // attw runs in the source package's directory, so it reads that package's
+  // .attw.json: the mirror is checked exactly as the package's own lint:pkg checks it.
+  run('npx', ['--no-install', 'attw', mirrorTarball], { cwd: dir, stdio: 'inherit' });
 
   if (isPublished(target, manifest.version)) {
     console.log(`= ${target}@${manifest.version} already published, skipped`);

@@ -60,7 +60,7 @@
     "build": "rm -rf lib && tsup",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "clean": "rm -rf lib coverage",
-    "lint:pkg": "publint && attw --pack --profile esm-only",
+    "lint:pkg": "publint && attw --pack",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\""
   },
   "dependencies": {

@@ -1,0 +1,3 @@
+{
+  "excludeEntrypoints": ["./tokens.css", "./styles.css"]
+}
