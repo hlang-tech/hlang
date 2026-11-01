@@ -1,38 +1,40 @@
 {
-  "compileOnSave": true,
   "compilerOptions": {
     "target": "es2017",
     "module": "commonjs",
+    "lib": ["es2017", "dom"],
     "outDir": "./lib",
     "rootDir": "./src",
-    "strict": true,
-    "noImplicitAny": false,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "ignoreDeprecations": "5.0",
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": false,
-    "pretty": true,
-    "noEmitOnError": false,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
-    "strictPropertyInitialization": false,
-    "noFallthroughCasesInSwitch": true,
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
+    "declaration": true,
     "inlineSourceMap": true,
+    "inlineSources": true,
     // Inline the interop helpers: tslib is not a dependency of this package.
     "importHelpers": false,
-    "inlineSources": true,
-    "declaration": true
+    "noEmitOnError": true,
+
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "noImplicitOverride": true,
+    "alwaysStrict": true,
+
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
-  "exclude": [
-    "test*",
-    "node_modules*"
-  ],
-  "include": [
-    "src/**/*"
-  ],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "lib", "test"]
 }

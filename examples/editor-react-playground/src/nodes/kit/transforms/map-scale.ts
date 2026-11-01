@@ -4,7 +4,7 @@
  */
 
 import { defineNode } from '../../define-node';
-import { rt, paramsOf, asCtor } from '../../runtime-boundary';
+import { rt, paramsOf } from '../../runtime-boundary';
 import type { INodeConstructionOptions, RuntimePortLike } from '../../runtime-boundary';
 
 class MapScale extends rt.TransformNode {
@@ -13,7 +13,7 @@ class MapScale extends rt.TransformNode {
     rt.Port.I('Input').attach(this);
     rt.Port.O('Output').attach(this);
   }
-  _transform(i: (name: string) => RuntimePortLike, o: (name: string) => RuntimePortLike): void {
+  override _transform(i: (name: string) => RuntimePortLike, o: (name: string) => RuntimePortLike): void {
     const params = paramsOf(this);
     const factor = typeof params.factor === 'number' ? params.factor : 2;
     i('Input').receive((payload: unknown) => {
@@ -28,5 +28,5 @@ export const mapScale = defineNode({
   displayName: 'Map · Scale',
   group: 'transforms',
   defaultParams: { factor: 2 },
-  ctor: asCtor(MapScale),
+  ctor: MapScale,
 });

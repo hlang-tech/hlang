@@ -1,27 +1,29 @@
-import { NODE_TYPE, IPortDesc } from '../type';
-import Graph from '../core/graph';
-import Node from '../node';
+import type Graph from '../core/graph';
+import type { AnyNode, ReadableNode, TransformNode, WriteableNode } from '../node';
+import { NODE_TYPE } from '../type';
+import type { IPortDesc } from '../type';
 
-export default (G: Graph<IPortDesc, Node>) => {
-  const r: Node[] = [];
-  const t: Node[] = [];
-  const w: Node[] = [];
+/** The nodes of a graph, by kind. */
+export interface ISortedNodeMap {
+  readonly r: ReadableNode<object>[];
+  readonly t: TransformNode<object>[];
+  readonly w: WriteableNode<object>[];
+}
 
-  const vertices = G.vertices;
-  for (const [_, v] of vertices) {
-    const node = v.data;
-    if (node.type === NODE_TYPE.READABLE) {
-      r.push(node);
-    } else if (node.type === NODE_TYPE.TRANSFORM) {
-      t.push(node);
-    } else if (node.type === NODE_TYPE.WRITABLE) {
-      w.push(node);
+export default (graph: Graph<IPortDesc, AnyNode>): ISortedNodeMap => {
+  const sorted: ISortedNodeMap = { r: [], t: [], w: [] };
+  for (const { data: node } of graph.vertices.values()) {
+    switch (node.type) {
+      case NODE_TYPE.READABLE:
+        sorted.r.push(node);
+        break;
+      case NODE_TYPE.TRANSFORM:
+        sorted.t.push(node);
+        break;
+      case NODE_TYPE.WRITABLE:
+        sorted.w.push(node);
+        break;
     }
   }
-
-  return {
-    r: r,
-    t: t,
-    w: w,
-  };
+  return sorted;
 };

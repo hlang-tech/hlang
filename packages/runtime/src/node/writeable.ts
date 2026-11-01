@@ -1,13 +1,13 @@
-import Node from './node';
 import { NODE_TYPE } from '../type';
+import Node from './node';
+import type { NodeOptions, PortAccessor } from './node';
 
-export default class WritableNode extends Node {
-  constructor(opt) {
-    super(opt);
-    this.type = NODE_TYPE.WRITABLE;
-  }
+/** A sink: it receives on inputs and has no outputs, not even an error output. */
+export default class WritableNode<TOptions extends object = NodeOptions> extends Node<TOptions> {
+  readonly type: typeof NODE_TYPE.WRITABLE = NODE_TYPE.WRITABLE;
 
-  _write(_$i) {
-    // NOOP
+  /** Called once when the flow runs; receive through `$i`. */
+  _write(_$i: PortAccessor): void {
+    // Nothing to write by default.
   }
 }

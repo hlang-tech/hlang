@@ -6,7 +6,7 @@
 import { timer } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { defineNode } from '../../define-node';
-import { asCtor, paramsOf, rt } from '../../runtime-boundary';
+import { paramsOf, rt } from '../../runtime-boundary';
 import type { INodeConstructionOptions, RuntimePortLike } from '../../runtime-boundary';
 
 class Delay extends rt.TransformNode {
@@ -17,7 +17,7 @@ class Delay extends rt.TransformNode {
     rt.Port.I('Input').attach(this);
     rt.Port.O('Output').attach(this);
   }
-  _transform(i: (name: string) => RuntimePortLike, o: (name: string) => RuntimePortLike): void {
+  override _transform(i: (name: string) => RuntimePortLike, o: (name: string) => RuntimePortLike): void {
     const params = paramsOf(this);
     const ms = typeof params.ms === 'number' ? params.ms : 300;
     i('Input').receive((payload: unknown) => {
@@ -36,5 +36,5 @@ export const delay = defineNode({
   displayName: 'Delay',
   group: 'transforms',
   defaultParams: { ms: 300 },
-  ctor: asCtor(Delay),
+  ctor: Delay,
 });

@@ -68,7 +68,8 @@
     "build": "rm -rf lib && tsc -p tsconfig.json && tsup",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "clean": "rm -rf lib coverage",
-    "lint:pkg": "publint && attw --pack"
+    "lint:pkg": "publint && attw --pack",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\""
   },
   "dependencies": {
     "rxjs": "^6.6.7",
@@ -77,10 +78,12 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@vitest/coverage-v8": "^5.0.5",
+    "eslint": "^9.39.5",
     "publint": "^0.3.25",
     "rxjs": "^6.6.7",
     "tsup": "^9.0.0",
     "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.1",
     "vite": "^8.3.5",
     "vitest": "^5.0.5"
   }

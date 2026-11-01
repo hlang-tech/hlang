@@ -3,12 +3,18 @@
  *
  * These exercise the genuine engine (RxJS ports, `flow.run`, W->T->R ordering)
  * rather than a mock, so the interpreter is verified against the true runtime
- * semantics. The runtime ships loose `any` declarations; we adapt them through
- * a single typed boundary here (`asNodeConstructor`) so the test bodies stay
- * strictly typed.
+ * semantics. Each node kind is constructed from the interpreter's options, so
+ * the registry takes the fixture classes as they are.
  */
 
-import * as runtime from '@hlang-org/runtime';
+import {
+  Flow as RuntimeFlow,
+  Port as RuntimePort,
+  ReadableNode as RuntimeReadableNode,
+  TransformNode as RuntimeTransformNode,
+  WriteableNode as RuntimeWriteableNode,
+} from '@hlang-org/runtime';
+import type { PortAccessor } from '@hlang-org/runtime';
 import { interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import type {
@@ -16,45 +22,14 @@ import type {
   NodeConstructor,
 } from '../../src/runtime-contract';
 
-// The runtime's compiled types are permissive; describe the slice we use.
-interface RuntimePortLike {
-  send(msg: unknown): void;
-  receive(next: (msg: unknown) => void): unknown;
-  connect(port: RuntimePortLike): RuntimePortLike;
-  attach(node: unknown): void;
-}
-interface RuntimeNodeLike {
-  readonly id: string;
-  readonly type: symbol;
-  I(name: string): RuntimePortLike;
-  O(name: string): RuntimePortLike;
-  E(): RuntimePortLike;
-  throw(error: unknown): void;
-}
-interface RuntimeStatics {
-  Port: {
-    I(name: string): RuntimePortLike;
-    O(name: string): RuntimePortLike;
-  };
-  Flow: new (opts?: Record<string, unknown>) => { run(root: unknown): void };
-  ReadableNode: new (opts: unknown) => RuntimeNodeLike;
-  TransformNode: new (opts: unknown) => RuntimeNodeLike;
-  WriteableNode: new (opts: unknown) => RuntimeNodeLike;
-}
+export const Port = RuntimePort;
+export const Flow = RuntimeFlow;
+export const ReadableNode = RuntimeReadableNode<INodeConstructionOptions>;
+export const TransformNode = RuntimeTransformNode<INodeConstructionOptions>;
+export const WriteableNode = RuntimeWriteableNode<INodeConstructionOptions>;
 
-const rt = runtime as unknown as RuntimeStatics;
-
-export const Port = rt.Port;
-export const Flow = rt.Flow;
-export const ReadableNode = rt.ReadableNode;
-export const TransformNode = rt.TransformNode;
-export const WriteableNode = rt.WriteableNode;
-
-/** Adapt a runtime node class to our strict `NodeConstructor` boundary type. */
-export function asNodeConstructor(
-  ctor: new (opts: INodeConstructionOptions) => RuntimeNodeLike,
-): NodeConstructor {
-  return ctor as unknown as NodeConstructor;
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /** A one-shot R node that emits `opts.config.params.value` on "Output". */
@@ -63,10 +38,9 @@ export class ValueSourceNode extends ReadableNode {
     super(opts);
     Port.O('Output').attach(this);
   }
-  _read(o: (name: string) => RuntimePortLike): void {
-    const opts = this as unknown as { opts: { config?: { params?: { value?: unknown } } } };
-    const value = opts.opts.config?.params?.value ?? null;
-    o('Output').send(value);
+  override _read(o: PortAccessor): void {
+    const params = this.opts.config.params;
+    o('Output').send(isRecord(params) ? (params.value ?? null) : null);
   }
 }
 
@@ -87,7 +61,7 @@ export function makeStreamingSource(
       this.stop = opts.signal;
       Port.O('Output').attach(this);
     }
-    _read(o: (name: string) => RuntimePortLike): void {
+    override _read(o: PortAccessor): void {
       let n = 0;
       interval(periodMs)
         .pipe(takeUntil(this.stop.observable))
@@ -98,7 +72,7 @@ export function makeStreamingSource(
         });
     }
   }
-  return asNodeConstructor(StreamingSourceNode);
+  return StreamingSourceNode;
 }
 
 /** A T node that wraps each payload: `{ seen: payload }`. */
@@ -108,9 +82,9 @@ export class WrapTransformNode extends TransformNode {
     Port.I('Input').attach(this);
     Port.O('Output').attach(this);
   }
-  _transform(
-    i: (name: string) => RuntimePortLike,
-    o: (name: string) => RuntimePortLike,
+  override _transform(
+    i: PortAccessor,
+    o: PortAccessor,
   ): void {
     i('Input').receive((payload: unknown) => {
       o('Output').send({ seen: payload });
@@ -125,12 +99,12 @@ export class ThrowingTransformNode extends TransformNode {
     Port.I('Input').attach(this);
     Port.O('Output').attach(this);
   }
-  _transform(
-    i: (name: string) => RuntimePortLike,
-    _o: (name: string) => RuntimePortLike,
+  override _transform(
+    i: PortAccessor,
+    _o: PortAccessor,
   ): void {
     i('Input').receive(() => {
-      (this as unknown as RuntimeNodeLike).throw(new Error('boom'));
+      this.throw(new Error('boom'));
     });
   }
 }
@@ -151,9 +125,9 @@ export class EchoTransformNode extends TransformNode {
     Port.I('Input').attach(this);
     Port.O('Output').attach(this);
   }
-  _transform(
-    i: (name: string) => RuntimePortLike,
-    o: (name: string) => RuntimePortLike,
+  override _transform(
+    i: PortAccessor,
+    o: PortAccessor,
   ): void {
     i('Input').receive((payload: unknown) => {
       if (this.forwards >= EchoTransformNode.MAX_FORWARDS) {
@@ -172,13 +146,13 @@ export function makeCollectorSink(collector: unknown[]): NodeConstructor {
       super(opts);
       Port.I('Input').attach(this);
     }
-    _write(i: (name: string) => RuntimePortLike): void {
+    override _write(i: PortAccessor): void {
       i('Input').receive((payload: unknown) => {
         collector.push(payload);
       });
     }
   }
-  return asNodeConstructor(CollectorSinkNode);
+  return CollectorSinkNode;
 }
 
 /** A W sink with two named inputs, `Left` and `Right`, recording each separately. */
@@ -189,7 +163,7 @@ export function makePairSink(collector: { Left: unknown[]; Right: unknown[] }): 
       Port.I('Left').attach(this);
       Port.I('Right').attach(this);
     }
-    _write(i: (name: string) => RuntimePortLike): void {
+    override _write(i: PortAccessor): void {
       i('Left').receive((payload: unknown) => {
         collector.Left.push(payload);
       });
@@ -198,5 +172,5 @@ export function makePairSink(collector: { Left: unknown[]; Right: unknown[] }): 
       });
     }
   }
-  return asNodeConstructor(PairSinkNode);
+  return PairSinkNode;
 }

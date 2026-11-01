@@ -3,8 +3,15 @@
  * a public node kind, written the way a user of @hlang-org/runtime writes one.
  */
 import { Port, ReadableNode, TransformNode, WriteableNode } from "../src/index";
+import type { PortAccessor } from "../src/index";
 
-type Emit = (name: string) => Port;
+/** Narrows a message to a number, as a node does with what it receives. */
+export function asNumber(value: unknown): number {
+  if (typeof value !== "number") {
+    throw new TypeError(`expected a number, received ${typeof value}`);
+  }
+  return value;
+}
 
 /** A Readable that sends each of `values` on its `out` port when the flow starts. */
 export class Values extends ReadableNode {
@@ -15,7 +22,7 @@ export class Values extends ReadableNode {
     Port.O("out").attach(this);
   }
 
-  _read($o: Emit) {
+  override _read($o: PortAccessor) {
     this.reads += 1;
     this.values.forEach((value) => $o("out").send(value));
   }
@@ -29,7 +36,7 @@ export class Apply extends TransformNode {
     Port.O("out").attach(this);
   }
 
-  _transform($i: Emit, $o: Emit) {
+  override _transform($i: PortAccessor, $o: PortAccessor) {
     $i("in").receive((value: unknown) => $o("out").send(this.map(value)));
   }
 }
@@ -47,7 +54,7 @@ export class Collect extends WriteableNode {
     });
   }
 
-  _write($i: Emit) {
+  override _write($i: PortAccessor) {
     Object.keys(this.byPort).forEach((name) => {
       $i(name).receive((value: unknown) => {
         this.seen.push(value);

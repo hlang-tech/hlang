@@ -1,82 +1,62 @@
-const _ = (k): string => String(k.id);
+/** Anything stored as a vertex: it is keyed by its `id`. */
+interface Identified {
+  readonly id: string;
+}
 
-export default class Graph<T, K> {
-  directed: boolean;
-  vertices: Map<string, Vertex<K>>;
-  adjList: Matrix<T>;
-  connectedMatrix: Matrix<boolean>;
-  // Every edge leaving each vertex. `adjList` keeps one entry per pair of
-  // vertices, which is enough for reachability, but two vertices can be joined
-  // by several edges (one per pair of ports), and each must be wired.
-  outEdges: Map<string, T[]>;
+const keyOf = (item: Identified): string => item.id;
 
-  constructor(directed: boolean) {
-    // digraph or undigraph
-    this.directed = typeof directed === 'undefined' || Boolean(directed);
-    // Map<Vertex>
-    this.vertices = new Map();
-    // Matrix<{src: Port, dest: Port}> Adjacency matrix
-    this.adjList = new Matrix();
-    // Matrix<boolean> Join matrix cache
-    this.connectedMatrix = new Matrix();
-    this.outEdges = new Map();
-  }
+/**
+ * A directed graph of vertices `K` joined by edges carrying data `T`. `adjList` keeps
+ * one entry per pair of vertices, which is enough for reachability; `outEdges`
+ * keeps every edge, since two vertices can be joined by several (one per pair
+ * of ports) and each must be wired.
+ */
+export default class Graph<T, K extends Identified> {
+  readonly vertices = new Map<string, Vertex<K>>();
+  readonly adjList = new Matrix<T>();
+  /** Cache of the pairs already known to be connected. */
+  readonly connectedMatrix = new Matrix<boolean>();
+  readonly outEdges = new Map<string, T[]>();
 
-  addVertex(v: Vertex<K>) {
-    const vk = _(v.data);
-
-    if (this.vertices.has(vk)) return;
-
-    this.vertices.set(vk, v);
-
-    this.adjList.setRow(vk);
-  }
-
-  addEdge(e: Edge<T, K>) {
-    const { v1, v2, data } = e;
-
-    const v1k = _(v1.data);
-    const v2k = _(v2.data);
-
-    if (!this.vertices.has(v1k)) this.vertices.set(v1k, v1);
-    if (!this.vertices.has(v2k)) this.vertices.set(v2k, v2);
-
-    this.adjList.set(v1k, v2k, data);
-    this.addOutEdge(v1k, data);
-
-    if (!this.directed) {
-      this.adjList.set(v2k, v1k, data);
-      this.addOutEdge(v2k, data);
+  addVertex(vertex: Vertex<K>): void {
+    const key = keyOf(vertex.data);
+    if (this.vertices.has(key)) {
+      return;
     }
+    this.vertices.set(key, vertex);
+    this.adjList.setRow(key);
+  }
+
+  addEdge(edge: Edge<T, K>): void {
+    const { v1, v2, data } = edge;
+    const k1 = keyOf(v1);
+    const k2 = keyOf(v2);
+
+    if (!this.vertices.has(k1)) this.vertices.set(k1, new Vertex(v1));
+    if (!this.vertices.has(k2)) this.vertices.set(k2, new Vertex(v2));
+
+    this.adjList.set(k1, k2, data);
+    this.addOutEdge(k1, data);
   }
 
   /** Every edge leaving the vertex `key`, in the order they were added. */
-  edgesFrom(key: string): T[] {
-    return this.outEdges.get(key) || [];
+  edgesFrom(key: string): readonly T[] {
+    return this.outEdges.get(key) ?? [];
   }
 
-  private addOutEdge(key: string, data: T) {
-    const edges = this.outEdges.get(key);
-    if (edges) {
-      edges.push(data);
-    } else {
-      this.outEdges.set(key, [data]);
-    }
-  }
-
-  // digraph
-  hasDest(from: string, to: string, visited: Set<string> = new Set()) {
+  /** Whether `to` can be reached from `from` along directed edges. */
+  hasDest(from: string, to: string, visited = new Set<string>()): boolean {
     if (visited.has(from)) return false;
     visited.add(from);
 
-    if (this.connectedMatrix.get(from, to)) return true;
-    if (!this.adjList.getRow(from)) return false;
-    if (this.adjList.get(from, to)) {
+    if (this.connectedMatrix.get(from, to) === true) return true;
+    if (!this.adjList.hasRow(from)) return false;
+    if (this.adjList.get(from, to) !== undefined) {
       this.connectedMatrix.set(from, to, true);
       return true;
     }
     for (const dest of this.adjList.cols(from)) {
-      if (this.connectedMatrix.get(dest, to)) {
+      if (this.connectedMatrix.get(dest, to) === true) {
         this.connectedMatrix.set(from, to, true);
         return true;
       }
@@ -86,81 +66,72 @@ export default class Graph<T, K> {
     return false;
   }
 
-  isCircled(prev: T, next: T) {
-    const pk = _(prev);
-    const nk = _(next);
+  /** Whether joining `prev` to `next` closes a cycle. */
+  isCircled(prev: K, next: K): boolean {
+    const pk = keyOf(prev);
+    const nk = keyOf(next);
     if (pk === nk) return true;
     return this.hasDest(nk, pk);
+  }
+
+  private addOutEdge(key: string, data: T): void {
+    const edges = this.outEdges.get(key);
+    if (edges === undefined) {
+      this.outEdges.set(key, [data]);
+    } else {
+      edges.push(data);
+    }
   }
 }
 
 export class Vertex<T> {
-  data: T;
-  visited: boolean;
+  readonly data: T;
+  visited = false;
 
   constructor(data: T) {
     this.data = data;
-    this.visited = false;
   }
 }
 
-export class Edge<T, K>  {
-  data: T;
-  v1: Vertex<K>;
-  v2: Vertex<K>;
+export class Edge<T, K> {
+  readonly v1: K;
+  readonly v2: K;
+  readonly data: T;
 
   constructor(v1: K, v2: K, data: T) {
+    this.v1 = v1;
+    this.v2 = v2;
     this.data = data;
-    this.v1 = new Vertex<K>(v1);
-    this.v2 = new Vertex<K>(v2);
   }
 }
 
+/** A sparse matrix of `T`, by row and column key. */
 class Matrix<T> {
-  matrix: Map<string, Map<string, T>>;
+  private readonly rows = new Map<string, Map<string, T>>();
 
-  constructor() {
-    this.matrix = new Map();
-
-    return this;
-  }
-
-  setRow(row: string) {
-    if (!this.matrix.has(row)) {
-      this.matrix.set(row, new Map());
+  setRow(row: string): Map<string, T> {
+    const existing = this.rows.get(row);
+    if (existing !== undefined) {
+      return existing;
     }
-
-    return this.matrix.get(row);
+    const created = new Map<string, T>();
+    this.rows.set(row, created);
+    return created;
   }
 
-  getRow(row: string): Map<string, T> | null | undefined {
-    if (!this.matrix.has(row)) return null;
-
-    return this.matrix.get(row);
+  hasRow(row: string): boolean {
+    return this.rows.has(row);
   }
 
-  set(row: string, col: string, v: T) {
-    this.setRow(row);
-
-    (this.matrix.get(row) as Map<string, T>).set(col, v);
+  set(row: string, col: string, value: T): void {
+    this.setRow(row).set(col, value);
   }
 
-  get(row: string, col: string): T | null | undefined {
-    if (!this.matrix.has(row)) return null;
-
-    return (this.matrix.get(row) as Map<string, T>).get(col);
+  get(row: string, col: string): T | undefined {
+    return this.rows.get(row)?.get(col);
   }
 
-  cols(row): string[] {
-    if (!this.matrix) return [];
-    if (!this.matrix.has(row)) return [];
-
-    return Array.from((this.matrix.get(row) as Map<string, T>).keys());
-  }
-
-  rows(): string[] {
-    if (!this.matrix) return [];
-
-    return Array.from(this.matrix.keys());
+  cols(row: string): string[] {
+    return Array.from(this.rows.get(row)?.keys() ?? []);
   }
 }

@@ -1,75 +1,61 @@
-import { IPortDesc  } from '../type';
-import Graph from './graph';
-import Node from '../node';
-import Flow from '../base/flow';
+import type Flow from '../base/flow';
+import type { AnyNode } from '../node';
+import type { IPortDesc } from '../type';
+import type { ISortedNodeMap } from '../utils/sort';
+import type Graph from './graph';
 
-export interface ISortedNodeMap {
-  r: Node[];
-  w: Node[];
-  t: Node[];
-}
+/**
+ * Runs the sorted nodes of `graph`: every connection becomes a subscription
+ * from its output to its input, then each node starts once. Writables start
+ * first and Readables last, so every subscriber exists before a source sends.
+ */
+const run = (graph: Graph<IPortDesc, AnyNode>): ((sorted: ISortedNodeMap, flow: Flow) => void) => {
+  return (sorted: ISortedNodeMap, flow: Flow): void => {
+    const pipe = (edge: IPortDesc): void => {
+      const { src, dst } = edge;
+      const key = `${src.id}@${dst.id}`;
 
-const run = (G: Graph<IPortDesc, Node>) => {
-  return (sortedNodes: ISortedNodeMap, flow: Flow) => {
-    const edges = (id: string) => G.edgesFrom(id);
+      // The same connection is never subscribed twice.
+      if (flow.cache.has(key)) return;
 
-    const pipe = (edge) => {
-      const { src: _src, dst: _dst } = edge;
-      const _cacheKey = `${_src.id}@${_dst.id}`;
-
-      // 相同的边不能重复订阅
-      if (flow.cache.has(_cacheKey)) return;
-
-      _src.receive((msg) => {
-        _dst.send(msg);
+      src.receive((message) => {
+        dst.send(message);
       });
 
-      flow.cache.set(_cacheKey, edge);
+      flow.cache.set(key, edge);
     };
 
-    const pipeWithEdges = (_pipe) => (_edges: IPortDesc[]) => {
-      for (const edge of _edges) {
-        _pipe(edge);
+    const pipeFrom = (node: AnyNode): void => {
+      for (const edge of graph.edgesFrom(node.id)) {
+        pipe(edge);
       }
     };
 
-    const _p = pipeWithEdges(pipe);
-
     // W
-    sortedNodes.w.forEach((node) => {
+    for (const node of sorted.w) {
       node.attach(flow);
-
-      const executeOnce = node.executeOnce.bind(node, 'write', node.I);
-
-      executeOnce();
-    });
+      node.executeOnce(() => {
+        node._write(node.I);
+      });
+    }
 
     // T
-    sortedNodes.t.forEach((node) => {
+    for (const node of sorted.t) {
       node.attach(flow);
-
-      _p(edges(node.id));
-
-      const executeOnce = node.executeOnce.bind(
-        node,
-        'transform',
-        node.I,
-        node.O,
-      );
-
-      executeOnce();
-    });
+      pipeFrom(node);
+      node.executeOnce(() => {
+        node._transform(node.I, node.O);
+      });
+    }
 
     // R
-    sortedNodes.r.forEach((node) => {
+    for (const node of sorted.r) {
       node.attach(flow);
-
-      _p(edges(node.id));
-
-      const executeOnce = node.executeOnce.bind(node, 'read', node.O);
-
-      executeOnce();
-    });
+      pipeFrom(node);
+      node.executeOnce(() => {
+        node._read(node.O);
+      });
+    }
   };
 };
 

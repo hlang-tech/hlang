@@ -6,7 +6,7 @@
  */
 
 import { defineNode } from '../../define-node';
-import { rt, paramsOf, asCtor } from '../../runtime-boundary';
+import { rt, paramsOf } from '../../runtime-boundary';
 import type { INodeConstructionOptions, RuntimePortLike } from '../../runtime-boundary';
 
 class ImageSource extends rt.ReadableNode {
@@ -14,7 +14,7 @@ class ImageSource extends rt.ReadableNode {
     super(opts);
     rt.Port.O('Output').attach(this);
   }
-  _read(o: (name: string) => RuntimePortLike): void {
+  override _read(o: (name: string) => RuntimePortLike): void {
     const params = paramsOf(this);
     const url = typeof params.imageUrl === 'string' ? params.imageUrl : '';
     // Emit the asset reference; downstream transforms consume it as a stream.
@@ -28,5 +28,5 @@ export const imageSource = defineNode({
   displayName: 'Image',
   group: 'sources',
   defaultParams: { imageUrl: '', caption: 'Image', role: '' },
-  ctor: asCtor(ImageSource),
+  ctor: ImageSource,
 });

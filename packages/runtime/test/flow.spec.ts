@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { map } from "rxjs/operators";
 import { Flow, Port, ReadableNode, TransformNode, WriteableNode } from "../src/index";
-import { Apply, Collect, Values } from "./helpers";
+import type { PortAccessor } from "../src/index";
+import { Apply, asNumber, Collect, Values } from "./helpers";
 
 const ERROR_PORT = "@node/error";
 
@@ -33,10 +34,38 @@ describe("ports", () => {
   it("transforms a port's stream through pipe()", () => {
     const port = new Values([]).O("out");
     const seen: unknown[] = [];
-    port.pipe(map((value: number) => value + 1)).receive((value: unknown) => seen.push(value));
+    port.pipe(map((value: unknown) => asNumber(value) + 1)).receive((value: unknown) => seen.push(value));
     port.send(1);
     port.send(2);
     expect(seen).toEqual([2, 3]);
+  });
+
+  it("marks a port active and inactive", () => {
+    const port = new Values([]).O("out");
+    expect(port.isActive).toBe(false);
+    port.active();
+    expect(port.isActive).toBe(true);
+    port.deActive();
+    expect(port.isActive).toBe(false);
+  });
+
+  it("resolves a port whose name contains a dot", () => {
+    const sink = new Collect(["v1.input"]);
+    expect(sink.I("v1.input").name).toBe("v1.input");
+  });
+
+  it("names the missing port when a node has no such port", () => {
+    const source = new Values([]);
+    expect(() => source.I("in")).toThrow('has no input port "in"');
+    expect(() => source.O("missing")).toThrow('has no output port "missing"');
+  });
+
+  it("still sends after a pipe is set, and receivers get the piped stream", () => {
+    const port = new Values([]).O("out");
+    const seen: unknown[] = [];
+    port.pipe(map((value: unknown) => asNumber(value) * 10)).receive((value: unknown) => seen.push(value));
+    port.send(1);
+    expect(seen).toEqual([10]);
   });
 
   it("still receives through the deprecated on() and says so", () => {
@@ -57,7 +86,7 @@ describe("node kinds", () => {
     const writable = new Collect();
     expect(readable.O(ERROR_PORT)?.type).toBe("O");
     expect(transform.O(ERROR_PORT)?.type).toBe("O");
-    expect(writable.O(ERROR_PORT)).toBeUndefined();
+    expect(() => writable.O(ERROR_PORT)).toThrow('has no output port "@node/error"');
     expect(writable.E()).toBeUndefined();
   });
 
@@ -80,7 +109,7 @@ describe("Flow", () => {
 
   it("runs a Readable, Transform, Writable chain in order", () => {
     const source = new Values([1, 2, 3]);
-    const double = new Apply((value) => (value as number) * 2);
+    const double = new Apply((value) => asNumber(value) * 2);
     const sink = new Collect();
     source.O("out").connect(double.I("in"));
     double.O("out").connect(sink.I("in"));
@@ -105,8 +134,8 @@ describe("Flow", () => {
 
   it("fans several outputs into one input", () => {
     const source = new Values([1, 2]);
-    const plus = new Apply((value) => (value as number) + 10);
-    const times = new Apply((value) => (value as number) * 10);
+    const plus = new Apply((value) => asNumber(value) + 10);
+    const times = new Apply((value) => asNumber(value) * 10);
     const sink = new Collect();
     source.O("out").connect(plus.I("in"));
     source.O("out").connect(times.I("in"));
@@ -115,7 +144,7 @@ describe("Flow", () => {
 
     new Flow().run(source);
 
-    expect([...sink.seen].sort((a, b) => (a as number) - (b as number))).toEqual([10, 11, 12, 20]);
+    expect([...sink.seen].sort((a, b) => asNumber(a) - asNumber(b))).toEqual([10, 11, 12, 20]);
   });
 
   it("routes values by named port", () => {
@@ -127,8 +156,8 @@ describe("Flow", () => {
         Port.O("odd").attach(this);
       }
 
-      _transform($i: (name: string) => Port, $o: (name: string) => Port) {
-        $i("in").receive((value: number) => $o(value % 2 === 0 ? "even" : "odd").send(value));
+      override _transform($i: PortAccessor, $o: PortAccessor) {
+        $i("in").receive((value) => $o(asNumber(value) % 2 === 0 ? "even" : "odd").send(value));
       }
     }
     const source = new Values([1, 2, 3, 4]);
@@ -168,10 +197,10 @@ describe("Flow", () => {
         Port.O("second").attach(this);
       }
 
-      _transform($i: (name: string) => Port, $o: (name: string) => Port) {
-        $i("in").receive((value: number) => {
+      override _transform($i: PortAccessor, $o: PortAccessor) {
+        $i("in").receive((value) => {
           $o("first").send(value);
-          $o("second").send(value * 100);
+          $o("second").send(asNumber(value) * 100);
         });
       }
     })();
@@ -195,7 +224,7 @@ describe("Flow", () => {
         Port.O("out").attach(this);
       }
 
-      _read() {
+      override _read() {
         this.throw(new Error("source failed"));
       }
     }
@@ -208,10 +237,40 @@ describe("Flow", () => {
     expect(errors.seen).toEqual([new Error("source failed")]);
   });
 
+  it("delivers what a Transform throws on its error port", () => {
+    class Failing extends TransformNode {
+      constructor() {
+        super({});
+        Port.I("in").attach(this);
+      }
+
+      override _transform($i: PortAccessor) {
+        $i("in").receive((value) => {
+          this.throw(new Error(`bad ${String(value)}`));
+        });
+      }
+    }
+    const source = new Values([1]);
+    const step = new Failing();
+    const errors = new Collect();
+    source.O("out").connect(step.I("in"));
+    step.E().connect(errors.I("in"));
+
+    new Flow().run(source);
+
+    expect(errors.seen).toEqual([new Error("bad 1")]);
+  });
+
+  it("refuses to run a connection to a port that belongs to no node", () => {
+    const source = new Values([1]);
+    source.O("out").connect(Port.I("loose"));
+    expect(() => new Flow().run(source)).toThrow('Port "loose" is connected but not attached to a node.');
+  });
+
   it("allows a feedback loop between Transforms", () => {
     // `step` counts up and feeds itself through `back` until it reaches 3.
     const source = new Values([0]);
-    const step = new Apply((value) => (value as number) + 1);
+    const step = new Apply((value) => asNumber(value) + 1);
     const back = new (class extends TransformNode {
       constructor() {
         super({});
@@ -219,9 +278,9 @@ describe("Flow", () => {
         Port.O("out").attach(this);
       }
 
-      _transform($i: (name: string) => Port, $o: (name: string) => Port) {
-        $i("in").receive((value: number) => {
-          if (value < 3) $o("out").send(value);
+      override _transform($i: PortAccessor, $o: PortAccessor) {
+        $i("in").receive((value) => {
+          if (asNumber(value) < 3) $o("out").send(value);
         });
       }
     })();
@@ -261,7 +320,7 @@ describe("Flow", () => {
           Port.O("out").attach(this);
         }
 
-        _read($o: (name: string) => Port) {
+        override _read($o: PortAccessor) {
           let tick = 0;
           const timer = setInterval(() => {
             tick += 1;

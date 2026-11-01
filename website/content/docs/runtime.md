@@ -18,7 +18,9 @@ package: runtime
 
 Create ports in the constructor with `Port.I(name).attach(this)` and `Port.O(name).attach(this)`. The constructor argument is stored as `this.opts`. The interpreter and the compiler pass `{ nodeId, flowId, env, middleware, config, signal }`; a node's parameters are in `this.opts.config.params`.
 
-The runtime calls `_read`, `_transform` or `_write` once per flow. `$i(name)` and `$o(name)` return the node's input and output ports. Inside a node, `this.I(name)`, `this.O(name)` and `this.E()` (the error port) return the same ports. Readable and Transform nodes have `throw(error)`, which sends `error` on `@node/error`.
+The runtime calls `_read`, `_transform` or `_write` once per flow. `$i(name)` and `$o(name)` return the node's input and output ports. Inside a node, `this.I(name)`, `this.O(name)` and `this.E()` (the error port) return the same ports. `I` and `O` throw when the node has no port of that name; `E()` returns `undefined` on a Writable node. Readable and Transform nodes have `throw(error)`, which sends `error` on `@node/error`.
+
+The runtime is typed without `any`. A node's options type is its type argument (`class Scale extends TransformNode<ScaleOptions>`), and messages are `unknown`, so a node narrows what it receives. The [runtime README](https://github.com/hlang-tech/hlang/tree/main/packages/runtime#typescript) has an example and the migration from 1.x.
 
 ```js file=lib/nodes.mjs
 ```

@@ -1,116 +1,111 @@
-import { Subject } from "rxjs";
-import Node from "../node";
-import { STREAM_TYPE, IDENTITY } from "../type";
-import { uuid } from "../utils";
-// rxjs 6 has no `exports` map and Node's ES module resolution does not import
-// a directory, so the operators entry is named by its file; CommonJS and
-// bundlers resolve it the same way.
-import { catchError } from "rxjs/operators/index.js";
+import { Subject } from 'rxjs';
+import type { Observable, OperatorFunction, Subscription } from 'rxjs';
+import type { AnyNode } from '../node';
+import { IDENTITY, STREAM_TYPE } from '../type';
+import { uuid } from '../utils';
 
+/**
+ * Handles a message arriving on a port. Messages are not typed by the engine:
+ * a graph is wired at run time, so a node narrows what it receives.
+ */
+export type MessageHandler = (message: unknown) => void;
+
+interface PortOptions {
+  readonly type: STREAM_TYPE;
+  readonly name?: string;
+}
+
+/**
+ * A named input (`I`) or output (`O`) of a node. A port is a live RxJS stream:
+ * `send` pushes a message, `receive` subscribes to them, and `connect` wires an
+ * output to an input.
+ */
 class Port {
-  id: string;
-  name: string;
-  type: string;
-  peers: Port[];
-  node: Node | null;
-  isActive: boolean;
-  identity: symbol;
-  static I: (name: string) => Port;
-  static O: (name: string) => Port;
-  $pipedEventEmitter: any;
-  $eventEmitter: Subject<any>;
+  /** Set when the port is attached to a node. */
+  id = '';
+  readonly name: string;
+  readonly type: STREAM_TYPE;
+  /** The inputs this output is connected to. */
+  readonly peers: Port[] = [];
+  node: AnyNode | null = null;
+  isActive = false;
+  readonly identity: symbol = IDENTITY.PORT;
+  /** The stream as transformed by `pipe`, when a pipe is set. */
+  $pipedEventEmitter: Observable<unknown> | null = null;
+  readonly $eventEmitter = new Subject<unknown>();
 
-  constructor({ type, name = "" }) {
-    this.name = name;
-    this.type = type;
-    this.peers = [];
-    this.node = null;
-    this.isActive = false;
-    this.identity = IDENTITY.PORT;
+  /** A new input port. */
+  static I(name: string): Port {
+    return new Port({ type: STREAM_TYPE.I, name });
   }
 
-  active() {
+  /** A new output port. */
+  static O(name: string): Port {
+    return new Port({ type: STREAM_TYPE.O, name });
+  }
+
+  constructor({ type, name = '' }: PortOptions) {
+    this.name = name;
+    this.type = type;
+  }
+
+  active(): void {
     this.isActive = true;
   }
 
-  deActive() {
+  deActive(): void {
     this.isActive = false;
   }
 
-  addPeer(val: Port) {
-    this.peers.push(val);
+  addPeer(port: Port): void {
+    this.peers.push(port);
   }
 
-  attach(node: Node) {
-    // TODO: asserts
+  /** Attaches the port to `node`, which then resolves it by name. */
+  attach(node: AnyNode): void {
     this.node = node;
-    this.node.attachPort(this);
+    node.attachPort(this);
     this.id = uuid.create();
-
-    // 确保唯一
-    this.$eventEmitter = new (Subject as any)(`${node.id}->${this.id}`);
   }
 
-  get $() {
-    return this.$pipedEventEmitter || this.$eventEmitter;
+  /** The stream receivers subscribe to: the piped stream when a pipe is set. */
+  get $(): Observable<unknown> {
+    return this.$pipedEventEmitter ?? this.$eventEmitter;
   }
 
-  send(msg) {
-    const $emitter = this.$pipedEventEmitter || this.$eventEmitter;
-
-    $emitter.next(msg);
+  /** Pushes `message` into the port's stream; a pipe applies to what receivers get. */
+  send(message: unknown): void {
+    this.$eventEmitter.next(message);
   }
 
-  // tslint:disable:ter-indent
-  pipe(...args) {
-    this.$pipedEventEmitter = this.$eventEmitter.pipe.apply(
-      this.$eventEmitter,
-      [
-        ...args,
-        // 管道中的未捕获异常处理
-        catchError((err) => {
-          throw err;
-        }),
-      ] as any
-    );
-    return {
-      receive: this.receive.bind(this),
-    };
+  /** Sets RxJS operators between what is sent and what receivers get. */
+  pipe(...operators: OperatorFunction<unknown, unknown>[]): { receive: (next: MessageHandler) => Subscription } {
+    this.$pipedEventEmitter = operators.reduce<Observable<unknown>>((source, operator) => operator(source), this.$eventEmitter);
+    return { receive: (next) => this.receive(next) };
   }
-  // tslint:enable
 
-  on(next) {
-    console.log(
-      "[@hlang-org/runtime]: $().on(() => {}) has been deperecated, please use $().receive(() => {})."
-    );
+  /** @deprecated Use `receive`. */
+  on(next: MessageHandler): Subscription {
+    console.log('[@hlang-org/runtime]: $().on(() => {}) has been deperecated, please use $().receive(() => {}).');
     return this.receive(next);
   }
 
-  receive(next) {
-    const onNext = (...args) => next(...args);
-    const $emitter = this.$pipedEventEmitter || this.$eventEmitter;
-
-    return $emitter.subscribe(onNext);
+  /** Subscribes `next` to every message the port delivers. */
+  receive(next: MessageHandler): Subscription {
+    return this.$.subscribe((message) => {
+      next(message);
+    });
   }
 
-  // core
-  connect(port) {
+  /** Wires this output to the input `port`. Any other direction throws. */
+  connect(port: Port): this {
     if (this.type === STREAM_TYPE.O && port.type === STREAM_TYPE.I) {
       this.addPeer(port);
     } else {
       throw new Error(`${this.type} can not connect ${port.type}`);
     }
-
     return this;
   }
 }
-
-Port.I = (name) => {
-  return new Port({ type: STREAM_TYPE.I, name: name });
-};
-
-Port.O = (name) => {
-  return new Port({ type: STREAM_TYPE.O, name: name });
-};
 
 export default Port;

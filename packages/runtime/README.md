@@ -73,7 +73,7 @@ new Flow().run(numbers); // 2, 4, 6
 
 Create ports in the constructor with `Port.I(name).attach(this)` and `Port.O(name).attach(this)`. A node can have any number of named ports. The constructor argument is stored as `this.opts`. The interpreter and the compiler pass `{ nodeId, flowId, env, middleware, config, signal }`, and node parameters are in `this.opts.config.params`.
 
-The runtime calls `_read`, `_transform`, or `_write` once per flow. `$i(name)` and `$o(name)` return the node's input and output ports. Inside a node, `this.I(name)`, `this.O(name)`, and `this.E()` (the error port) return the same ports.
+The runtime calls `_read`, `_transform`, or `_write` once per flow. `$i(name)` and `$o(name)` return the node's input and output ports. Inside a node, `this.I(name)`, `this.O(name)`, and `this.E()` (the error port) return the same ports. `I` and `O` throw when the node has no port of that name; `E()` returns `undefined` on a Writable node.
 
 Readable and Transform nodes have `throw(error)`, which sends `error` on `@node/error`.
 
@@ -95,6 +95,52 @@ Ports are multicast: one output can feed several inputs, and an input can receiv
 `new Flow().run(readable)` collects the nodes reachable from the Readable root through its connections. It starts the Writable nodes first, then the Transform nodes, then the Readable root, so every subscriber exists before data is sent. Run each Readable root of a graph. `run` throws if its argument is not a Readable node.
 
 Transform nodes can form cycles, so a graph can contain feedback loops. Bound a feedback loop, for example with `take` or a counter, so it ends.
+
+## TypeScript
+
+The package is typed without `any`.
+
+- A node's options type is its type argument: `class Scale extends TransformNode<ScaleOptions>` types `this.opts` as `ScaleOptions`. Without one, `this.opts` is `Readonly<Record<string, unknown>>`.
+- Messages are `unknown`. A graph is wired at run time, so a node narrows what it receives before it uses it.
+- `PortAccessor` is the type of `$i` and `$o`, `MessageHandler` the type of a `receive` listener, and `AnyNode` a node of any of the three kinds.
+
+```ts
+import { Port, TransformNode } from '@hlang-org/runtime';
+import type { PortAccessor } from '@hlang-org/runtime';
+
+interface ScaleOptions {
+  readonly factor: number;
+}
+
+class Scale extends TransformNode<ScaleOptions> {
+  constructor(opts: ScaleOptions) {
+    super(opts);
+    Port.I('in').attach(this);
+    Port.O('out').attach(this);
+  }
+
+  override _transform($i: PortAccessor, $o: PortAccessor): void {
+    $i('in').receive((value) => {
+      if (typeof value === 'number') {
+        $o('out').send(value * this.opts.factor);
+      }
+    });
+  }
+}
+```
+
+## Migrating from 1.x
+
+Version 2 changes types and three edge cases; a graph that ran on 1.x runs the same way.
+
+| 1.x | 2.x |
+| --- | --- |
+| `opts`, messages, and several fields were typed `any`. | `opts` is the node's type argument and messages are `unknown`: declare the options type and narrow received messages. With `noImplicitOverride`, mark `_read`, `_transform`, and `_write` with `override`. |
+| `I(name)` and `O(name)` returned `undefined` for a missing port, which failed later on use. | They throw an error that names the node and the port. |
+| A port name containing a dot could not be resolved. | Any port name resolves. |
+| `send` on a port with a `pipe` threw. | `send` emits; receivers get the piped stream. |
+| `Node` could be constructed directly. | `Node` is abstract: extend `ReadableNode`, `TransformNode`, or `WriteableNode`. |
+| `Flow` options were mutable `any`. | `Flow` options are `Readonly<Record<string, unknown>>`. |
 
 ## Related packages
 
