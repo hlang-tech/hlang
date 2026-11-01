@@ -59,3 +59,24 @@ test('an unknown page shows the 404 page', async ({ page }) => {
   expect(response?.status()).toBe(404);
   await expect(page.getByRole('heading', { name: 'This port has no connection.' })).toBeVisible();
 });
+
+test('search finds a section and lands on its anchor', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Search the documentation' }).click();
+  const input = page.getByRole('combobox', { name: 'Search' });
+  await input.fill('planGraph');
+  await expect(page.getByRole('option').first()).toContainText('planGraph');
+  await input.press('Enter');
+  await expect(page).toHaveURL(/\/docs\/igraph#plangraph$/);
+  await expect(page.locator('#plangraph')).toBeAttached();
+});
+
+test('the search excerpts are reading text', async ({ request }) => {
+  const entries: unknown = await (await request.get('/search-index.json')).json();
+  expect(Array.isArray(entries)).toBe(true);
+  const texts = (Array.isArray(entries) ? entries : []).flatMap((entry: unknown) =>
+    typeof entry === 'object' && entry !== null && 'text' in entry && typeof entry.text === 'string' ? [entry.text] : [],
+  );
+  expect(texts.length).toBeGreaterThan(100);
+  expect(texts.some(text => text.includes('Defined in:') || text.includes('---'))).toBe(false);
+});

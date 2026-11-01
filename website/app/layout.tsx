@@ -37,7 +37,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { readonly children: ReactNode }) {
   return (
     // next-themes sets the theme class on <html> before hydration.
-    <html lang="en" className={`${inter.variable} ${jetbrains.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${jetbrains.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className="min-h-svh bg-ground text-ink">
         <ThemeProvider>
           <SiteHeader />

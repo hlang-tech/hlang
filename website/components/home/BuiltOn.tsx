@@ -50,11 +50,15 @@ const CASES: readonly Case[] = [
   },
 ];
 
-/** Each folder's color; the tab and its sheet share it, so they read as one piece. */
-const TONES: readonly { readonly sheet: string; readonly fill: string }[] = [
-  { sheet: 'bg-surface', fill: 'fill-surface' },
-  { sheet: 'bg-surface-2', fill: 'fill-surface-2' },
-  { sheet: 'bg-surface-3', fill: 'fill-surface-3' },
+/**
+ * Each folder's color; the tab and its sheet share it, so they read as one
+ * piece. `row` is the same color for the strip beside the next folder's tab,
+ * where (from md up, with the folders joined) the folder behind shows.
+ */
+const TONES: readonly { readonly sheet: string; readonly fill: string; readonly row: string }[] = [
+  { sheet: 'bg-surface', fill: 'fill-surface', row: 'md:bg-surface' },
+  { sheet: 'bg-surface-2', fill: 'fill-surface-2', row: 'md:bg-surface-2' },
+  { sheet: 'bg-surface-3', fill: 'fill-surface-3', row: 'md:bg-surface-3' },
 ];
 
 /** Header height plus a gap, then one tab height per folder already stacked. */
@@ -78,7 +82,9 @@ export function BuiltOn() {
       />
       <div className="mt-14 space-y-3 md:space-y-0">
         {CASES.map((item, index) => {
-          const tone = TONES[index % TONES.length] ?? { sheet: 'bg-surface', fill: 'fill-surface' };
+          const tone = TONES[index % TONES.length] ?? { sheet: 'bg-surface', fill: 'fill-surface', row: 'md:bg-surface' };
+          const behind = index > 0 ? TONES[(index - 1) % TONES.length] : undefined;
+          const last = index === CASES.length - 1;
           const external = item.link.href.startsWith('http');
           return (
             <article
@@ -88,8 +94,9 @@ export function BuiltOn() {
               className="relative md:sticky md:top-(--stack-top)"
               style={stackStyle(index)}
             >
-              {/* The folder tab: a rounded top-left corner and a curved shoulder into the sheet. */}
-              <div className="flex items-end">
+              {/* The folder tab: a rounded top-left corner and a curved shoulder into the sheet.
+                  Beside it shows the folder behind, so its row takes that folder's color. */}
+              <div className={`flex items-end ${behind?.row ?? ''}`}>
                 <h3
                   id={`case-${String(index)}`}
                   className={`flex h-12 items-center whitespace-nowrap rounded-tl-[18px] pl-5 pr-1 text-[clamp(18px,5vw,24px)] font-semibold tracking-[-0.02em] sm:pl-6 ${tone.sheet}`}
@@ -99,9 +106,11 @@ export function BuiltOn() {
                 <svg aria-hidden viewBox="0 0 44 48" preserveAspectRatio="none" className={`-ml-px h-12 w-11 shrink-0 ${tone.fill}`}>
                   <path d="M0 0 C 18 0 22 48 44 48 L 0 48 Z" />
                 </svg>
-                <p className="ml-auto hidden min-w-0 truncate pb-3.5 pl-6 text-xs text-muted sm:block">{item.context}</p>
+                {/* Inset like the sheet's content, so the context lines up with it instead of the sheet's edge. */}
+                <p className="ml-auto hidden min-w-0 truncate pb-3.5 pl-6 text-xs text-muted sm:block sm:pr-4 md:pr-6">{item.context}</p>
               </div>
-              <div className={`rounded-b-panel rounded-tr-panel ${tone.sheet}`}>
+              {/* From md up the folders join: only the last one rounds its bottom. */}
+              <div className={`rounded-b-panel rounded-tr-panel ${last ? '' : 'md:rounded-b-none'} ${tone.sheet}`}>
                 <div className="grid gap-8 p-3 pb-7 sm:p-4 sm:pb-8 md:min-h-[min(78svh,760px)] md:grid-cols-12 md:items-center md:gap-6 md:p-6">
                   <figure className="min-w-0 md:col-span-7">
                     <div className="relative overflow-hidden rounded-[calc(var(--radius-panel)-8px)]">
