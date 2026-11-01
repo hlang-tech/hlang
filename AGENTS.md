@@ -64,7 +64,7 @@ reference framework, read its actual source / `.d.ts`, not its docs.
 ## Architecture & layer boundaries (strict, one-directional)
 
 ```text
-runtime      @hlang-org/runtime      RxJS reactive engine (R/T/W nodes, Flow)   ESM + CJS, 2.x
+runtime      @hlang-org/runtime      RxJS reactive engine (R/T/W nodes, Flow)   ES module, 2.x
 ir           @hlang-org/ir           IGraph types + planGraph (validate, lower)  zero dependencies
 interpreter  @hlang-org/interpreter  executes the plan in-process (RxJS-native)  depends on ir, runtime
 compiler     @hlang-org/compiler     prints the plan as an ES module (ESTree)    depends on ir only
@@ -139,10 +139,13 @@ each dependency version, so `react` / `@xyflow/react` are single instances
 without dedupe or alias configuration. The pnpm version is pinned by
 `packageManager` in the root `package.json`; Node by `.nvmrc`.
 
-`@hlang-org/runtime` keeps its tsc CommonJS build in `lib/` (so `require` and
-deep `lib/...` imports are unchanged) and adds an ES module entry built by
-tsup (`lib/index.mjs`). Its nodes are told apart by `type`, not by class
-identity, so a program that loads both builds still works.
+`@hlang-org/runtime` is the exception: it ships **one ES module build**. Its
+engine state is private (`#fields`), and two copies of the runtime in one
+program could not share nodes, so a program must hold exactly one. `require`
+still works: Node.js loads an ES module through `require` since 20.19 and 22.12
+(`engines` says so), and both routes give the same instance. Its lint:pkg runs
+attw with `--profile esm-only`. RxJS is a peer dependency of the runtime and the
+interpreter, so an application holds one RxJS too.
 
 ---
 

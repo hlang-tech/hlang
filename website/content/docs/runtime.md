@@ -38,6 +38,8 @@ A port wraps an RxJS `Subject`.
 
 Ports are multicast: one output can feed several inputs, and an input can receive from several outputs.
 
+Every connection delivers through one first-in, first-out queue, so the call stack stays at the same depth however long a graph is, no handler is re-entered, and messages on one connection arrive in the order they were sent. A handler that throws never ends its connection: a Transform's error goes to its `@node/error` port, and anything else to the flow's `onError`. A node cannot reach the flow or another node; nodes share only the messages on their connections.
+
 ## Flows
 
 `new Flow().run(readable)` collects the nodes reachable from the Readable root. It starts the Writable nodes first, then the Transform nodes, then the root, so every subscriber exists before data is sent. `run` throws if its argument is not a Readable node; run each Readable root of a graph.

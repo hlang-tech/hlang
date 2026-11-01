@@ -3,8 +3,7 @@
  * flow is stopped. A hot, continuous stream — the canvas shows it living.
  */
 
-import { interval } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { interval, map, takeUntil } from 'rxjs';
 import { defineNode } from '../../define-node';
 import { rt, paramsOf } from '../../runtime-boundary';
 import type { INodeConstructionOptions, RuntimePortLike } from '../../runtime-boundary';

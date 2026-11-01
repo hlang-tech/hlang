@@ -1,88 +1,65 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import Graph, { Edge, Vertex } from "../src/core/graph";
+import { describe, expect, it } from "vitest";
+import build from "../src/core/build";
 import uuid from "../src/utils/uuid";
+import { Apply, Collect, Values } from "./helpers";
 
-afterEach(() => {
-  vi.restoreAllMocks();
-});
+describe("build", () => {
+  it("visits each node once and each connection once", () => {
+    // source -> left, right -> merge (reached twice) -> sink
+    const source = new Values([]);
+    const left = new Apply((value) => value);
+    const right = new Apply((value) => value);
+    const merge = new Apply((value) => value);
+    const sink = new Collect();
+    source.O("out").connect(left.I("in"));
+    source.O("out").connect(right.I("in"));
+    left.O("out").connect(merge.I("in"));
+    right.O("out").connect(merge.I("in"));
+    merge.O("out").connect(sink.I("in"));
 
-interface Item {
-  readonly id: string;
-}
+    const graph = build(source);
 
-function graphOf(edges: readonly (readonly [string, string])[]): Graph<string, Item> {
-  const graph = new Graph<string, Item>();
-  const items = new Map<string, Item>();
-  const item = (id: string): Item => {
-    const existing = items.get(id);
-    if (existing !== undefined) return existing;
-    const created = { id };
-    items.set(id, created);
-    graph.addVertex(new Vertex(created));
-    return created;
-  };
-  for (const [from, to] of edges) {
-    graph.addEdge(new Edge(item(from), item(to), `${from}->${to}`));
-  }
-  return graph;
-}
-
-describe("Graph", () => {
-  it("keeps every edge between the same two vertices", () => {
-    const graph = graphOf([
-      ["a", "b"],
-      ["a", "b"],
-    ]);
-    expect(graph.edgesFrom("a")).toEqual(["a->b", "a->b"]);
-    expect(graph.edgesFrom("b")).toEqual([]);
+    expect(graph.readable).toEqual([source]);
+    expect(new Set(graph.transform)).toEqual(new Set([left, right, merge]));
+    expect(graph.transform).toHaveLength(3);
+    expect(graph.writable).toEqual([sink]);
+    expect(graph.connections.get(source.id)).toHaveLength(2);
+    expect(graph.connections.get(merge.id)).toHaveLength(1);
+    expect(graph.connections.has(sink.id)).toBe(false);
   });
 
-  it("adds the vertices of an edge it has not seen", () => {
-    const graph = new Graph<string, Item>();
-    graph.addEdge(new Edge({ id: "x" }, { id: "y" }, "x->y"));
-    expect([...graph.vertices.keys()]).toEqual(["x", "y"]);
-    expect(graph.vertices.get("y")?.data).toEqual({ id: "y" });
+  it("ends a feedback loop by not expanding a node twice", () => {
+    const source = new Values([]);
+    const a = new Apply((value) => value);
+    const b = new Apply((value) => value);
+    source.O("out").connect(a.I("in"));
+    a.O("out").connect(b.I("in"));
+    b.O("out").connect(a.I("in"));
+
+    const graph = build(source);
+
+    expect(graph.transform).toHaveLength(2);
+    expect(graph.connections.get(b.id)?.[0]?.dst).toBe(a.I("in"));
   });
 
-  it("finds a destination through intermediate vertices, and remembers it", () => {
-    const graph = graphOf([
-      ["a", "b"],
-      ["b", "c"],
-      ["c", "d"],
-    ]);
-    expect(graph.hasDest("b", "d")).toBe(true);
-    // a -> b is not d, but b is now known to reach d.
-    expect(graph.hasDest("a", "d")).toBe(true);
-    expect(graph.hasDest("d", "a")).toBe(false);
-    expect(graph.hasDest("missing", "a")).toBe(false);
-  });
-
-  it("tells when joining two vertices closes a cycle", () => {
-    const graph = graphOf([
-      ["a", "b"],
-      ["b", "c"],
-    ]);
-    expect(graph.isCircled({ id: "c" }, { id: "a" })).toBe(true);
-    expect(graph.isCircled({ id: "a" }, { id: "a" })).toBe(true);
-    expect(graph.isCircled({ id: "a" }, { id: "c" })).toBe(false);
+  it("builds a chain of 200,000 nodes without recursion", () => {
+    const source = new Values([]);
+    let previous: Values | Apply = source;
+    for (let index = 0; index < 200_000; index += 1) {
+      const step = new Apply((value) => value);
+      previous.O("out").connect(step.I("in"));
+      previous = step;
+    }
+    expect(build(source).transform).toHaveLength(200_000);
   });
 });
 
 describe("uuid", () => {
-  it("hands out distinct v4 ids", () => {
-    const first = uuid.create();
-    const second = uuid.create();
-    expect(first).not.toBe(second);
-    expect(uuid.validate(first)).toBe(false);
-  });
-
-  it("refuses an invalid id and a duplicate, and forgets a deleted one", () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    expect(uuid.validate("not-a-uuid")).toBe(false);
-    const id = uuid.create();
-    expect(uuid.validate(id)).toBe(false);
-    expect(warn).toHaveBeenCalledTimes(2);
-    expect(uuid.delete(id).has(id)).toBe(false);
-    expect(uuid.validate(id)).toBe(true);
+  it("hands out distinct v4 ids without remembering them", () => {
+    const ids = new Set(Array.from({ length: 1000 }, () => uuid.create()));
+    expect(ids.size).toBe(1000);
+    for (const id of ids) {
+      expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    }
   });
 });

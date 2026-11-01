@@ -65,8 +65,7 @@
   },
   "dependencies": {
     "@hlang-org/ir": "workspace:^",
-    "@hlang-org/runtime": "workspace:^",
-    "rxjs": "^6.6.7"
+    "@hlang-org/runtime": "workspace:^"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.4",
@@ -77,6 +76,10 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.62.1",
     "vite": "^8.3.5",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "rxjs": "^7.8.2"
+  },
+  "peerDependencies": {
+    "rxjs": "^7.8.2"
   }
 }

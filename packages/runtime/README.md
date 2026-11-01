@@ -12,10 +12,10 @@ The hlang runtime: flow-based programming on RxJS streams. Build programs from R
 ## Install
 
 ```sh
-npm install @hlang-org/runtime
+npm install @hlang-org/runtime rxjs
 ```
 
-The same build is published as `@hlang-tech/runtime`. It ships an ES module and a CommonJS build with type declarations; `import` and `require` both work.
+The same build is published as `@hlang-tech/runtime`. It is one ES module with type declarations; `import` works everywhere, and `require` works on Node.js 20.19, 22.12, and later. RxJS 7 is a peer dependency, so a program holds one copy of each.
 
 ## Example
 
@@ -90,6 +90,24 @@ A port wraps an RxJS `Subject`.
 
 Ports are multicast: one output can feed several inputs, and an input can receive from several outputs.
 
+## Delivery and failures
+
+Every connection delivers through one first-in, first-out queue, drained by a single loop. A message a node sends while handling another is queued rather than delivered in a nested call, so:
+
+- the call stack stays at the same depth however long a graph is: a chain of 100,000 nodes runs like a chain of two;
+- no handler is re-entered: each delivery finishes before the next starts;
+- messages on one connection arrive in the order they were sent. Across connections the order is deterministic (first in, first out), but a program should not depend on it, as in any flow-based program.
+
+A message sent from outside a delivery, such as a source starting or a timer firing, is fully delivered before `send` returns, so a flow is still synchronous from the outside.
+
+A handler that throws never ends its connection; later messages are still delivered. On a Transform's input, the error is sent on the node's `@node/error` port. Anywhere else (a Writable has no error port), it goes to the flow's `onError`, or is rethrown asynchronously when the flow has none:
+
+```ts
+new Flow({ onError: (error, node) => report(error, node?.id) }).run(source);
+```
+
+A node holds its own options and ports and nothing else: it cannot reach the flow that runs it or another node, and a port's stream, peers, and owner are private. Nodes share only the messages on their connections.
+
 ## Flows
 
 `new Flow().run(readable)` collects the nodes reachable from the Readable root through its connections. It starts the Writable nodes first, then the Transform nodes, then the Readable root, so every subscriber exists before data is sent. Run each Readable root of a graph. `run` throws if its argument is not a Readable node.
@@ -131,7 +149,7 @@ class Scale extends TransformNode<ScaleOptions> {
 
 ## Migrating from 1.x
 
-Version 2 changes types and three edge cases; a graph that ran on 1.x runs the same way.
+Version 2 changes the package format, the types, and how messages are delivered.
 
 | 1.x | 2.x |
 | --- | --- |
@@ -140,7 +158,12 @@ Version 2 changes types and three edge cases; a graph that ran on 1.x runs the s
 | A port name containing a dot could not be resolved. | Any port name resolves. |
 | `send` on a port with a `pipe` threw. | `send` emits; receivers get the piped stream. |
 | `Node` could be constructed directly. | `Node` is abstract: extend `ReadableNode`, `TransformNode`, or `WriteableNode`. |
-| `Flow` options were mutable `any`. | `Flow` options are `Readonly<Record<string, unknown>>`. |
+| CommonJS and ES module builds; deep `@hlang-org/runtime/lib/...` imports. | One ES module; import from `@hlang-org/runtime` only. `require` needs Node.js 20.19, 22.12, or later. |
+| RxJS 6 was a dependency. | RxJS 7 is a peer dependency: install `rxjs` next to the runtime, and import operators from `rxjs`. |
+| A send delivered recursively: downstream had run when `send` returned, deep graphs overflowed the stack, and paths interleaved depth first. | Delivery is queued: inside a handler, downstream runs after it returns; depth is unlimited; paths interleave first in, first out. Order on one connection is kept. |
+| A handler that threw ended its connection and was reported as an uncaught error. | The connection stays; a Transform's error goes to `@node/error`, others to `Flow`'s `onError`. |
+| `node.flow`, `node.portMap`, `port.peers`, `port.node`, `port.$eventEmitter`, and `flow.cache` were public. | They are private. `port.$` is read-only. |
+| `Flow` took any options record. | `Flow` takes `{ onError }`. |
 
 ## Related packages
 

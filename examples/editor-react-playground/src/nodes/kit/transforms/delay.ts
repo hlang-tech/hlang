@@ -3,8 +3,7 @@
  * item), cancelled on stop.
  */
 
-import { timer } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, timer } from 'rxjs';
 import { defineNode } from '../../define-node';
 import { paramsOf, rt } from '../../runtime-boundary';
 import type { INodeConstructionOptions, RuntimePortLike } from '../../runtime-boundary';

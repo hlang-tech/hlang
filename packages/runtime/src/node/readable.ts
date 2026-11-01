@@ -8,11 +8,11 @@ export default class ReadableNode<TOptions extends object = NodeOptions> extends
   readonly type: typeof NODE_TYPE.READABLE = NODE_TYPE.READABLE;
 
   /** The error output, `@node/error`. */
-  private readonly errorPort = Port.O(ERROR_PORT_NAME);
+  readonly #errorPort = Port.O(ERROR_PORT_NAME);
 
   constructor(opts: TOptions) {
     super(opts);
-    this.errorPort.attach(this);
+    this.#errorPort.attach(this);
   }
 
   /** Sends `error` on the error output. */
@@ -21,7 +21,7 @@ export default class ReadableNode<TOptions extends object = NodeOptions> extends
   }
 
   override E(): Port {
-    return this.errorPort;
+    return this.#errorPort;
   }
 
   /** Called once when the flow runs; send on the outputs through `$o`. */

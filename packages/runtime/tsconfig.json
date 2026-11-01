@@ -1,16 +1,11 @@
 {
   "compilerOptions": {
-    "target": "es2017",
-    "module": "commonjs",
-    "lib": ["es2017", "dom"],
-    "outDir": "./lib",
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2022", "dom"],
     "rootDir": "./src",
-    "declaration": true,
-    "inlineSourceMap": true,
-    "inlineSources": true,
-    // Inline the interop helpers: tslib is not a dependency of this package.
-    "importHelpers": false,
-    "noEmitOnError": true,
+    "noEmit": true,
 
     "strict": true,
     "noImplicitAny": true,

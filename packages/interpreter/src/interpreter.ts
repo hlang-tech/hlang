@@ -58,7 +58,10 @@ export function interpret(
   const { registry, createFlow } = deps;
   const flowId = options.flowId ?? generateFlowId();
   const env = options.env ?? DEFAULT_ENV;
-  const middleware = options.middleware ?? {};
+  // Middleware carries the host's services to every node. Nodes get a frozen
+  // copy: they can use the services but cannot add to it to share state, and
+  // the host's own object is left as it is.
+  const middleware: Readonly<Record<string, unknown>> = Object.freeze({ ...(options.middleware ?? {}) });
 
   // Teardown machinery. `stop$` emits once when the flow is disposed; nodes
   // bind long-lived work to it (takeUntil / onStop). `teardowns` collects the

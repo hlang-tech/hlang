@@ -1,34 +1,12 @@
-import { v4, validate } from 'uuid';
+import { v4 } from 'uuid';
 
-/** Hands out v4 UUIDs, never the same one twice in a process. */
-class UUIDManager {
-  readonly uuidSet = new Set<string>();
-
+/**
+ * Random v4 ids for nodes and ports. A collision needs about 2^61 ids for even
+ * odds, so ids are not recorded: a long-running host that builds graphs over
+ * and over keeps no memory of the ids it used.
+ */
+export default {
   create(): string {
-    const id = v4();
-    if (!this.validate(id)) {
-      return this.create();
-    }
-    this.uuidSet.add(id);
-    return id;
-  }
-
-  validate(value: string): boolean {
-    if (!validate(value)) {
-      console.warn(`uuid ${value} is invalid.`);
-      return false;
-    }
-    if (this.uuidSet.has(value)) {
-      console.warn(`${value} exists.`);
-      return false;
-    }
-    return true;
-  }
-
-  delete(value: string): Set<string> {
-    this.uuidSet.delete(value);
-    return this.uuidSet;
-  }
-}
-
-export default new UUIDManager();
+    return v4();
+  },
+};

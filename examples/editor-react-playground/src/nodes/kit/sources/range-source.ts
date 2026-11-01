@@ -2,8 +2,7 @@
  * Range Source (R): emits the integers [start, start+count) once, in order.
  */
 
-import { range } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { range, takeUntil } from 'rxjs';
 import { defineNode } from '../../define-node';
 import { rt, paramsOf } from '../../runtime-boundary';
 import type { INodeConstructionOptions, RuntimePortLike } from '../../runtime-boundary';

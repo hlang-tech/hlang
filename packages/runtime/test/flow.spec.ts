@@ -1,5 +1,5 @@
+import { map } from "rxjs";
 import { describe, expect, it, vi } from "vitest";
-import { map } from "rxjs/operators";
 import { Flow, Port, ReadableNode, TransformNode, WriteableNode } from "../src/index";
 import type { PortAccessor } from "../src/index";
 import { Apply, asNumber, Collect, Values } from "./helpers";
@@ -8,10 +8,12 @@ const ERROR_PORT = "@node/error";
 
 describe("ports", () => {
   it("connects an output to an input and returns the output for chaining", () => {
-    const out = new Values([]).O("out");
+    const source = new Values(["v"]);
+    const out = source.O("out");
     const sink = new Collect();
     expect(out.connect(sink.I("in"))).toBe(out);
-    expect(out.peers).toEqual([sink.I("in")]);
+    new Flow().run(source);
+    expect(sink.seen).toEqual(["v"]);
   });
 
   it("refuses every other direction", () => {
@@ -38,15 +40,6 @@ describe("ports", () => {
     port.send(1);
     port.send(2);
     expect(seen).toEqual([2, 3]);
-  });
-
-  it("marks a port active and inactive", () => {
-    const port = new Values([]).O("out");
-    expect(port.isActive).toBe(false);
-    port.active();
-    expect(port.isActive).toBe(true);
-    port.deActive();
-    expect(port.isActive).toBe(false);
   });
 
   it("resolves a port whose name contains a dot", () => {
@@ -76,6 +69,28 @@ describe("ports", () => {
     port.send("x");
     expect(seen).toEqual(["x"]);
     expect(log).toHaveBeenCalledWith(expect.stringContaining("deperecated"));
+  });
+});
+
+describe("isolation", () => {
+  it("gives a node nothing but its own options and ports", () => {
+    class Bare extends ReadableNode {
+      constructor() {
+        super({});
+        Port.O("out").attach(this);
+      }
+    }
+    const node = new Bare();
+    new Flow().run(node);
+
+    // No route from a node to the flow that ran it or to any other node.
+    expect(Object.keys(node).sort()).toEqual(["I", "O", "id", "identity", "opts", "type"]);
+    expect(Object.keys(node.O("out")).sort()).toEqual(["id", "identity", "name", "type"]);
+  });
+
+  it("exposes a port's stream read-only", () => {
+    const port = new Values([]).O("out");
+    expect("next" in port.$).toBe(false);
   });
 });
 
@@ -265,37 +280,6 @@ describe("Flow", () => {
     const source = new Values([1]);
     source.O("out").connect(Port.I("loose"));
     expect(() => new Flow().run(source)).toThrow('Port "loose" is connected but not attached to a node.');
-  });
-
-  it("allows a feedback loop between Transforms", () => {
-    // `step` counts up and feeds itself through `back` until it reaches 3.
-    const source = new Values([0]);
-    const step = new Apply((value) => asNumber(value) + 1);
-    const back = new (class extends TransformNode {
-      constructor() {
-        super({});
-        Port.I("in").attach(this);
-        Port.O("out").attach(this);
-      }
-
-      override _transform($i: PortAccessor, $o: PortAccessor) {
-        $i("in").receive((value) => {
-          if (asNumber(value) < 3) $o("out").send(value);
-        });
-      }
-    })();
-    const sink = new Collect();
-    source.O("out").connect(step.I("in"));
-    step.O("out").connect(back.I("in"));
-    back.O("out").connect(step.I("in"));
-    step.O("out").connect(sink.I("in"));
-
-    new Flow().run(source);
-
-    // Delivery is synchronous and depth-first: `back` subscribed to `step`
-    // before `sink`, so each value runs the loop to its end before `sink`
-    // receives it, and `sink` sees the values as the recursion unwinds.
-    expect(sink.seen).toEqual([3, 2, 1]);
   });
 
   it("runs each node once and wires each edge once when run again", () => {

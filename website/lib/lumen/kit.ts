@@ -11,8 +11,7 @@
 import { NodeRegistry } from '@hlang-org/interpreter';
 import type { INodeConstructionOptions, NodeConstructor } from '@hlang-org/interpreter';
 import type { NodeDescriptor, PortDescriptor } from '@hlang-org/editor-core';
-import { interval, range, timer } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { interval, map, range, takeUntil, timer } from 'rxjs';
 import { numberParam, runtime } from '@/lib/runtime';
 import type { PortAccess } from '@/lib/runtime';
 

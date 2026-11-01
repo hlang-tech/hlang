@@ -6,9 +6,8 @@
  */
 
 import type { INodeConstructionOptions, NodeConstructor } from '@hlang-org/interpreter';
-import { isObservable } from 'rxjs';
+import { isObservable, map, takeUntil } from 'rxjs';
 import type { Observable } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
 import type { TransformCode } from './live-graph';
 import { runtime } from './runtime';
 import type { PortAccess } from './runtime';

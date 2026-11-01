@@ -11,7 +11,9 @@ import Node3 from "./nodes/collect.js";
 export function run(options = {}) {
   const flowId = options.flowId ?? "flow-" + Date.now().toString(36);
   const env = options.env ?? "prod";
-  const middleware = options.middleware ?? ({});
+  const middleware = Object.freeze({
+    ...options.middleware ?? ({})
+  });
   const stop = new Subject();
   const stopCallbacks = [];
   const signal = {

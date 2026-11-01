@@ -51,8 +51,8 @@ importers:
         specifier: ^19.2.0
         version: 19.3.1(react@19.3.1)
       rxjs:
-        specifier: ^6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
     devDependencies:
       '@types/react':
         specifier: ^19.0.0
@@ -113,8 +113,8 @@ importers:
         specifier: ^0.3.21
         version: 0.3.25
       rxjs:
-        specifier: ^6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
       tsup:
         specifier: ^9.0.0
         version: 9.0.0(jiti@2.7.0)(postcss@8.5.32)(typescript@6.0.3)(yaml@2.9.1)
@@ -301,9 +301,6 @@ importers:
       '@hlang-org/runtime':
         specifier: workspace:^
         version: link:../runtime
-      rxjs:
-        specifier: ^6.6.7
-        version: 6.6.7
     devDependencies:
       '@arethetypeswrong/cli':
         specifier: ^0.18.4
@@ -317,6 +314,9 @@ importers:
       publint:
         specifier: ^0.3.21
         version: 0.3.25
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
       tsup:
         specifier: ^9.0.0
         version: 9.0.0(jiti@2.7.0)(postcss@8.5.32)(typescript@6.0.3)(yaml@2.9.1)
@@ -365,9 +365,6 @@ importers:
 
   packages/runtime:
     dependencies:
-      rxjs:
-        specifier: ^6.6.7
-        version: 6.6.7
       uuid:
         specifier: ^11.1.1
         version: 11.1.1
@@ -384,6 +381,9 @@ importers:
       publint:
         specifier: ^0.3.25
         version: 0.3.25
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
       tsup:
         specifier: ^9.0.0
         version: 9.0.0(jiti@2.7.0)(postcss@8.5.32)(typescript@6.0.3)(yaml@2.9.1)
@@ -475,8 +475,8 @@ importers:
         specifier: ^11.1.2
         version: 11.1.2
       rxjs:
-        specifier: ^6.6.7
-        version: 6.6.7
+        specifier: ^7.8.2
+        version: 7.8.2
       shiki:
         specifier: ^4.5.0
         version: 4.5.0
@@ -4127,9 +4127,8 @@ packages:
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
 
-  rxjs@6.6.7:
-    resolution: {integrity: sha512-hTdwr+7yYNIT5n4AMYp85KA6yw2Va0FLa3Rguvbpa4W3I5xynaBZo41cM3XM+4Q6fRMj3sBYIR1VAmZMXYJvRQ==}
-    engines: {npm: '>=2.0.0'}
+  rxjs@7.8.2:
+    resolution: {integrity: sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==}
 
   sade@1.8.1:
     resolution: {integrity: sha512-xal3CZX1Xlo/k4ApwCFrHVACi9fBqJ7V+mwhBsuf/1IOKbBy098Fex+Wa/5QMubw09pSZ/u8EY8PWgevJsXp1A==}
@@ -4412,9 +4411,6 @@ packages:
 
   tsconfig-paths@3.15.0:
     resolution: {integrity: sha512-2Ac2RgzDe/cn48GvOe3M+o82pEFewD3UPbyoUHHdKasHwJKjds4fLXWf/Ux5kATBKN20oaFGu+jbElp1pos0mg==}
-
-  tslib@1.14.1:
-    resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
 
   tslib@2.9.1:
     resolution: {integrity: sha512-a4Ux9VKuIMHsOS7ENbEq6hK2ZGYIT27Rtl0E4eD9KqwxhKiQeMZE/9xb3IdYwWaSOyIBQLExhQgXDTYoiCxnWA==}
@@ -8580,9 +8576,9 @@ snapshots:
     dependencies:
       queue-microtask: 1.2.3
 
-  rxjs@6.6.7:
+  rxjs@7.8.2:
     dependencies:
-      tslib: 1.14.1
+      tslib: 2.9.1
 
   sade@1.8.1:
     dependencies:
@@ -8918,8 +8914,6 @@ snapshots:
       json5: 1.0.2
       minimist: 1.2.8
       strip-bom: 3.0.0
-
-  tslib@1.14.1: {}
 
   tslib@2.9.1: {}
 

@@ -15,8 +15,7 @@ import {
   WriteableNode as RuntimeWriteableNode,
 } from '@hlang-org/runtime';
 import type { PortAccessor } from '@hlang-org/runtime';
-import { interval } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { interval, takeUntil } from 'rxjs';
 import type {
   INodeConstructionOptions,
   NodeConstructor,

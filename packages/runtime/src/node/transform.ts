@@ -8,11 +8,11 @@ export default class TransformNode<TOptions extends object = NodeOptions> extend
   readonly type: typeof NODE_TYPE.TRANSFORM = NODE_TYPE.TRANSFORM;
 
   /** The error output, `@node/error`. */
-  private readonly errorPort = Port.O(ERROR_PORT_NAME);
+  readonly #errorPort = Port.O(ERROR_PORT_NAME);
 
   constructor(opts: TOptions) {
     super(opts);
-    this.errorPort.attach(this);
+    this.#errorPort.attach(this);
   }
 
   /** Sends `error` on the error output. */
@@ -21,7 +21,7 @@ export default class TransformNode<TOptions extends object = NodeOptions> extend
   }
 
   override E(): Port {
-    return this.errorPort;
+    return this.#errorPort;
   }
 
   /** Called once when the flow runs; receive through `$i` and send through `$o`. */
