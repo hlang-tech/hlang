@@ -509,7 +509,6 @@ function EditorBody(): ReactElement {
               fitViewOptions={{ padding: 0.16, minZoom: 0.7, maxZoom: 1 }}
               minZoom={0.2}
               colorMode="dark"
-              proOptions={{ hideAttribution: true }}
               defaultEdgeOptions={{ type: 'default' }}
               /* Delete is owned by useEditorHotkeys (one undoable command path);
                  disable React Flow's built-in delete so it can't double-delete. */

@@ -477,6 +477,14 @@
   box-shadow: inset 0 0 0 1px var(--color-line-strong);
 }
 
+/* A value travelling a live-graph wire: the same lit segment, quicker. */
+.wire-pulse {
+  stroke-dasharray: 0.1 1.2;
+  stroke-dashoffset: 0.1;
+  opacity: 0;
+  animation: backends-pulse 800ms var(--ease-out-quart) both;
+}
+
 /* A value travelling a route once: a short lit segment along a path with pathLength 1. */
 .backends-pulse {
   stroke-dasharray: 0.08 1.2;

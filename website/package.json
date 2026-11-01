@@ -14,7 +14,8 @@
     "test": "node scripts/run-examples.mjs",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "node scripts/generate.mjs && tsc --noEmit",
-    "clean": "rm -rf .next .generated"
+    "clean": "rm -rf .next .generated",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@hlang-org/compiler": "workspace:*",
@@ -48,6 +49,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/hast": "^3.0.5",
     "@types/mdast": "^4.0.4",
