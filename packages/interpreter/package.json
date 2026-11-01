@@ -1,6 +1,6 @@
 {
   "name": "@hlang-org/interpreter",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "In-process interpreter for hlang: evaluates an IGraph program into a live RxJS object graph, with no code generation.",
   "keywords": [
     "hlang",

@@ -35,7 +35,7 @@ export interface IRuntimePort {
   receive(next: (msg: unknown) => void): unknown;
   /**
    * Wire this Output port to a downstream Input port. Throws unless O -> I.
-   * With a capacity, the connection is bounded (`@hlang-org/runtime` 2.2+).
+   * With a capacity, the connection is bounded (`@hlang-org/runtime` 2.1 and later).
    */
   connect(port: IRuntimePort, options?: IRuntimeConnectOptions): IRuntimePort;
 }
@@ -143,7 +143,7 @@ export interface IRuntimeFlowOptions {
   readonly onError?: (error: unknown, node: IRuntimeNode | null) => void;
   /** Present when the run is traced. */
   readonly observer?: IRuntimeFlowObserver;
-  /** Present when the run shares its thread (`@hlang-org/runtime` 2.2 and later). */
+  /** Present when the run shares its thread (`@hlang-org/runtime` 2.1 and later). */
   readonly slice?: IRuntimeSliceOptions;
   /** Present when messages are deep-frozen as they are sent (RFC 0001). */
   readonly freezeMessages?: boolean;
