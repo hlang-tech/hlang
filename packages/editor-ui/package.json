@@ -44,16 +44,17 @@
   ],
   "license": "MIT",
   "scripts": {
-    "build": "./node_modules/.bin/tsup && ./node_modules/.bin/copyfiles -u 1 \"src/**/*.css\" lib",
-    "test": "./node_modules/.bin/jest",
-    "lint": "./node_modules/.bin/eslint \"src/**/*.ts\" \"src/**/*.tsx\"",
-    "lint:pkg": "./node_modules/.bin/publint && ./node_modules/.bin/attw --pack --exclude-entrypoints ./tokens.css",
-    "typecheck": "./node_modules/.bin/tsc -p tsconfig.json --noEmit"
+    "build": "tsup && copyfiles -u 1 \"src/**/*.css\" lib",
+    "test": "jest --coverage",
+    "lint": "eslint \"src/**/*.ts\" \"src/**/*.tsx\"",
+    "lint:pkg": "publint && attw --pack --exclude-entrypoints ./tokens.css ./styles.css",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf lib coverage"
   },
   "dependencies": {
-    "@hlang-org/editor-core": "file:../editor-core",
-    "@hlang-org/editor-react": "file:../editor-react",
-    "@hlang-org/interpreter": "file:../interpreter"
+    "@hlang-org/editor-core": "workspace:^",
+    "@hlang-org/editor-react": "workspace:^",
+    "@hlang-org/interpreter": "workspace:^"
   },
   "peerDependencies": {
     "@xyflow/react": "^12.0.0",

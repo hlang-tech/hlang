@@ -117,20 +117,41 @@ New library packages ship dual **ESM + CJS** built with `tsup`
 aggregated `styles.css` (import `@hlang-org/editor-ui/styles.css` once) — the
 per-component `import './x.css'` statements are compiled to no-ops.
 
-Monorepo is managed by `@atools/pm` (no pnpm/lerna). Packages linked locally use
-`file:` — after rebuilding a linked package, relink and clear the consumer's
-`node_modules/.vite`. `file:` copies re-introduce duplicate `@xyflow/react`/
-`react` instances; the playground dedupes via Vite `resolve.dedupe`.
+The monorepo uses **pnpm workspaces** (`pnpm-workspace.yaml`: `packages/*`,
+`examples/*`), **Turborepo** for the task graph (`turbo.json`), and
+**Changesets** for versioning. Internal dependencies use the workspace protocol
+(`workspace:^` in libraries, `workspace:*` in private examples) — never `file:`
+or registry ranges for a package that lives in this repo. pnpm links one copy of
+each dependency version, so `react` / `@xyflow/react` are single instances
+without dedupe or alias configuration. The pnpm version is pinned by
+`packageManager` in the root `package.json`; Node by `.nvmrc`.
+
+`@hlang-org/runtime` still ships CommonJS only. Vite consumers must opt it into
+CommonJS conversion (`optimizeDeps.include` + `build.commonjsOptions.include`),
+as `examples/editor-react-playground/vite.config.ts` does.
 
 ---
 
-## Commands (run inside each package)
+## Commands
 
-- `npm test` — jest (ts-jest). Logic packages only.
-- `npm run build` — tsup (dual ESM+CJS + dts).
-- `npm run lint` — ESLint; must be 0/0.
-- `npm run typecheck` — `tsc --noEmit`; must be clean (proves zero-`any`).
-- `npm run lint:pkg` — publint + attw (package-publish validation).
+Run from the repository root (Turborepo builds dependencies first):
+
+- `pnpm install` — install and link the whole workspace.
+- `pnpm build` — build every package (tsup: dual ESM+CJS + dts).
+- `pnpm typecheck` — `tsc --noEmit`; must be clean (proves zero-`any`).
+- `pnpm lint` — ESLint; must be 0/0.
+- `pnpm test` — jest (ts-jest).
+- `pnpm check` — build + typecheck + lint + test; the CI gate.
+- `pnpm lint:pkg` — publint + attw (package-publish validation).
+- `pnpm changeset` — record a release note for a published package change.
+
+Scope any task to one package with `--filter`, e.g.
+`pnpm --filter @hlang-org/editor-core test`.
+
+`@hlang-org/compiler` has no `test` task. Its `test:e2e` installs third-party
+`@hset/xlang-*` node packages from npm and listens on port 30000. It currently
+fails: those packages predate the runtime's `receive` port API. Run it on
+purpose with `pnpm --filter @hlang-org/compiler test:e2e`.
 
 The maintainer starts the example dev server themselves. Do NOT auto-launch a
 dev server on their behalf. For visual verification use `vite build` or a
@@ -144,8 +165,11 @@ temporary server on a non-default port, and never occupy port 5173.
   failing-test-first. Near-100% on pure logic.
 - **editor-react**: behavior tests (hook logic + mapping direction via
   `renderHook`) — NOT pixels. These guard the load-bearing bindings.
-- **editor-ui**: NO jsdom component tests. It is presentation — verified end to
-  end via the example app in a browser. Its gate is build + lint + typecheck.
+- **editor-ui**: NO component/pixel tests. It is presentation — verified end to
+  end via the example app in a browser. It may unit-test pure logic (`*.spec.ts`,
+  node env) and interaction hooks the browser harness cannot drive
+  (`*.spec.tsx`, opted into jsdom per file). Its gate is build + lint +
+  typecheck + those tests.
 - Never disable/skip a test to go green. A failing test is a real signal.
 
 ---
