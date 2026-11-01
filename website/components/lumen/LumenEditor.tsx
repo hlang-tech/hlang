@@ -119,7 +119,10 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
   // Set when the visitor stops the flow; auto-run then leaves it stopped.
   const stoppedByVisitor = useRef(false);
 
-  const wide = useMedia('(min-width: 1024px)');
+  // The side panels take 560 px; below 1440 px they would leave the canvas too
+  // narrow to read the flow (it would fit at 60% or less), so the canvas gets
+  // the full width instead.
+  const wide = useMedia('(min-width: 1440px)');
   const touch = useMedia('(pointer: coarse)');
   const narrow = useMedia('(max-width: 639px)');
 

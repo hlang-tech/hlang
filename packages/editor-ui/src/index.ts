@@ -30,6 +30,8 @@ export type { PortRowProps } from './nodes/PortRow';
 export { NodeBodySlot } from './nodes/NodeBodySlot';
 export type { NodeBodySlotProps } from './nodes/NodeBodySlot';
 export { FlowEdge } from './edges/FlowEdge';
+export { selfLoopPath, SELF_LOOP_CLEARANCE, SELF_LOOP_RADIUS } from './edges/self-loop';
+export type { SelfLoop, SelfLoopInput } from './edges/self-loop';
 export { createHlangFlowTypes } from './nodes/flow-types';
 export type { HlangFlowTypes } from './nodes/flow-types';
 

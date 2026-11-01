@@ -81,11 +81,21 @@ describe('ConnectionValidator', () => {
     expect(core.validator.canLink(inPort, inPort).reason).toBe('bad-direction');
   });
 
-  it('rejects self-connection and duplicate edges', () => {
+  it('accepts a Transform connected to itself, as ir and the runtime do', () => {
+    const { core, t } = setup();
+    expect(core.validator.validate(out(t.id), inp(t.id), core.model).ok).toBe(true);
+  });
+
+  it('refuses a self-connection the port directions do not allow', () => {
+    const { core, r, w } = setup();
+    // A Readable has no input and a Writable no output: the same rules as for
+    // any other connection, nothing special about the node being the same.
+    expect(core.validator.validate(out(r.id), inp(r.id), core.model).ok).toBe(false);
+    expect(core.validator.validate(out(w.id), inp(w.id), core.model).ok).toBe(false);
+  });
+
+  it('rejects duplicate edges', () => {
     const { core, r, t } = setup();
-    expect(core.validator.validate(out(r.id), inp(r.id), core.model).reason).toBe(
-      'self-connection',
-    );
     core.model.addEdge({ id: 'e1', source: out(r.id), target: inp(t.id) });
     expect(core.validator.validate(out(r.id), inp(t.id), core.model).reason).toBe(
       'duplicate',

@@ -81,7 +81,7 @@ The handle reports node errors (`onError`), data passing a connection (`onActivi
 | `selection` | Selected nodes and edges. Not serialized. |
 | `viewState` | Hidden and locked flags per node. Not serialized. |
 | `registry` | Node descriptors (`code`, kind, ports, default parameters) and `createNode`. |
-| `validator` | Connection rules: output to input, no self-connections, no duplicates, compatible port types. Transform cycles are allowed. |
+| `validator` | Connection rules: output to input, no duplicates, compatible port types. Transform cycles are allowed, including a Transform connected to itself. |
 | `diagnostics` | Edit-time problems, recomputed on change. |
 | `serialization` | `toIGraph(model)` and `fromIGraph(graph)`. |
 | `events` | A typed event bus: `nodeAdded`, `nodeRemoved`, `nodeChanged`, `edgeAdded`, `edgeRemoved`, `selectionChanged`, `viewStateChanged`, `historyChanged`. |

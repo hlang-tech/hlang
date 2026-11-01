@@ -16,6 +16,7 @@ import { Flow } from '@hlang-org/runtime';
 import { interpret, NodeRegistry } from '@hlang-org/interpreter';
 import type { NodeConstructor } from '@hlang-org/interpreter';
 import Collect from './fixtures/nodes/collect.mts';
+import Countdown from './fixtures/nodes/countdown.mts';
 import FailingSink from './fixtures/nodes/failing-sink.mts';
 import Faulty from './fixtures/nodes/faulty.mts';
 import Loop from './fixtures/nodes/loop.mts';
@@ -40,6 +41,7 @@ const FIXTURE_NODES: Readonly<Record<string, NodeConstructor>> = {
   faulty: Faulty,
   'failing-sink': FailingSink,
   loop: Loop,
+  countdown: Countdown,
   ticker: Ticker,
   'teardown-ticker': TeardownTicker,
 };
@@ -271,6 +273,18 @@ describe('compile', () => {
       'const errors = []; const handle = program.run({ onError: (event) => errors.push(event) }); handle.dispose(); console.log(JSON.stringify(errors));',
     );
     expect(JSON.parse(output)).toEqual([{ nodeId: 'f', error: 'bad:7' }]);
+  });
+
+  it('runs a Transform connected to itself the same way as the interpreter', () => {
+    const graph: IGraph = {
+      nodeList: [node('a', 'source', 'R', { values: [3, 1] }), node('c', 'countdown', 'T'), node('w', 'collect', 'W')],
+      connections: [link('a', 'c'), link('c', 'c', 'again', 'in'), link('c', 'w')],
+    };
+    const interpreted = runInterpreted(graph);
+    const compiled: unknown = JSON.parse(runCompiled(compile(graph, { nodes: NODES }).code, RUN_AND_PRINT_RECORDED));
+
+    expect(interpreted.map((entry) => entry.value)).toEqual([3, 2, 1, 0, 1, 0]);
+    expect(compiled).toEqual(interpreted);
   });
 
   it('runs a graph that loops forever in slices when asked, and stops it on dispose', () => {

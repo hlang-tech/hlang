@@ -9,7 +9,8 @@
  *   3. Port DTO compatibility (stricter than the runtime, which only checks
  *      I/O) — prevents silent shape mismatches.
  *   4. No duplicate edge between the exact same endpoints.
- *   5. Cycles are ALWAYS allowed — T<->T feedback is a first-class feature.
+ *   5. Cycles are ALWAYS allowed — T<->T feedback is a first-class feature,
+ *      and so is a Transform connected to itself (iteration).
  */
 
 import type { DataType, Endpoint, PortDescriptor } from '../model/types';
@@ -42,10 +43,9 @@ function typesCompatible(a: DataType, b: DataType): boolean {
 
 export class ConnectionValidator implements IConnectionValidator {
   validate(source: Endpoint, target: Endpoint, model: IGraphModel): ValidationResult {
-    if (source.nodeId === target.nodeId) {
-      return fail('self-connection', 'A node cannot connect to itself.');
-    }
-
+    // A node may connect to itself: a Transform's output fed back into its
+    // own input is iteration, like any T<->T feedback. The direction rules
+    // below are what stop a Readable or a Writable from doing so.
     const sourceNode = model.getNode(source.nodeId);
     const targetNode = model.getNode(target.nodeId);
     if (sourceNode === undefined || targetNode === undefined) {

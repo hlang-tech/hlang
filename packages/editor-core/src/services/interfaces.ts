@@ -98,8 +98,8 @@ export interface IConnectionValidator {
    * model. Used by design-time affordances such as "which node types can
    * complete this dangling connection?", where the candidate node does not
    * exist yet. This is the model-free subset of {@link validate}'s rules;
-   * `validate` additionally enforces node existence, self-connection, and
-   * duplicate-edge rules that only make sense against a concrete graph.
+   * `validate` additionally enforces node existence and the duplicate-edge
+   * rule, which only make sense against a concrete graph.
    */
   canLink(sourcePort: PortDescriptor, targetPort: PortDescriptor): ValidationResult;
 }
