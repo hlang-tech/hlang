@@ -22,6 +22,8 @@ module.exports = tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       '@typescript-eslint/no-explicit-any': 'error',
+      // No type assertions: model the type, or narrow it with a guard.
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
       '@typescript-eslint/no-unsafe-assignment': 'error',
       '@typescript-eslint/no-unsafe-member-access': 'error',
       '@typescript-eslint/no-unsafe-call': 'error',
@@ -37,21 +39,6 @@ module.exports = tseslint.config(
           caughtErrorsIgnorePattern: '^_',
         },
       ],
-    },
-  },
-  {
-    // React Flow node/edge components instantiate React Flow generics
-    // (`NodeProps<HlangRFNode>`, `EdgeProps<HlangRFEdge>`) over types imported
-    // from the `file:`-linked editor-react package. `tsc` resolves these to
-    // their real shapes (verified), but typescript-eslint's separate program
-    // cannot follow the cross-package generic and treats `data` as an error
-    // type, producing FALSE `no-unsafe-*` positives. Scope the relaxation to
-    // exactly these two boundary files — everything else keeps full strictness.
-    files: ['src/nodes/HlangNode.tsx', 'src/edges/FlowEdge.tsx'],
-    rules: {
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-argument': 'off',
     },
   },
 );

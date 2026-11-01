@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "lint": "eslint src"
   },
   "dependencies": {
     "@hlang-org/editor-core": "workspace:*",
@@ -19,13 +20,16 @@
     "@xyflow/react": "^12.11.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "rxjs": "^6.6.7"
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.1",
     "vite": "^6.0.0"
   }
 }

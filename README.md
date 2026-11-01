@@ -70,7 +70,7 @@ The Lumen packages (`editor-*`, version 0.x) are in active development. Their AP
 ### Write a graph in code
 
 ```sh
-npm install @hlang-org/runtime
+npm install @hlang-org/runtime rxjs
 ```
 
 ```js

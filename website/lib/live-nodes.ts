@@ -6,9 +6,8 @@
  */
 
 import type { INodeConstructionOptions, NodeConstructor } from '@hlang-org/interpreter';
-import { isObservable } from 'rxjs';
+import { isObservable, map, takeUntil } from 'rxjs';
 import type { Observable } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
 import type { TransformCode } from './live-graph';
 import { runtime } from './runtime';
 import type { PortAccess } from './runtime';
@@ -42,7 +41,7 @@ class TextSource extends runtime.ReadableNode {
     super(options);
     runtime.Port.O('out').attach(this);
   }
-  _read($o: PortAccess): void {
+  override _read($o: PortAccess): void {
     middlewareOf(this.opts)
       .input$.pipe(takeUntil(this.opts.signal.observable))
       .subscribe(text => {
@@ -59,7 +58,7 @@ function transform(map: (text: string) => string): NodeConstructor {
       runtime.Port.I('in').attach(this);
       runtime.Port.O('out').attach(this);
     }
-    _transform($i: PortAccess, $o: PortAccess): void {
+    override _transform($i: PortAccess, $o: PortAccess): void {
       $i('in').receive(message => {
         $o('out').send(map(String(message)));
       });
@@ -73,7 +72,7 @@ class Print extends runtime.WriteableNode {
     super(options);
     runtime.Port.I('in').attach(this);
   }
-  _write($i: PortAccess): void {
+  override _write($i: PortAccess): void {
     const { emit } = middlewareOf(this.opts);
     $i('in').receive(message => {
       emit(String(message));

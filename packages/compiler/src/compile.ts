@@ -30,6 +30,7 @@ import {
   num,
   object,
   property,
+  spread,
   statement,
   str,
   valueToExpression,
@@ -183,7 +184,11 @@ function runBody(plan: ExecutionPlan, localByCode: ReadonlyMap<string, string>):
   const body: Statement[] = [
     fallback('flowId', generatedFlowId),
     fallback('env', str(DEFAULT_ENV)),
-    fallback('middleware', object([])),
+    // A frozen copy of the host's middleware, as the interpreter passes it.
+    constant(
+      'middleware',
+      call(member(id('Object'), 'freeze'), [object([spread(logical('??', member(options, 'middleware'), object([])))])]),
+    ),
     // Stop signal, shaped like the interpreter's IStopSignal.
     constant('stop', construct(id('Subject'))),
     constant('stopCallbacks', array([])),

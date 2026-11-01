@@ -4,7 +4,7 @@
  */
 
 import { defineNode } from '../../define-node';
-import { asCtor, rt } from '../../runtime-boundary';
+import { rt } from '../../runtime-boundary';
 import type { INodeConstructionOptions, NodeConstructor, RuntimePortLike } from '../../runtime-boundary';
 
 export function makeCollectSink(onSummary: (summary: string) => void): NodeConstructor {
@@ -13,7 +13,7 @@ export function makeCollectSink(onSummary: (summary: string) => void): NodeConst
       super(opts);
       rt.Port.I('Input').attach(this);
     }
-    _write(i: (name: string) => RuntimePortLike): void {
+    override _write(i: (name: string) => RuntimePortLike): void {
       let count = 0;
       i('Input').receive((value: unknown) => {
         count += 1;
@@ -21,7 +21,7 @@ export function makeCollectSink(onSummary: (summary: string) => void): NodeConst
       });
     }
   }
-  return asCtor(CollectSink);
+  return CollectSink;
 }
 
 export const collectSinkDescriptor = defineNode({

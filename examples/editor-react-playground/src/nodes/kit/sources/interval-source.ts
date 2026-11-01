@@ -3,10 +3,9 @@
  * flow is stopped. A hot, continuous stream — the canvas shows it living.
  */
 
-import { interval } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { interval, map, takeUntil } from 'rxjs';
 import { defineNode } from '../../define-node';
-import { rt, paramsOf, asCtor } from '../../runtime-boundary';
+import { rt, paramsOf } from '../../runtime-boundary';
 import type { INodeConstructionOptions, RuntimePortLike } from '../../runtime-boundary';
 
 class IntervalSource extends rt.ReadableNode {
@@ -16,7 +15,7 @@ class IntervalSource extends rt.ReadableNode {
     this.stop = opts.signal;
     rt.Port.O('Output').attach(this);
   }
-  _read(o: (name: string) => RuntimePortLike): void {
+  override _read(o: (name: string) => RuntimePortLike): void {
     const params = paramsOf(this);
     const period = typeof params.periodMs === 'number' ? params.periodMs : 900;
     interval(period)
@@ -36,5 +35,5 @@ export const intervalSource = defineNode({
   displayName: 'Interval',
   group: 'sources',
   defaultParams: { periodMs: 900 },
-  ctor: asCtor(IntervalSource),
+  ctor: IntervalSource,
 });

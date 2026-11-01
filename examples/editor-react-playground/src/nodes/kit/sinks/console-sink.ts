@@ -5,7 +5,7 @@
  */
 
 import { defineNode } from '../../define-node';
-import { asCtor, rt } from '../../runtime-boundary';
+import { rt } from '../../runtime-boundary';
 import type { INodeConstructionOptions, NodeConstructor, RuntimePortLike } from '../../runtime-boundary';
 
 /** Build a console-sink definition bound to a value reporter. */
@@ -15,11 +15,11 @@ export function makeConsoleSink(onValue: (value: unknown) => void): NodeConstruc
       super(opts);
       rt.Port.I('Input').attach(this);
     }
-    _write(i: (name: string) => RuntimePortLike): void {
+    override _write(i: (name: string) => RuntimePortLike): void {
       i('Input').receive(onValue);
     }
   }
-  return asCtor(ConsoleSink);
+  return ConsoleSink;
 }
 
 /** The design-time descriptor (runtime ctor is supplied at assembly). */

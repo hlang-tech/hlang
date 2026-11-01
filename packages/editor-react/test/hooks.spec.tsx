@@ -3,7 +3,7 @@
  * Uses @testing-library/react's renderHook against a real EditorCore.
  */
 
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { renderHook, act, cleanup } from '@testing-library/react';
 import type { Connection } from '@xyflow/react';
 import { AddNodeCommand } from '@hlang-org/editor-core';
@@ -237,6 +237,40 @@ describe('useClipboard', () => {
     });
     expect(core.model.getNodes()).toHaveLength(2);
     expect(core.model.getEdges()).toHaveLength(1);
+  });
+
+  it('pastes from the system clipboard only what validates as a snapshot', async () => {
+    const core = makeCore();
+    const valid = core.registry.createNode('r', { x: 0, y: 0 });
+    const envelope = (nodes: unknown): string => JSON.stringify({ __hlang_clipboard: 1, nodes, edges: [] });
+    let systemText = envelope([{ ...valid, kind: 'X' }]);
+    vi.stubGlobal('navigator', {
+      clipboard: {
+        readText: () => Promise.resolve(systemText),
+        writeText: () => Promise.resolve(),
+      },
+    });
+    try {
+      const { result } = renderHook(() => useClipboard(core));
+      const paste = async (): Promise<void> => {
+        await act(async () => {
+          result.current.paste();
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+      };
+
+      // A tagged envelope whose node is not a valid node is ignored.
+      await paste();
+      expect(core.model.getNodes()).toHaveLength(0);
+
+      systemText = envelope([valid]);
+      await paste();
+      expect(core.model.getNodes()).toHaveLength(1);
+      expect(core.model.getNodes()[0]?.code).toBe('r');
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('cut removes the selection (one undo restores it)', () => {

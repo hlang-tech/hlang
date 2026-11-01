@@ -9,7 +9,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactElement, KeyboardEvent } from 'react';
-import type { NodeKind } from '@hlang-org/editor-core';
 import type { NodeSearchController, NodeSearchResultView } from './useNodeSearch';
 import type { FuzzyMatch } from './fuzzy';
 import './NodeSearch.css';
@@ -138,7 +137,7 @@ export function NodeSearch({ controller }: NodeSearchProps): ReactElement | null
                 }}
               >
                 <span
-                  className={`hl-node-search-kind hl-mono hl-kind-${kind.toLowerCase() as Lowercase<NodeKind>}`}
+                  className={`hl-node-search-kind hl-mono hl-kind-${kind.toLowerCase()}`}
                 >
                   {kind}
                 </span>

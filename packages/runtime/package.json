@@ -34,25 +34,17 @@
     "Archer <qddegtya@gmail.com>",
     "archersado <archersado@hotmail.com>"
   ],
-  "type": "commonjs",
+  "type": "module",
   "engines": {
-    "node": ">=18"
+    "node": "^20.19.0 || >=22.12.0"
   },
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "module": "lib/index.mjs",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "exports": {
     ".": {
-      "import": {
-        "types": "./lib/index.d.mts",
-        "default": "./lib/index.mjs"
-      },
-      "require": {
-        "types": "./lib/index.d.ts",
-        "default": "./lib/index.js"
-      }
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
     },
-    "./lib/*": "./lib/*",
     "./package.json": "./package.json"
   },
   "files": [
@@ -65,23 +57,30 @@
   },
   "scripts": {
     "test": "vitest run --coverage",
-    "build": "rm -rf lib && tsc -p tsconfig.json && tsup",
+    "build": "rm -rf lib && tsup",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "clean": "rm -rf lib coverage",
-    "lint:pkg": "publint && attw --pack"
+    "lint:pkg": "publint && attw --pack --profile esm-only",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\""
   },
   "dependencies": {
-    "rxjs": "^6.6.7",
     "uuid": "^11.1.1"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
+    "@types/node": "^24.19.2",
     "@vitest/coverage-v8": "^5.0.5",
+    "eslint": "^9.39.5",
+    "fast-check": "^4.10.2",
     "publint": "^0.3.25",
-    "rxjs": "^6.6.7",
+    "rxjs": "^7.8.2",
     "tsup": "^9.0.0",
     "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.1",
     "vite": "^8.3.5",
     "vitest": "^5.0.5"
+  },
+  "peerDependencies": {
+    "rxjs": "^7.8.2"
   }
 }
