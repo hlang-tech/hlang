@@ -26,9 +26,12 @@ packages/compiler/test/.generated/
 
 # Website
 website/.next/
+website/.next-dev/
 website/.generated/
 website/.taste-skill/
 website/next-env.d.ts
-website/.vercel/
 website/public/media/
 website/*.tsbuildinfo
+
+# Vercel project link (vercel link)
+.vercel/
