@@ -24,6 +24,7 @@ export class ServiceCollection {
    * run time, so this is asserted rather than validated.
    */
   private entry<T>(id: ServiceIdentifier<T>): T | undefined {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- the container's unchecked lookup, see above
     return this.entries.get(id.serviceName) as T | undefined;
   }
 

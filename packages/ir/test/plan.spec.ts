@@ -100,6 +100,7 @@ describe('planGraph', () => {
   it('rejects an unknown node kind', () => {
     // A graph usually arrives as JSON, where the types do not hold; this input is
     // deliberately outside INodeInfo to prove planGraph checks the kind at run time.
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- deliberately invalid input, see above
     const bad = { ...node('a', 'R'), type: 'X' } as unknown as INodeInfo;
     expect(codeOf(() => planGraph({ nodeList: [bad], connections: [] }))).toBe('invalid-node-kind');
   });

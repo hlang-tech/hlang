@@ -26,7 +26,7 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
 
 /** A node's construction params bag (`bizData.params`). */
 export function paramsOf(node: { readonly opts: INodeConstructionOptions }): Readonly<Record<string, unknown>> {
-  const params = node.opts.config['params'];
+  const params = node.opts.config.params;
   return isRecord(params) ? params : {};
 }
 

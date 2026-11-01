@@ -57,7 +57,7 @@ export interface NodeSearchTriggers {
   readonly onConnectStart: (event: unknown, params: OnConnectStartParams) => void;
   readonly onConnectEnd: (event: PointerPosition | TouchPositions, connectionState: ConnectionEnd) => void;
   /** Attach to `<ReactFlow onPaneClick>`; a rapid second click opens the palette. */
-  onPaneClick(event: PointerPosition): void;
+  readonly onPaneClick: (event: PointerPosition) => void;
 }
 
 export function useNodeSearchTriggers(

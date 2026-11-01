@@ -21,18 +21,24 @@ and fix the design, do not lower the bar.
   (drive the real flow and observe the real outcome), not just that types/lint
   pass or that a class was toggled. If you refactor, the behavior must be
   identical afterward — prove it.
-- **Zero `any`.** New packages compile under `strict` + `noImplicitAny: true` +
-  `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes`. Opaque values are
-  `unknown`, never `any`. No `@ts-ignore` / `@ts-expect-error` to silence a real
-  type error.
+- **Zero `any`.** Every package, the website, and the playground compile under
+  `strict` + `noImplicitAny: true` + `noUncheckedIndexedAccess` +
+  `exactOptionalPropertyTypes`, with no exception. Opaque values are `unknown`,
+  never `any`. No `@ts-ignore` / `@ts-expect-error` to silence a real type error.
+- **No type assertions.** ESLint enforces
+  `@typescript-eslint/consistent-type-assertions` (`assertionStyle: 'never'`)
+  everywhere; `as const` is allowed. Model the type, narrow it with a guard, or
+  declare a function's parameters as only what it reads. Data from outside
+  (JSON, the clipboard, `require`) is `unknown` until validated.
 - **No tricks, no workarounds.** If the code needs a hack to work, the
   architecture is not good enough — fix the architecture. Specifically banned:
   reaching around a public API to touch another layer's internals; global
   `document.querySelector` into another library's private DOM/CSS class names;
   monkey-patching; casting through `unknown`/`as` to defeat a type instead of
-  modeling it. A single, documented boundary cast to adapt an external library's
-  loose types is acceptable **only** at that one boundary, with a comment saying
-  why.
+  modeling it. The only assertions in the repository are the dependency-injection
+  container's two unchecked steps (a heterogeneous map, which TypeScript cannot
+  type) and one test that builds deliberately invalid input; each carries a
+  scoped lint disable that says why. Adding another needs the same justification.
 - **No hardcoding.** No magic node ids, no baked-in graph shapes, no
   environment-specific paths or values in library code. Behavior is driven by
   data and injected configuration. Constants that are genuinely fixed (e.g. the
@@ -58,7 +64,7 @@ reference framework, read its actual source / `.d.ts`, not its docs.
 ## Architecture & layer boundaries (strict, one-directional)
 
 ```text
-runtime      @hlang-org/runtime      RxJS reactive engine (R/T/W nodes, Flow)   ESM + CJS, stable 1.x
+runtime      @hlang-org/runtime      RxJS reactive engine (R/T/W nodes, Flow)   ESM + CJS, 2.x
 ir           @hlang-org/ir           IGraph types + planGraph (validate, lower)  zero dependencies
 interpreter  @hlang-org/interpreter  executes the plan in-process (RxJS-native)  depends on ir, runtime
 compiler     @hlang-org/compiler     prints the plan as an ES module (ESTree)    depends on ir only
@@ -200,7 +206,7 @@ version and a migration guide.
 
 ## Do-not-touch
 
-- `packages/runtime` is the stable 1.x engine with its own looser config.
-  Change it only when explicitly asked, without breaking its public API.
+- `packages/runtime` is the engine every program runs on. Change it only when
+  explicitly asked; its public API follows semver strictly (2.0 is the typed API).
 - Do not commit or push unless asked. Never work directly on `main` or
   `develop`; branch first.

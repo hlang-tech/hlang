@@ -48,6 +48,7 @@ export class InstantiationService {
     // A constructor's parameter types are not known here, only the services its
     // decorators name, so the arguments are passed unchecked. Each injected
     // argument is the instance registered for the identifier on that parameter.
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- the container's unchecked construction, see above
     const args = [...injected, ...rest] as never[];
     return new ctor(...args);
   }
