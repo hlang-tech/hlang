@@ -1,44 +1,112 @@
-# `@hlang-org/compiler`
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hlang-tech/hlang/main/media/logo.png" width="88" alt="hlang">
+</p>
 
-A runtime compiler for hlang to build the flow graph data struction to executable code.
+# @hlang-org/compiler
 
-## Features
+Compiles an hlang program (`IGraph`) ahead of time into a standalone ES module. The module runs the graph with the same behavior as [`@hlang-org/interpreter`](https://www.npmjs.com/package/@hlang-org/interpreter), without the interpreter or the graph JSON at run time.
 
-- **Optimized Compilation**: Advanced optimization techniques ensure that your code runs efficiently.
-- **Cross-Platform Support**: Compile your code for various platforms including desktop, browser and server enviroment.
+[![npm](https://img.shields.io/npm/v/@hlang-org/compiler?color=c8ccd4&labelColor=0f1114)](https://www.npmjs.com/package/@hlang-org/compiler)
+[![license](https://img.shields.io/npm/l/@hlang-org/compiler?color=c8ccd4&labelColor=0f1114)](https://github.com/hlang-tech/hlang/blob/main/LICENSE)
 
-## Installation
+## Install
 
+```sh
+npm install -D @hlang-org/compiler
 ```
-> npm i @hlang-org/compiler
-```
+
+The same build is published as `@hlang-tech/compiler`. ESM and CommonJS builds with type declarations.
 
 ## Usage
 
-```typescript
-const compiler = require('@hlang-org/compiler');
-const graph = {
-  graphInfo: {
-    connections: [{"Input": {"name": "自定义函数", "type": "T", "nodeId": "spider-43039140-7b33-4252-a0f0-29e35defff4b", "portConf": {"id": "Input", "type": "Input"}}, "Output": {"name": "http 请求", "type": "R", "nodeId": "spider-68a448a7-b6f7-46c7-8639-e37ed2c27f47", "portConf": {"id": "Output", "type": "Output"}}}, {"Input": {"name": "http", "type": "T", "nodeId": "spider-1bc19ee8-a5bd-4175-bc91-721d61324eed", "portConf": {"id": "Input", "type": "Input"}}, "Output": {"name": "自定义函数", "type": "T", "nodeId": "spider-43039140-7b33-4252-a0f0-29e35defff4b", "portConf": {"id": "Output", "type": "Output"}}}, {"Input": {"name": "自定义函数", "type": "T", "nodeId": "spider-e62d22a2-478d-4f32-8117-6f782a7ccec0", "portConf": {"id": "Input", "type": "Input"}}, "Output": {"name": "http", "type": "T", "nodeId": "spider-1bc19ee8-a5bd-4175-bc91-721d61324eed", "portConf": {"id": "Output", "type": "Output"}}}],
-    nodeList: [{"id": 2, "code": "advanced-function", "icon": "", "name": "自定义函数", "type": "T", "nodeId": "spider-e62d22a2-478d-4f32-8117-6f782a7ccec0", "bizData": {"flowId": "1", "nodeId": "spider-e62d22a2-478d-4f32-8117-6f782a7ccec0", "params": {"hackSend": false, "scriptCode": "// Type some code...\ninput.ctx.body = {\n  success: true,\n  data: input.data\n}\n\nlogger(input.ctx.body, input.ctx)\n\n"}}, "version": 1, "portInfo": {"Input": [{"id": "Input", "dto": {"name": "DTO_Input", "children": [{"name": "_traceId", "type": {"name": "string", "type": "intrinsic"}, "flags": {"isExported": true}, "sources": [{"line": 2, "fileName": "src/type/IO.ts", "character": 10}]}, {"name": "payload", "type": {"name": "any", "type": "intrinsic"}, "flags": {"isExported": true}, "sources": [{"line": 3, "fileName": "src/type/IO.ts", "character": 9}]}], "kindString": "Interface"}, "desc": "输入", "name": "输入"}], "Output": [{"id": "Output", "dto": {"name": "DTO_Output", "children": [{"name": "_traceId", "type": {"name": "string", "type": "intrinsic"}, "flags": {"isExported": true}, "sources": [{"line": 7, "fileName": "src/type/IO.ts", "character": 10}]}, {"name": "payload", "type": {"name": "any", "type": "intrinsic"}, "flags": {"isExported": true}, "sources": [{"line": 8, "fileName": "src/type/IO.ts", "character": 9}]}], "kindString": "Interface"}, "desc": "输出", "name": "输出"}]}, "position": {"x": 1202, "y": 269.578125}, "gmtCreate": "2024-05-27T10:32:16.839Z", "groupCode": "advanced", "description": "", "gmtModified": "2024-05-27T10:32:16.839Z", "editorResource": {"styleHref": "YOUR_NODES_ASSETS_BASE/hlang-advanced-function/6/editor.css", "scriptHref": "YOUR_NODES_ASSETS_BASE/hlang-advanced-function/6/editor.js"}, "runtimeResource": "@hset/xlang-advanced-function@latest"}, {"id": 1, "code": "trigger-http-request", "icon": "", "name": "http 请求", "type": "R", "nodeId": "spider-68a448a7-b6f7-46c7-8639-e37ed2c27f47", "bizData": {"flowId": "1", "nodeId": "spider-68a448a7-b6f7-46c7-8639-e37ed2c27f47", "params": {"url": "test", "method": "GET"}}, "version": 1, "portInfo": {"Output": [{"id": "Output", "desc": "输出", "name": "输出"}]}, "position": {"x": 338, "y": 200.578125}, "gmtCreate": "2024-05-27T10:26:37.379Z", "groupCode": "trigger", "description": "", "gmtModified": "2024-05-27T10:26:37.379Z", "editorResource": {"styleHref": "YOUR_NODES_ASSETS_BASE/hlang-trigger-http-request/4/editor.css", "scriptHref": "YOUR_NODES_ASSETS_BASE/hlang-trigger-http-request/4/editor.js"}, "runtimeResource": "@hset/xlang-trigger-http-request@latest"}, {"id": 3, "code": "rpc-http", "icon": "", "name": "http", "type": "T", "nodeId": "spider-1bc19ee8-a5bd-4175-bc91-721d61324eed", "bizData": {"flowId": "1", "nodeId": "spider-1bc19ee8-a5bd-4175-bc91-721d61324eed", "params": {"url": "http://127.0.0.1:7002/flow", "method": "GET"}}, "version": 1, "portInfo": {"Input": [{"id": "Input", "dto": {"name": "DTO_Input", "children": [{"name": "_traceId", "type": {"name": "string", "type": "intrinsic"}, "flags": {"isExported": true}, "sources": [{"line": 2, "fileName": "src/type/IO.ts", "character": 10}]}, {"name": "payload", "type": {"name": "any", "type": "intrinsic"}, "flags": {"isExported": true}, "sources": [{"line": 3, "fileName": "src/type/IO.ts", "character": 9}]}], "kindString": "Interface"}, "desc": "Input", "name": "Input", "operation": 0}], "Output": [{"id": "Output", "dto": {"name": "DTO_Output", "children": [{"name": "_traceId", "type": {"name": "string", "type": "intrinsic"}, "flags": {"isExported": true}, "sources": [{"line": 7, "fileName": "src/type/IO.ts", "character": 10}]}, {"name": "payload", "type": {"name": "any", "type": "intrinsic"}, "flags": {"isExported": true}, "sources": [{"line": 8, "fileName": "src/type/IO.ts", "character": 9}]}], "kindString": "Interface"}, "desc": "Output", "name": "Output", "operation": 0}]}, "position": {"x": 880, "y": 210.578125}, "gmtCreate": "2024-05-28T06:32:32.086Z", "groupCode": "rpc", "description": "", "gmtModified": "2024-05-28T06:32:32.086Z", "editorResource": {"styleHref": "YOUR_NODES_ASSETS_BASE/hlang-rpc-http/2/editor.css", "scriptHref": "YOUR_NODES_ASSETS_BASE/hlang-rpc-http/2/editor.js"}, "runtimeResource": "@hset/xlang-rpc-http@latest"}, {"id": 2, "code": "advanced-function", "icon": "", "name": "自定义函数", "type": "T", "nodeId": "spider-43039140-7b33-4252-a0f0-29e35defff4b", "bizData": {"flowId": "1", "nodeId": "spider-43039140-7b33-4252-a0f0-29e35defff4b", "params": {"hackSend": false, "scriptCode": "// Type some code...\n\nconst ctx = input;\n\nlogger(input, 'input');\n\noutput = { ctx }"}}, "version": 2, "portInfo": {"Input": [{"id": "Input", "dto": {"name": "DTO_Input", "children": [{"name": "_traceId", "type": {"name": "string", "type": "intrinsic"}, "flags": {"isExported": true}, "sources": [{"line": 2, "fileName": "src/type/IO.ts", "character": 10}]}, {"name": "payload", "type": {"name": "any", "type": "intrinsic"}, "flags": {"isExported": true}, "sources": [{"line": 3, "fileName": "src/type/IO.ts", "character": 9}]}], "kindString": "Interface"}, "desc": "输入", "name": "输入"}], "Output": [{"id": "Output", "dto": {"name": "DTO_Output", "children": [{"name": "_traceId", "type": {"name": "string", "type": "intrinsic"}, "flags": {"isExported": true}, "sources": [{"line": 7, "fileName": "src/type/IO.ts", "character": 10}]}, {"name": "payload", "type": {"name": "any", "type": "intrinsic"}, "flags": {"isExported": true}, "sources": [{"line": 8, "fileName": "src/type/IO.ts", "character": 9}]}], "kindString": "Interface"}, "desc": "输出", "name": "输出"}]}, "position": {"x": 598, "y": 128.578125}, "gmtCreate": "2024-05-27T10:32:16.839Z", "groupCode": "advanced", "description": "", "gmtModified": "2024-05-27T14:44:55.000Z", "editorResource": {"styleHref": "YOUR_NODES_ASSETS_BASE/hlang-advanced-function/6/editor.css", "scriptHref": "YOUR_NODES_ASSETS_BASE/hlang-advanced-function/6/editor.js"}, "runtimeResource": "@hset/xlang-advanced-function@latest"}]
+```ts
+import { writeFile } from 'node:fs/promises';
+import { compile } from '@hlang-org/compiler';
+
+const { code, imports } = compile(graph, {
+  nodes: {
+    numbers: { from: './nodes/numbers.js' },             // default export
+    double: { from: '@acme/hlang-nodes', name: 'Double' }, // named export
+    log: { from: './nodes/log.js' },
   },
-  id: 1
-}
-const { graphInfo, id } = graph;
-const config = {
-  basePackageInfo: [
-    {
-      code: "Core",
-      runtimeResource: "@hlang-org/runtime@latest"
-    },
-    {
-      code: "_",
-      runtimeResource: "lodash@latest"
-    }
-  ],
-  dirName: `HLANG_BUILD`
-}
-compiler({ graphInfo, id, options: config }).then(entry => {
-  console.log(entry)
 });
+
+await writeFile('program.mjs', code);
+// `imports` lists every module the program imports, for example
+// ['@hlang-org/runtime', 'rxjs', './nodes/numbers.js', '@acme/hlang-nodes', './nodes/log.js'].
 ```
+
+Run the compiled program:
+
+```js
+import { run } from './program.mjs';
+
+const handle = run({ env: 'prod', onError: ({ nodeId, error }) => console.error(nodeId, error) });
+handle.nodes.numbers; // the constructed node
+handle.dispose();     // stop long-running nodes
+```
+
+`compile` is a pure function. It writes no files and installs nothing.
+
+## Generated module
+
+`compile` validates the graph with `planGraph` from [`@hlang-org/ir`](https://www.npmjs.com/package/@hlang-org/ir), builds an ESTree program, and prints it with [astring](https://github.com/davidbonnet/astring). Values are emitted as literals by the printer, so the output is valid JavaScript for any node id or parameter. The same graph always produces the same text.
+
+```js
+// Generated by @hlang-org/compiler. Do not edit.
+import {Flow} from "@hlang-org/runtime";
+import {Subject} from "rxjs";
+import Node0 from "./nodes/numbers.js";
+// ...
+export function run(options = {}) {
+  const flowId = options.flowId ?? "flow-" + Date.now().toString(36);
+  // ...
+  const nodes = {
+    numbers: new Node0({ nodeId: "numbers", flowId, env, middleware, config: { params: {} }, signal }),
+    // ...
+  };
+  nodes["numbers"].O("out").connect(nodes["double"].I("in"));
+  const flow = new Flow();
+  flow.run(nodes["numbers"]);
+  return { flowId, nodes, dispose: () => { /* ... */ } };
+}
+```
+
+`run(options)` accepts `flowId`, `env` (default `'prod'`), `middleware`, and `onError`. It returns `{ flowId, nodes, dispose }`.
+
+## API
+
+### `compile(graph, options)`
+
+| Option | Description |
+| --- | --- |
+| `nodes` | Required. Maps each node `code` to `{ from, name? }`: the module specifier and the export name (default export when `name` is omitted). |
+| `runtime` | Module that exports `Flow`. Default `'@hlang-org/runtime'`. |
+| `rxjs` | Module that exports `Subject`. Default `'rxjs'`. |
+
+Returns `{ code, imports }`.
+
+### Errors
+
+- `GraphError` (re-exported from `@hlang-org/ir`) for an invalid graph.
+- `CompileError` with `code`:
+  - `unresolved-node`: a node `code` has no entry in `options.nodes`.
+  - `invalid-import`: an export name is not a valid identifier.
+  - `unserializable-config`: a `bizData` value is not JSON (for example `undefined`, `NaN`, a function, or a `Date`). The message names the path.
+
+## Migrating from 1.x
+
+Version 2 is a rewrite. 1.x remains on npm, and `^1.0.0` ranges do not resolve to 2.x.
+
+| 1.x | 2.x |
+| --- | --- |
+| Default export `build(graph)` wrote a project to the temp directory and ran `npm install`. | `compile(graph, options)` returns `{ code, imports }`. Write and install them yourself. |
+| Node modules came from each node's `runtimeResource`. | Map each `code` in `options.nodes`. |
+| The output depended on `@hset/xlang-runtime-middleware`, lodash, and child-process IPC. | The output depends only on the runtime, RxJS, and your node modules. Pass services as `middleware`. |
+| `complier` export. | Removed. Use `compile`. |
+
+Source and documentation: [github.com/hlang-tech/hlang](https://github.com/hlang-tech/hlang).
+
+## License
+
+MIT
