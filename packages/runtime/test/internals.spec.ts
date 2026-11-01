@@ -66,11 +66,11 @@ function deepestBuild(length: number): number {
     previous = step;
   }
   const last = previous.O("out");
-  const peersOf = portInternals.peersOf;
+  const linksOf = portInternals.linksOf;
   let depth = 0;
-  vi.spyOn(portInternals, "peersOf").mockImplementation((port) => {
+  vi.spyOn(portInternals, "linksOf").mockImplementation((port) => {
     if (port === last) depth = stackDepth();
-    return peersOf(port);
+    return linksOf(port);
   });
   expect(build(source).transform).toHaveLength(length);
   vi.restoreAllMocks();

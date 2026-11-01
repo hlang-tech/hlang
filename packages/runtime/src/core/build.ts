@@ -51,12 +51,19 @@ export default function build(root: AnyNode): FlowGraph {
   for (let node = pending.pop(); node !== undefined; node = pending.pop()) {
     const outgoing: IPortDesc[] = [];
     for (const src of nodeInternals.portsOf(node, STREAM_TYPE.O)) {
-      for (const dst of portInternals.peersOf(src)) {
+      for (const { port: dst, options } of portInternals.linksOf(src)) {
         const target = portInternals.ownerOf(dst);
         if (target === null) {
           throw new Error(`Port "${dst.name}" is connected but not attached to a node.`);
         }
-        outgoing.push({ src, dst, source: node, target });
+        outgoing.push({
+          src,
+          dst,
+          source: node,
+          target,
+          capacity: options.capacity ?? Number.POSITIVE_INFINITY,
+          overflow: options.overflow,
+        });
         discover(target);
       }
     }

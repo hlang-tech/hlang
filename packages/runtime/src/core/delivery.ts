@@ -1,4 +1,5 @@
 import type Port from '../base/port';
+import { portInternals } from '../base/port';
 
 /** Called after a delivery with how long it took, in milliseconds. */
 export type DeliveryTimer = (duration: number) => void;
@@ -26,11 +27,15 @@ interface Slicing {
   readonly yieldTo: (resume: () => void) => void;
 }
 
+/** Called once every handler a delivery started has settled (RFC 0001). */
+export type DeliveryDone = () => void;
+
 /** One message on its way to one input port. */
 interface Delivery {
   readonly port: Port;
   readonly message: unknown;
   readonly timer: DeliveryTimer | undefined;
+  readonly done: DeliveryDone | undefined;
 }
 
 /** Below this many delivered entries, the queue is not worth compacting. */
@@ -135,12 +140,14 @@ export class DeliveryQueue {
    * Delivers `message` to `port` now, or after the deliveries before it.
    * With a `timer`, the delivery is timed: because what the receivers send is
    * queued rather than delivered in a nested call, the time measured is the
-   * receiving handlers' own work.
+   * receiving handlers' own work. With `done`, the delivery is tracked: `done`
+   * runs once every handler it started has settled, including asynchronous
+   * ones, and the timer measures until then.
    */
-  deliver(port: Port, message: unknown, timer?: DeliveryTimer): void {
+  deliver(port: Port, message: unknown, timer?: DeliveryTimer, done?: DeliveryDone): void {
     // The hot path: most deliveries are sent by a handler while the queue
     // drains, and only need to be queued.
-    this.pending.push({ port, message, timer });
+    this.pending.push({ port, message, timer, done });
     if (this.draining) {
       return;
     }
@@ -234,12 +241,32 @@ export class DeliveryQueue {
   }
 
   private deliverOne(next: Delivery): void {
+    if (next.done !== undefined) {
+      this.deliverTracked(next, next.done);
+      return;
+    }
     if (next.timer === undefined) {
       next.port.send(next.message);
     } else {
       const begun = performance.now();
       next.port.send(next.message);
       next.timer(performance.now() - begun);
+    }
+  }
+
+  /** A delivery whose handlers may work asynchronously: `done` runs when they have all settled. */
+  private deliverTracked(next: Delivery, done: DeliveryDone): void {
+    const { timer } = next;
+    const begun = timer === undefined ? 0 : performance.now();
+    const settled = portInternals.deliverTracked(next.port, next.message);
+    const finish = (): void => {
+      timer?.(performance.now() - begun);
+      done();
+    };
+    if (settled === undefined) {
+      finish();
+    } else {
+      void settled.then(finish);
     }
   }
 
