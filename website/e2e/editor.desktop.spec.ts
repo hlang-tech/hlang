@@ -27,6 +27,24 @@ test('the shortcut sheet opens inside the editor, not over the page', async ({ p
     expect(card.y + card.height).toBeLessThanOrEqual(canvas.y + canvas.height);
   }
 
+  // Scrolled under the sticky header, the sheet stays below it: the editor's
+  // layers never stack above the page's. The site scrolls smoothly, so this
+  // scroll is instant to measure the end state.
+  await page.evaluate(() => {
+    const top = document.querySelector('[role="dialog"]')?.getBoundingClientRect().top ?? 0;
+    window.scrollBy({ top, behavior: 'instant' });
+  });
+  await expect.poll(() => sheet.evaluate(element => Math.round(element.getBoundingClientRect().top))).toBeLessThanOrEqual(1);
+  const header = await page.locator('header').first().boundingBox();
+  expect(header).not.toBeNull();
+  if (header !== null) {
+    const onTop = await page.evaluate(
+      ({ x, y }) => document.elementFromPoint(x, y)?.closest('header') !== null,
+      { x: header.x + header.width / 2, y: header.y + header.height / 2 },
+    );
+    expect(onTop).toBe(true);
+  }
+
   await page.keyboard.press('Escape');
   await expect(sheet).toBeHidden();
   expect(errors).toEqual([]);

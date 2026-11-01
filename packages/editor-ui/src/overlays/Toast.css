@@ -2,7 +2,9 @@
  * Toast — transient glass confirmations, stacked bottom-center of the editor.
  * The stack is positioned against the nearest positioned ancestor of the
  * `ToastProvider`, so an editor embedded in a larger page shows its toasts in
- * itself; a full-window editor needs nothing extra.
+ * itself; a full-window editor needs nothing extra. An embedding host should
+ * also isolate that ancestor (`isolation: isolate`) so the stack's z-index stays
+ * below the page's own layers.
  */
 
 .hl-toast-stack {
