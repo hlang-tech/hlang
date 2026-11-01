@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { selfLoopPath } from './self-loop';
+import { SELF_LOOP_CLEARANCE, SELF_LOOP_RADIUS, selfLoopPath } from './self-loop';
 
 /** A 120 x 40 node at (100, 200): output handle on its right edge, input on its left. */
 const node = { x: 100, y: 200, width: 120, height: 40 };
@@ -38,6 +38,6 @@ describe('selfLoopPath', () => {
   });
 
   it('uses the defaults of the design system when none are given', () => {
-    expect(selfLoopPath({ source, target, node }).path).toBe(selfLoopPath({ source, target, node, clearance: 24, radius: 10 }).path);
+    expect(selfLoopPath({ source, target, node }).path).toBe(selfLoopPath({ source, target, node, clearance: SELF_LOOP_CLEARANCE, radius: SELF_LOOP_RADIUS }).path);
   });
 });

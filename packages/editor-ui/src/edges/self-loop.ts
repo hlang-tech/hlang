@@ -40,9 +40,9 @@ export interface SelfLoop {
 }
 
 /** The design system's distance between a self-loop and its node, in flow units. */
-export const SELF_LOOP_CLEARANCE = 24;
+export const SELF_LOOP_CLEARANCE = 28;
 /** The design system's corner radius for a self-loop, in flow units. */
-export const SELF_LOOP_RADIUS = 10;
+export const SELF_LOOP_RADIUS = 16;
 
 function format(value: number): string {
   return String(Math.round(value * 100) / 100);
