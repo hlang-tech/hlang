@@ -49,7 +49,8 @@ export type EditorEvent =
   | { readonly kind: 'edgeChanged'; readonly edge: EditorEdge }
   | { readonly kind: 'selectionChanged' }
   | { readonly kind: 'viewStateChanged' }
-  | { readonly kind: 'historyChanged' };
+  | { readonly kind: 'historyChanged' }
+  | { readonly kind: 'modeChanged' };
 
 export type EditorEventKind = EditorEvent['kind'];
 export type EventOfKind<K extends EditorEventKind> = Extract<EditorEvent, { kind: K }>;
@@ -226,6 +227,13 @@ export interface CommandResult<R> {
   readonly value?: R;
   readonly error?: ValidationResult;
 }
+
+/** Whether the editor may change the graph (see `EditorModeService`). */
+export interface IEditorModeService {
+  readonly readOnly: boolean;
+  setReadOnly(readOnly: boolean): void;
+}
+export const IEditorModeService = createDecorator<IEditorModeService>('editorModeService');
 
 export interface ICommandService {
   execute<R>(command: IEditorCommand<R>): CommandResult<R>;
