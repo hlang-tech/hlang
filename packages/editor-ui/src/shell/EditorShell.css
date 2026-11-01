@@ -4,6 +4,10 @@
  */
 
 .hl-shell {
+  /* The editor is embeddable: its layers (panels, dock, overlays) stack among
+     themselves and never above the host page's own layers, such as a sticky
+     header the editor scrolls under. */
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   width: 100%;
