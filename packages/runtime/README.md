@@ -144,6 +144,31 @@ $i("frames").receive(async (frame) => {
 - Disposing the flow rejects pending `ready()` and `write()` with `FlowDisposedError`.
 - An unbounded connection into an input without a concurrency limit delivers exactly as before, at the same speed.
 
+### End of stream
+
+A sender can say it has nothing more to send, and a flow knows when it has finished ([RFC 0001](../../rfcs/0001-bounded-connections.md)), as in Flow-Based Programming:
+
+```ts
+// A source that has sent everything closes its output.
+override _read($o) {
+  for (const value of values) $o("out").send(value);
+  $o("out").close();
+}
+
+// A node acts on the end of its input: a total, once all numbers are in.
+$i("in").receive((value) => { total += value; }, {
+  end: () => $o("out").send(total),
+});
+
+await flow.done; // every node has finished
+```
+
+- An input ends once every connection into it has closed and its messages are done, including asynchronous work. Messages sent before a close are delivered first.
+- A Transform closes its outputs when all its inputs have ended, so the end travels through the graph. A node that keeps producing after its inputs end sets `closesWithInputs = false` and closes its outputs itself.
+- A node finishes when its inputs have ended and its outputs are closed; its error port then closes too. `flow.done` resolves when every node has finished, and rejects with `FlowDisposedError` if the flow is disposed first.
+- Sending on a closed output throws.
+- A node in a feedback loop is one of its own senders, so its input does not end by itself: as in JavaFBP, a loop ends when one of its nodes closes its output.
+
 ### Sharing the thread
 
 By default a flow delivers everything a send causes before the send returns. That is the fastest way to run, but work that never ends by itself, such as a feedback loop between Transforms with no asynchronous step (feedback is legal), then holds the thread for good: a page freezes, a server stops answering, and nothing can call `dispose`.

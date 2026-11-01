@@ -38,6 +38,14 @@ interface Delivery {
   readonly done: DeliveryDone | undefined;
 }
 
+/** Work to run in its turn, after everything queued before it (an end of stream). */
+interface Task {
+  readonly port: undefined;
+  readonly run: () => void;
+}
+
+type Entry = Delivery | Task;
+
 /** Below this many delivered entries, the queue is not worth compacting. */
 const COMPACT_AFTER = 1024;
 
@@ -119,7 +127,7 @@ function slicing(options: SliceOptions | undefined): Slicing | undefined {
  * compacts the delivered prefix once it is at least half of the array.
  */
 export class DeliveryQueue {
-  private readonly pending: (Delivery | undefined)[] = [];
+  private readonly pending: (Entry | undefined)[] = [];
   private head = 0;
   private draining = false;
   private closed = false;
@@ -163,6 +171,23 @@ export class DeliveryQueue {
     this.drain();
   }
 
+  /** Runs `run` in its turn: after every delivery queued before it, first in first out. */
+  schedule(run: () => void): void {
+    this.pending.push({ port: undefined, run });
+    if (this.draining) {
+      return;
+    }
+    if (this.closed) {
+      this.pending.length = 0;
+      return;
+    }
+    if (this.slicing !== undefined && this.sliceSpent(this.slicing)) {
+      this.pause(this.slicing);
+      return;
+    }
+    this.drain();
+  }
+
   /** Drops everything queued; later deliveries and a scheduled slice do nothing. */
   close(): void {
     this.closed = true;
@@ -170,15 +195,18 @@ export class DeliveryQueue {
     this.head = 0;
   }
 
-  /** Whether the current task's slice has used its budget; starts a slice if none is running. */
+  /** Whether the current task's slice has used its budget; starts a slice (not spent) if none is running. */
   private sliceSpent(slicing: Slicing): boolean {
     const now = slicing.now();
     if (this.sliceStart === undefined) {
+      // A new slice: it delivers at least one message before its budget
+      // counts, so every slice makes progress (as React's scheduler does).
       this.sliceStart = now;
       // The slice ends with the task that started it.
       queueMicrotask(() => {
         this.sliceStart = undefined;
       });
+      return false;
     }
     return now - this.sliceStart >= slicing.budgetMs;
   }
@@ -240,7 +268,11 @@ export class DeliveryQueue {
     }
   }
 
-  private deliverOne(next: Delivery): void {
+  private deliverOne(next: Entry): void {
+    if (next.port === undefined) {
+      next.run();
+      return;
+    }
     if (next.done !== undefined) {
       this.deliverTracked(next, next.done);
       return;
@@ -277,7 +309,7 @@ export class DeliveryQueue {
   }
 
   /** Removes and returns the oldest pending delivery, or `undefined` when there is none. */
-  private take(): Delivery | undefined {
+  private take(): Entry | undefined {
     const next = this.pending[this.head];
     if (next === undefined) {
       return undefined;

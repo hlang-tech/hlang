@@ -82,6 +82,11 @@ export class InputGate {
     this.waiting = [];
     this.head = 0;
   }
+
+  /** Whether it is neither working on a message nor holding one. */
+  get idle(): boolean {
+    return this.inFlight === 0 && this.head >= this.waiting.length;
+  }
 }
 
 interface Waiter {
