@@ -101,7 +101,7 @@ const ALERTS = ['NOTE', 'TIP', 'IMPORTANT', 'WARNING', 'CAUTION'] as const;
 type Alert = (typeof ALERTS)[number];
 
 function isAlert(value: string): value is Alert {
-  return (ALERTS as readonly string[]).includes(value);
+  return ALERTS.some(alert => alert === value);
 }
 
 /** Turn `> [!NOTE]` blockquotes into alert blocks. */

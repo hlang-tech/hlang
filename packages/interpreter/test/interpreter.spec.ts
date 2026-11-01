@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import { interpret, NodeRegistry } from '../src';
 import type { IInterpreterDeps } from '../src';
-import type { IGraph } from '../src';
+import type { IGraph, ParamValue } from '../src';
 import type { IRuntimeFlow } from '../src';
 import {
   Flow,
@@ -31,13 +31,13 @@ function makeDeps(register: (r: NodeRegistry) => void): IInterpreterDeps {
 }
 
 /** Minimal IGraph builders keep the test bodies readable. */
-function rNode(nodeId: string, code: string, value?: unknown): IGraph['nodeList'][number] {
+function rNode(nodeId: string, code: string, value?: ParamValue): IGraph['nodeList'][number] {
   return {
     code,
     name: code,
     type: 'R',
     nodeId,
-    bizData: { params: value === undefined ? {} : { value: value as never } },
+    bizData: { params: value === undefined ? {} : { value } },
   };
 }
 function tNode(nodeId: string, code: string): IGraph['nodeList'][number] {

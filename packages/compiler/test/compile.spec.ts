@@ -60,17 +60,38 @@ const PROGRAM: IGraph = {
   ],
 };
 
+/** Whether `value` is a node class: a constructor whose instances run as R, T, or W. */
+function isNodeClass(value: unknown): value is NodeConstructor {
+  if (typeof value !== 'function') {
+    return false;
+  }
+  const prototype: unknown = value.prototype;
+  return (
+    typeof prototype === 'object' &&
+    prototype !== null &&
+    ('_read' in prototype || '_transform' in prototype || '_write' in prototype)
+  );
+}
+
 function loadFixture(code: string): NodeConstructor {
   // The fixtures are CommonJS classes shared by both backends.
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- dynamic fixture lookup by code
-  return require(join(FIXTURES, `${code}.cjs`)) as NodeConstructor;
+  const loaded: unknown = require(join(FIXTURES, `${code}.cjs`));
+  if (!isNodeClass(loaded)) {
+    throw new Error(`fixture "${code}" does not export a node class`);
+  }
+  return loaded;
 }
 
+function isSinkEntry(value: unknown): value is SinkEntry {
+  return typeof value === 'object' && value !== null && 'nodeId' in value && typeof value.nodeId === 'string' && 'value' in value;
+}
+
+/** What the fixture sinks recorded in `globalThis.hlangSink`; the record starts over. */
 function sinkOf(): SinkEntry[] {
-  const holder = globalThis as { hlangSink?: SinkEntry[] };
-  const entries = holder.hlangSink ?? [];
-  holder.hlangSink = [];
-  return entries;
+  const recorded: unknown = Reflect.get(globalThis, 'hlangSink');
+  Reflect.set(globalThis, 'hlangSink', []);
+  return Array.isArray(recorded) ? recorded.filter(isSinkEntry) : [];
 }
 
 function runInterpreted(graph: IGraph): SinkEntry[] {

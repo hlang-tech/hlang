@@ -24,6 +24,7 @@ import type {
 } from '@hlang-org/editor-core';
 import { useNodeSearch } from './useNodeSearch';
 import { useNodeSearchTriggers } from './useNodeSearchTriggers';
+import type { ConnectionEnd, PointerPosition } from './useNodeSearchTriggers';
 
 // Testing Library unmounts after each test only through an explicit cleanup
 // when the test API is imported rather than global.
@@ -78,13 +79,13 @@ function setup(core: EditorCore) {
 }
 
 /** A FinalConnectionState for a drag released into empty space (no toNode). */
-function releasedInEmptySpace(): unknown {
-  return { toNode: null, toHandle: null, isValid: null, fromNode: null, fromHandle: null };
+function releasedInEmptySpace(): ConnectionEnd {
+  return { toNode: null };
 }
 
 /** A minimal pointer-like event with client coords. */
-function pointerEvent(x: number, y: number): MouseEvent {
-  return { clientX: x, clientY: y } as unknown as MouseEvent;
+function pointerEvent(x: number, y: number): PointerPosition {
+  return { clientX: x, clientY: y };
 }
 
 describe('useNodeSearchTriggers — connection released into empty space', () => {
@@ -103,7 +104,7 @@ describe('useNodeSearchTriggers — connection released into empty space', () =>
       // Released over empty canvas.
       result.current.triggers.onConnectEnd(
         pointerEvent(400, 300),
-        releasedInEmptySpace() as never,
+        releasedInEmptySpace(),
       );
     });
 
@@ -131,7 +132,7 @@ describe('useNodeSearchTriggers — connection released into empty space', () =>
       });
       result.current.triggers.onConnectEnd(
         pointerEvent(400, 300),
-        { toNode: { id: 'other' }, toHandle: { id: 'Input' } } as never,
+        { toNode: { id: 'other' } },
       );
     });
 
@@ -149,7 +150,7 @@ describe('useNodeSearchTriggers — connection released into empty space', () =>
         handleId: 'Output',
         handleType: 'source',
       });
-      result.current.triggers.onConnectEnd(pointerEvent(400, 300), releasedInEmptySpace() as never);
+      result.current.triggers.onConnectEnd(pointerEvent(400, 300), releasedInEmptySpace());
     });
 
     const view = result.current.search.results('upper')[0];
@@ -196,13 +197,13 @@ describe('useNodeSearchTriggers — double-click on empty pane', () => {
     });
 
     act(() => {
-      result.current.triggers.onPaneClick({ clientX: 120, clientY: 90 } as never);
+      result.current.triggers.onPaneClick({ clientX: 120, clientY: 90 });
     });
     expect(result.current.search.state).toBeUndefined(); // first click: nothing
 
     t = 1200; // within 300ms window
     act(() => {
-      result.current.triggers.onPaneClick({ clientX: 120, clientY: 90 } as never);
+      result.current.triggers.onPaneClick({ clientX: 120, clientY: 90 });
     });
     const state = result.current.search.state;
     expect(state).toBeDefined();
@@ -220,11 +221,11 @@ describe('useNodeSearchTriggers — double-click on empty pane', () => {
     });
 
     act(() => {
-      result.current.triggers.onPaneClick({ clientX: 10, clientY: 10 } as never);
+      result.current.triggers.onPaneClick({ clientX: 10, clientY: 10 });
     });
     t = 2000; // 1s later — too slow
     act(() => {
-      result.current.triggers.onPaneClick({ clientX: 10, clientY: 10 } as never);
+      result.current.triggers.onPaneClick({ clientX: 10, clientY: 10 });
     });
     expect(result.current.search.state).toBeUndefined();
   });

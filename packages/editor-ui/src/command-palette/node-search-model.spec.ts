@@ -94,7 +94,6 @@ describe('connectableCandidates', () => {
       return ok ? { ok: true } : { ok: false, reason: 'bad-direction' };
     },
   };
-  const asValidator = validator as IConnectionValidator;
 
   const outPort: PortDescriptor = { id: 'Output', direction: 'O', name: 'Output', dataType: dto, isError: false };
   const inPort: PortDescriptor = { id: 'Input', direction: 'I', name: 'Input', dataType: dto, isError: false };
@@ -105,7 +104,7 @@ describe('connectableCandidates', () => {
       fromPort: outPort,
       direction: 'from-source',
     };
-    const results = connectableCandidates('', ALL, pending, asValidator);
+    const results = connectableCandidates('', ALL, pending, validator);
     // text-source has no Input port -> excluded; uppercase + console-sink have Input.
     expect(results.map(r => r.candidate.value.code).sort()).toEqual(['console-sink', 'uppercase']);
   });
@@ -116,7 +115,7 @@ describe('connectableCandidates', () => {
       fromPort: outPort,
       direction: 'from-source',
     };
-    const results = connectableCandidates('upper', ALL, pending, asValidator);
+    const results = connectableCandidates('upper', ALL, pending, validator);
     const upper = results.find(r => r.candidate.value.code === 'uppercase');
     expect(upper?.connectPortId).toBe('Input');
   });
@@ -127,7 +126,7 @@ describe('connectableCandidates', () => {
       fromPort: inPort,
       direction: 'from-target',
     };
-    const results = connectableCandidates('', ALL, pending, asValidator);
+    const results = connectableCandidates('', ALL, pending, validator);
     // Only nodes with an Output port that can feed the dangling Input.
     expect(results.map(r => r.candidate.value.code).sort()).toEqual(['text-source', 'uppercase']);
     const text = results.find(r => r.candidate.value.code === 'text-source');

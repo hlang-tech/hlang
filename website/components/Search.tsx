@@ -76,8 +76,10 @@ export function Search() {
     setOpen(true);
     if (entries === undefined) {
       void fetch('/search-index.json')
-        .then(async response => (await response.json()) as unknown)
-        .then(data => { setEntries(Array.isArray(data) ? data.filter(isEntry) : []); });
+        .then(async response => {
+          const data: unknown = await response.json();
+          setEntries(Array.isArray(data) ? data.filter(isEntry) : []);
+        });
     }
   }, [entries]);
 

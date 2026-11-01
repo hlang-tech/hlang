@@ -12,6 +12,10 @@ import type {
 
 type AnyListener = (event: EditorEvent) => void;
 
+function isKind<K extends EditorEventKind>(event: EditorEvent, kind: K): event is EventOfKind<K> {
+  return event.kind === kind;
+}
+
 export class EventBus implements IEventBus {
   private readonly listeners = new Map<EditorEventKind, Set<AnyListener>>();
 
@@ -31,11 +35,17 @@ export class EventBus implements IEventBus {
     listener: (event: EventOfKind<K>) => void,
   ): IDisposable {
     const set = this.listeners.get(kind) ?? new Set<AnyListener>();
-    set.add(listener as AnyListener);
+    // Listeners are kept by kind; the guard gives this one its event type.
+    const forward: AnyListener = event => {
+      if (isKind(event, kind)) {
+        listener(event);
+      }
+    };
+    set.add(forward);
     this.listeners.set(kind, set);
     return {
       dispose: (): void => {
-        set.delete(listener as AnyListener);
+        set.delete(forward);
       },
     };
   }

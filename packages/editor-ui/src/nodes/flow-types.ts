@@ -18,14 +18,9 @@ export interface HlangFlowTypes {
   readonly edgeTypes: EdgeTypes;
 }
 
-// React Flow's `NodeTypes`/`EdgeTypes` are keyed to the BASE node/edge props
-// (data: Record<string, unknown>), while our components declare the specific
-// `HlangRFNode`/`HlangRFEdge` data shape. The two are runtime-compatible — our
-// components only read fields that exist on the base type plus our own data —
-// but not structurally assignable, a well-known React Flow typing friction.
-// We narrow the entries to the registry types at this single boundary.
-const nodeComponent = HlangNode as NodeTypes[string];
-const edgeComponent = FlowEdge as EdgeTypes[string];
+// The registry entries for the hlang node and edge components.
+const nodeComponent: NodeTypes[string] = HlangNode;
+const edgeComponent: EdgeTypes[string] = FlowEdge;
 
 /** Build the React Flow node/edge type maps for the hlang editor. */
 export function createHlangFlowTypes(): HlangFlowTypes {

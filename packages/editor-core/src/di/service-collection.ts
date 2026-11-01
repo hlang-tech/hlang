@@ -16,6 +16,17 @@ import type { ServiceIdentifier } from './types';
 export class ServiceCollection {
   private readonly entries = new Map<string, unknown>();
 
+  /**
+   * The container's one unchecked step. Instances of different types share
+   * one map, which TypeScript can only type as `unknown`; `set` accepts for an
+   * identifier only an instance of that identifier's type, so the entry read
+   * back under the same name has that type. Interfaces cannot be checked at
+   * run time, so this is asserted rather than validated.
+   */
+  private entry<T>(id: ServiceIdentifier<T>): T | undefined {
+    return this.entries.get(id.serviceName) as T | undefined;
+  }
+
   /** Register (or replace) the instance bound to `id`. */
   set<T>(id: ServiceIdentifier<T>, instance: T): this {
     this.entries.set(id.serviceName, instance);
@@ -32,15 +43,15 @@ export class ServiceCollection {
    * @throws if no instance is registered.
    */
   get<T>(id: ServiceIdentifier<T>): T {
-    const instance = this.entries.get(id.serviceName);
+    const instance = this.entry(id);
     if (instance === undefined) {
       throw new Error(`ServiceCollection: no service registered for "${id.serviceName}".`);
     }
-    return instance as T;
+    return instance;
   }
 
   /** Resolve the instance bound to `id`, or `undefined` if unregistered. */
   tryGet<T>(id: ServiceIdentifier<T>): T | undefined {
-    return this.entries.get(id.serviceName) as T | undefined;
+    return this.entry(id);
   }
 }
