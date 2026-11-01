@@ -70,7 +70,7 @@ Lumen 系列包（`editor-*`，0.x 版本）正在活跃开发中，任何 minor
 ### 用代码搭一张图
 
 ```sh
-npm install @hlang-org/runtime
+npm install @hlang-org/runtime rxjs
 ```
 
 ```js

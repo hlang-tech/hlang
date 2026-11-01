@@ -132,8 +132,8 @@ export function OutlineTree({ core, onFocus }: OutlineTreeProps): ReactElement {
                   const active = selection.isSelected(node.id);
                   const isHidden = viewState.isHidden(node.id);
                   const isLocked = viewState.isLocked(node.id);
-                  const hasImage =
-                    typeof node.params.imageUrl === 'string' && node.params.imageUrl.length > 0;
+                  const { imageUrl } = node.params;
+                  const thumbnail = typeof imageUrl === 'string' && imageUrl.length > 0 ? imageUrl : undefined;
                   return (
                     <li key={node.id}>
                       <div
@@ -149,10 +149,10 @@ export function OutlineTree({ core, onFocus }: OutlineTreeProps): ReactElement {
                             className={`hl-outline-icon hl-kind-${node.kind.toLowerCase()}`}
                             aria-hidden
                           >
-                            {hasImage ? (
+                            {thumbnail !== undefined ? (
                               <img
                                 className="hl-outline-thumb"
-                                src={node.params.imageUrl as string}
+                                src={thumbnail}
                                 alt=""
                               />
                             ) : (

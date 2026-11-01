@@ -11,8 +11,7 @@
 import { NodeRegistry } from '@hlang-org/interpreter';
 import type { INodeConstructionOptions, NodeConstructor } from '@hlang-org/interpreter';
 import type { NodeDescriptor, PortDescriptor } from '@hlang-org/editor-core';
-import { interval, range, timer } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { interval, map, range, takeUntil, timer } from 'rxjs';
 import { numberParam, runtime } from '@/lib/runtime';
 import type { PortAccess } from '@/lib/runtime';
 
@@ -66,7 +65,7 @@ class IntervalSource extends runtime.ReadableNode {
     super(options);
     runtime.Port.O('Output').attach(this);
   }
-  _read($o: PortAccess): void {
+  override _read($o: PortAccess): void {
     interval(numberParam(this.opts, 'periodMs', 700))
       .pipe(
         map(count => count + 1),
@@ -84,7 +83,7 @@ class RangeSource extends runtime.ReadableNode {
     super(options);
     runtime.Port.O('Output').attach(this);
   }
-  _read($o: PortAccess): void {
+  override _read($o: PortAccess): void {
     range(numberParam(this.opts, 'start', 1), numberParam(this.opts, 'count', 5))
       .pipe(takeUntil(this.opts.signal.observable))
       .subscribe(value => {
@@ -99,7 +98,7 @@ class ConstantSource extends runtime.ReadableNode {
     super(options);
     runtime.Port.O('Output').attach(this);
   }
-  _read($o: PortAccess): void {
+  override _read($o: PortAccess): void {
     $o('Output').send(numberParam(this.opts, 'value', 42));
   }
 }
@@ -111,7 +110,7 @@ class Scale extends runtime.TransformNode {
     runtime.Port.I('Input').attach(this);
     runtime.Port.O('Output').attach(this);
   }
-  _transform($i: PortAccess, $o: PortAccess): void {
+  override _transform($i: PortAccess, $o: PortAccess): void {
     const factor = numberParam(this.opts, 'factor', 2);
     $i('Input').receive(value => {
       $o('Output').send(typeof value === 'number' ? value * factor : value);
@@ -126,7 +125,7 @@ class Filter extends runtime.TransformNode {
     runtime.Port.I('Input').attach(this);
     runtime.Port.O('Output').attach(this);
   }
-  _transform($i: PortAccess, $o: PortAccess): void {
+  override _transform($i: PortAccess, $o: PortAccess): void {
     const min = numberParam(this.opts, 'min', 0);
     $i('Input').receive(value => {
       if (typeof value !== 'number' || value >= min) {
@@ -143,7 +142,7 @@ class Sum extends runtime.TransformNode {
     runtime.Port.I('Input').attach(this);
     runtime.Port.O('Output').attach(this);
   }
-  _transform($i: PortAccess, $o: PortAccess): void {
+  override _transform($i: PortAccess, $o: PortAccess): void {
     let total = 0;
     $i('Input').receive(value => {
       if (typeof value === 'number') {
@@ -161,7 +160,7 @@ class Delay extends runtime.TransformNode {
     runtime.Port.I('Input').attach(this);
     runtime.Port.O('Output').attach(this);
   }
-  _transform($i: PortAccess, $o: PortAccess): void {
+  override _transform($i: PortAccess, $o: PortAccess): void {
     const ms = numberParam(this.opts, 'ms', 300);
     $i('Input').receive(value => {
       timer(ms)
@@ -181,7 +180,7 @@ class Merge extends runtime.TransformNode {
     runtime.Port.I('B').attach(this);
     runtime.Port.O('Output').attach(this);
   }
-  _transform($i: PortAccess, $o: PortAccess): void {
+  override _transform($i: PortAccess, $o: PortAccess): void {
     $i('A').receive(value => {
       $o('Output').send(value);
     });
@@ -198,7 +197,7 @@ function consoleSink(report: (value: unknown) => void): NodeConstructor {
       super(options);
       runtime.Port.I('Input').attach(this);
     }
-    _write($i: PortAccess): void {
+    override _write($i: PortAccess): void {
       $i('Input').receive(report);
     }
   };

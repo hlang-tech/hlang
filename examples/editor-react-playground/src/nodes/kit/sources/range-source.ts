@@ -2,10 +2,9 @@
  * Range Source (R): emits the integers [start, start+count) once, in order.
  */
 
-import { range } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { range, takeUntil } from 'rxjs';
 import { defineNode } from '../../define-node';
-import { rt, paramsOf, asCtor } from '../../runtime-boundary';
+import { rt, paramsOf } from '../../runtime-boundary';
 import type { INodeConstructionOptions, RuntimePortLike } from '../../runtime-boundary';
 
 class RangeSource extends rt.ReadableNode {
@@ -15,7 +14,7 @@ class RangeSource extends rt.ReadableNode {
     this.stop = opts.signal;
     rt.Port.O('Output').attach(this);
   }
-  _read(o: (name: string) => RuntimePortLike): void {
+  override _read(o: (name: string) => RuntimePortLike): void {
     const params = paramsOf(this);
     const start = typeof params.start === 'number' ? params.start : 0;
     const count = typeof params.count === 'number' ? params.count : 5;
@@ -33,5 +32,5 @@ export const rangeSource = defineNode({
   displayName: 'Range',
   group: 'sources',
   defaultParams: { start: 0, count: 5 },
-  ctor: asCtor(RangeSource),
+  ctor: RangeSource,
 });

@@ -18,11 +18,18 @@ export const TOKEN_NAMES = [
   'hl-silver',
   'hl-silver-hi',
   'hl-silver-lo',
+  'hl-glass',
+  'hl-glass-2',
+  'hl-glass-blur',
+  'hl-glass-sat',
+  'hl-glass-edge',
+  'hl-glass-edge-hi',
   'hl-spark',
   'hl-r',
   'hl-t',
   'hl-w',
   'hl-error',
+  'hl-warning',
   'hl-ink',
   'hl-ink-2',
   'hl-ink-3',
@@ -36,6 +43,8 @@ export const TOKEN_NAMES = [
   'hl-shadow-glass',
   'hl-glow-silver',
   'hl-ease',
+  'hl-activity',
+  'hl-cost',
 ] as const;
 
 /** A token name (without `--`), e.g. `'hl-silver'`. */

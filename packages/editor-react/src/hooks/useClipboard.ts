@@ -18,7 +18,7 @@
 
 import { useCallback, useMemo, useRef } from 'react';
 import type { EditorCore, EditorEdge, EditorNode, Point } from '@hlang-org/editor-core';
-import { AddNodeCommand, ConnectCommand, RemoveNodeCommand, cloneNodesWithEdges } from '@hlang-org/editor-core';
+import { AddNodeCommand, ConnectCommand, RemoveNodeCommand, cloneNodesWithEdges, parseGraphSnapshot } from '@hlang-org/editor-core';
 
 /** A self-contained snapshot of copied nodes + their internal edges. */
 interface Clipboard {
@@ -74,17 +74,26 @@ function offsetToAnchor(clip: Clipboard, target: Point): { dx: number; dy: numbe
   return { dx: target.x - minX, dy: target.y - minY };
 }
 
-/** Parse a system-clipboard string into a clip, or null if it isn't ours. */
-function parseEnvelope(text: string): Clipboard | null {
+/** The value of `text` as JSON, or `undefined` when it is not JSON. */
+function parseJson(text: string): unknown {
   try {
-    const parsed = JSON.parse(text) as Partial<ClipboardEnvelope>;
-    if (parsed.__hlang_clipboard === 1 && Array.isArray(parsed.nodes) && Array.isArray(parsed.edges)) {
-      return { nodes: parsed.nodes, edges: parsed.edges };
-    }
+    const parsed: unknown = JSON.parse(text);
+    return parsed;
   } catch {
-    // Not JSON / not ours — ignore.
+    return undefined;
   }
-  return null;
+}
+
+/**
+ * Parse a system-clipboard string into a clip, or null if it isn't ours. The
+ * clipboard is outside data, so every node and edge is validated.
+ */
+function parseEnvelope(text: string): Clipboard | null {
+  const parsed = parseJson(text);
+  if (typeof parsed !== 'object' || parsed === null || !('__hlang_clipboard' in parsed) || parsed.__hlang_clipboard !== 1) {
+    return null;
+  }
+  return parseGraphSnapshot(parsed);
 }
 
 /** Read the selected nodes and the edges wholly internal to that set. */

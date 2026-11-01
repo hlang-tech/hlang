@@ -3,7 +3,12 @@
   "compilerOptions": {
     "rootDir": ".",
     "noEmit": true,
-    "types": ["node"]
+    "types": ["node"],
+    // The fixtures are ES modules that Node.js runs as they are, so tests import
+    // them by their own .mts names.
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true
   },
   "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules", "lib"]

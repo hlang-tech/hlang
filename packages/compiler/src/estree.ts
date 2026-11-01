@@ -105,7 +105,11 @@ export function property(key: string, value: Expression, shorthand = false): Pro
   };
 }
 
-export function object(properties: Property[]): ObjectExpression {
+export function spread(argument: Expression): SpreadElement {
+  return { type: 'SpreadElement', argument };
+}
+
+export function object(properties: (Property | SpreadElement)[]): ObjectExpression {
   return { type: 'ObjectExpression', properties };
 }
 

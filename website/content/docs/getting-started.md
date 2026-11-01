@@ -8,10 +8,10 @@ order: 2
 ## Install
 
 ```sh
-npm install @hlang-org/runtime @hlang-org/interpreter
+npm install @hlang-org/runtime @hlang-org/interpreter rxjs
 ```
 
-Every package ships an ES module and a CommonJS build with type declarations, so `import` and `require` both work.
+Every package ships with type declarations. The runtime is one ES module (`require` works on Node.js 20.19, 22.12, and later); the other packages ship ES module and CommonJS builds. RxJS 7 is a peer dependency of the runtime and the interpreter.
 
 ## Write three nodes
 

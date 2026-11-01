@@ -12,42 +12,71 @@ import type { IServiceDependency, ServiceIdentifier } from './types';
 /** Static property key under which a constructor's dependencies are stored. */
 const DEPENDENCIES_KEY = '$di$dependencies';
 
-interface WithDependencies {
-  [DEPENDENCIES_KEY]?: {
-    readonly ctor: unknown;
-    readonly deps: IServiceDependency[];
-  };
+/**
+ * The dependencies recorded on one constructor. They are kept as an own static
+ * property (not a module-level map) so that a second copy of this module, as a
+ * second bundled instance of the package produces, reads the same record.
+ */
+interface DependencyRecord {
+  readonly ctor: unknown;
+  readonly deps: IServiceDependency[];
 }
 
 /** Registry of created identifiers, keyed by service name (guards duplicates). */
-const identifiers = new Map<string, ServiceIdentifier<unknown>>();
+const identifiers = new Set<string>();
+
+function isServiceIdentifier(value: unknown): value is ServiceIdentifier<unknown> {
+  return typeof value === 'function' && 'serviceName' in value && typeof value.serviceName === 'string';
+}
+
+function isDependency(value: unknown): value is IServiceDependency {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'id' in value &&
+    isServiceIdentifier(value.id) &&
+    'index' in value &&
+    typeof value.index === 'number'
+  );
+}
+
+function isDependencyRecord(value: unknown): value is DependencyRecord {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'ctor' in value &&
+    'deps' in value &&
+    Array.isArray(value.deps) &&
+    value.deps.every(isDependency)
+  );
+}
+
+/** The record declared on `target` itself, if any; a parent's record is not inherited. */
+function ownRecord(target: object): DependencyRecord | undefined {
+  const record: unknown = Object.getOwnPropertyDescriptor(target, DEPENDENCIES_KEY)?.value;
+  return isDependencyRecord(record) && record.ctor === target ? record : undefined;
+}
 
 /**
  * Read the ordered dependency list declared on a constructor via decorators.
  * Returns an empty array when the constructor declares no injected params.
  */
 export function getServiceDependencies(ctor: unknown): readonly IServiceDependency[] {
-  const holder = ctor as WithDependencies;
-  const record = holder[DEPENDENCIES_KEY];
-  if (record === undefined || record.ctor !== ctor) {
+  if (typeof ctor !== 'function') {
     return [];
   }
-  return record.deps;
+  return ownRecord(ctor)?.deps ?? [];
 }
 
-function storeServiceDependency(
-  id: ServiceIdentifier<unknown>,
-  target: object,
-  index: number,
-): void {
-  const holder = target as WithDependencies;
-  const existing = holder[DEPENDENCIES_KEY];
-  if (existing?.ctor === target) {
+function storeServiceDependency(id: ServiceIdentifier<unknown>, target: object, index: number): void {
+  const existing = ownRecord(target);
+  if (existing !== undefined) {
     existing.deps.push({ id, index });
     return;
   }
-  Object.defineProperty(holder, DEPENDENCIES_KEY, {
-    value: { ctor: target, deps: [{ id, index }] },
+  const record: DependencyRecord = { ctor: target, deps: [{ id, index }] };
+  Object.defineProperty(target, DEPENDENCIES_KEY, {
+    value: record,
     enumerable: false,
     writable: true,
     configurable: true,
@@ -57,33 +86,24 @@ function storeServiceDependency(
 /**
  * Create a new service identifier. The returned value is both a token (for
  * registration/resolution) and a parameter decorator (for dependency
- * declaration). Service names must be unique.
+ * declaration). A service name is created once per module instance; creating
+ * it again is a programming error and throws.
  */
 export function createDecorator<T>(serviceName: string): ServiceIdentifier<T> {
-  const existing = identifiers.get(serviceName);
-  if (existing !== undefined) {
-    return existing as ServiceIdentifier<T>;
+  if (identifiers.has(serviceName)) {
+    throw new Error(`createDecorator: the service "${serviceName}" already has an identifier.`);
   }
 
-  const identifier = function (
-    target: object,
-    _propertyKey: string | undefined,
-    parameterIndex: number,
-  ): void {
+  const decorate = (target: object, _propertyKey: string | undefined, parameterIndex: number): void => {
     storeServiceDependency(identifier, target, parameterIndex);
-  } as ServiceIdentifier<T>;
-
-  Object.defineProperty(identifier, 'serviceName', {
-    value: serviceName,
-    enumerable: true,
-    writable: false,
-    configurable: false,
-  });
+  };
+  const identifier: ServiceIdentifier<T> = Object.assign(decorate, { serviceName });
   Object.defineProperty(identifier, 'toString', {
     value: () => serviceName,
     enumerable: false,
   });
+  Object.freeze(identifier);
 
-  identifiers.set(serviceName, identifier);
+  identifiers.add(serviceName);
   return identifier;
 }

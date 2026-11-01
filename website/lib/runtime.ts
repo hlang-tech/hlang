@@ -1,35 +1,25 @@
 /**
- * The website's one boundary to @hlang-org/runtime.
- *
- * The runtime ships loose (`any`) declarations. Every node class on this site
- * (the hero's live program and the Lumen editor's node kit) is written against
- * the strict shapes below; the runtime is adapted to them here, once, the same
- * way @hlang-org/interpreter does.
+ * The website's access to @hlang-org/runtime. Every node class on this site
+ * (the hero's live program and the Lumen editor's node kit) extends one of the
+ * runtime's node kinds, constructed with the interpreter's options, so the
+ * interpreter's registry takes the classes as they are.
  */
 
-import * as runtimeModule from '@hlang-org/runtime';
-import type { INodeConstructionOptions, IRuntimeNode } from '@hlang-org/interpreter';
+import { Flow, Port, ReadableNode, TransformNode, WriteableNode } from '@hlang-org/runtime';
+import type { PortAccessor } from '@hlang-org/runtime';
+import type { INodeConstructionOptions } from '@hlang-org/interpreter';
 
-export interface RuntimePort {
-  send(message: unknown): void;
-  receive(listener: (message: unknown) => void): unknown;
-  attach(node: unknown): void;
-}
+/** A node's port accessor: `$i` for inputs, `$o` for outputs. */
+export type PortAccess = PortAccessor;
 
-export type PortAccess = (name: string) => RuntimePort;
-
-type NodeBase = new (options: INodeConstructionOptions) => IRuntimeNode & { readonly opts: INodeConstructionOptions };
-
-interface RuntimeModule {
-  readonly ReadableNode: NodeBase;
-  readonly TransformNode: NodeBase;
-  readonly WriteableNode: NodeBase;
-  readonly Port: { I(name: string): RuntimePort; O(name: string): RuntimePort };
-  readonly Flow: new () => { run(root: IRuntimeNode): void };
-}
-
-// The one boundary cast: the runtime ships `any`-typed declarations.
-export const runtime = runtimeModule as unknown as RuntimeModule;
+/** The runtime, with every node kind constructed from the interpreter's options. */
+export const runtime = {
+  ReadableNode: ReadableNode<INodeConstructionOptions>,
+  TransformNode: TransformNode<INodeConstructionOptions>,
+  WriteableNode: WriteableNode<INodeConstructionOptions>,
+  Port,
+  Flow,
+} as const;
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);

@@ -7,11 +7,10 @@
 import { describe, it, expect } from 'vitest';
 import { interpret, NodeRegistry } from '../src';
 import type { IInterpreterDeps } from '../src';
-import type { IGraph } from '../src';
+import type { IGraph, ParamValue } from '../src';
 import type { IRuntimeFlow } from '../src';
 import {
   Flow,
-  asNodeConstructor,
   ValueSourceNode,
   WrapTransformNode,
   ThrowingTransformNode,
@@ -32,13 +31,13 @@ function makeDeps(register: (r: NodeRegistry) => void): IInterpreterDeps {
 }
 
 /** Minimal IGraph builders keep the test bodies readable. */
-function rNode(nodeId: string, code: string, value?: unknown): IGraph['nodeList'][number] {
+function rNode(nodeId: string, code: string, value?: ParamValue): IGraph['nodeList'][number] {
   return {
     code,
     name: code,
     type: 'R',
     nodeId,
-    bizData: { params: value === undefined ? {} : { value: value as never } },
+    bizData: { params: value === undefined ? {} : { value } },
   };
 }
 function tNode(nodeId: string, code: string): IGraph['nodeList'][number] {
@@ -58,7 +57,7 @@ describe('interpret', () => {
   it('case 1: R -> W delivers the source payload to the sink', () => {
     const received: unknown[] = [];
     const deps = makeDeps(r => {
-      r.register('src', asNodeConstructor(ValueSourceNode));
+      r.register('src', ValueSourceNode);
       r.register('sink', makeCollectorSink(received));
     });
     const graph: IGraph = {
@@ -74,8 +73,8 @@ describe('interpret', () => {
   it('case 2: R -> T -> W transforms the payload in transit', () => {
     const received: unknown[] = [];
     const deps = makeDeps(r => {
-      r.register('src', asNodeConstructor(ValueSourceNode));
-      r.register('wrap', asNodeConstructor(WrapTransformNode));
+      r.register('src', ValueSourceNode);
+      r.register('wrap', WrapTransformNode);
       r.register('sink', makeCollectorSink(received));
     });
     const graph: IGraph = {
@@ -91,8 +90,8 @@ describe('interpret', () => {
   it('case 2b: onActivity reports output-port emissions across the run (living stream)', () => {
     const received: unknown[] = [];
     const deps = makeDeps(r => {
-      r.register('src', asNodeConstructor(ValueSourceNode));
-      r.register('wrap', asNodeConstructor(WrapTransformNode));
+      r.register('src', ValueSourceNode);
+      r.register('wrap', WrapTransformNode);
       r.register('sink', makeCollectorSink(received));
     });
     const graph: IGraph = {
@@ -138,7 +137,7 @@ describe('interpret', () => {
   it('case 3: direction is Output=source, Input=target (reversed wiring does not deliver)', () => {
     const received: unknown[] = [];
     const deps = makeDeps(r => {
-      r.register('src', asNodeConstructor(ValueSourceNode));
+      r.register('src', ValueSourceNode);
       r.register('sink', makeCollectorSink(received));
     });
     // Deliberately reversed: name the sink as Output(source) and R as Input(target).
@@ -162,7 +161,7 @@ describe('interpret', () => {
   it('case 4: multiple R roots each drive their own downstream', () => {
     const received: unknown[] = [];
     const deps = makeDeps(r => {
-      r.register('src', asNodeConstructor(ValueSourceNode));
+      r.register('src', ValueSourceNode);
       r.register('sink', makeCollectorSink(received));
     });
     const graph: IGraph = {
@@ -182,7 +181,7 @@ describe('interpret', () => {
 
   it('case 5: a graph with zero Readable nodes throws', () => {
     const deps = makeDeps(r => {
-      r.register('wrap', asNodeConstructor(WrapTransformNode));
+      r.register('wrap', WrapTransformNode);
       r.register('sink', makeCollectorSink([]));
     });
     const graph: IGraph = {
@@ -196,8 +195,8 @@ describe('interpret', () => {
   it('case 6: T<->T feedback loop is accepted without hanging or throwing', () => {
     const received: unknown[] = [];
     const deps = makeDeps(r => {
-      r.register('src', asNodeConstructor(ValueSourceNode));
-      r.register('echo', asNodeConstructor(EchoTransformNode));
+      r.register('src', ValueSourceNode);
+      r.register('echo', EchoTransformNode);
       r.register('sink', makeCollectorSink(received));
     });
     // r1 -> t1 -> t2 -> t1 (feedback) ; t2 -> w1
@@ -223,8 +222,8 @@ describe('interpret', () => {
   it('case 7: node errors surface on the @node/error port via onError', () => {
     const errors: unknown[] = [];
     const deps = makeDeps(r => {
-      r.register('src', asNodeConstructor(ValueSourceNode));
-      r.register('kaboom', asNodeConstructor(ThrowingTransformNode));
+      r.register('src', ValueSourceNode);
+      r.register('kaboom', ThrowingTransformNode);
     });
     const graph: IGraph = {
       nodeList: [rNode('r1', 'src', 'trigger'), tNode('t1', 'kaboom')],
@@ -254,7 +253,7 @@ describe('interpret', () => {
 
   it('case 9: getNode resolves constructed instances by nodeId', () => {
     const deps = makeDeps(r => {
-      r.register('src', asNodeConstructor(ValueSourceNode));
+      r.register('src', ValueSourceNode);
       r.register('sink', makeCollectorSink([]));
     });
     const graph: IGraph = {
@@ -271,9 +270,9 @@ describe('interpret', () => {
   });
 
   it('case 10: two connections between the same two nodes both deliver', () => {
-    const received = { Left: [] as unknown[], Right: [] as unknown[] };
+    const received: { Left: unknown[]; Right: unknown[] } = { Left: [], Right: [] };
     const deps = makeDeps(r => {
-      r.register('src', asNodeConstructor(ValueSourceNode));
+      r.register('src', ValueSourceNode);
       r.register('pair', makePairSink(received));
     });
     const graph: IGraph = {

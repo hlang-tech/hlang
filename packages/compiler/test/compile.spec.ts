@@ -15,23 +15,33 @@ import { pathToFileURL } from 'node:url';
 import { Flow } from '@hlang-org/runtime';
 import { interpret, NodeRegistry } from '@hlang-org/interpreter';
 import type { NodeConstructor } from '@hlang-org/interpreter';
+import Collect from './fixtures/nodes/collect.mts';
+import Faulty from './fixtures/nodes/faulty.mts';
+import Pair from './fixtures/nodes/pair.mts';
+import Scale from './fixtures/nodes/scale.mts';
+import Source from './fixtures/nodes/source.mts';
+import Ticker from './fixtures/nodes/ticker.mts';
+import type { SinkEntry } from './fixtures/nodes/support.mts';
 import type { IConnection, IGraph, INodeInfo, NodeKind, ParamBag } from '@hlang-org/ir';
 import { compile, CompileError, GraphError } from '../src';
 import type { NodeImport } from '../src';
 
 const FIXTURES = join(__dirname, 'fixtures', 'nodes');
 const GENERATED = join(__dirname, '.generated');
-const CODES = ['source', 'scale', 'pair', 'collect', 'faulty', 'ticker'] as const;
+/** The fixture node classes, by node code; both backends run these same classes. */
+const FIXTURE_NODES: Readonly<Record<string, NodeConstructor>> = {
+  source: Source,
+  scale: Scale,
+  pair: Pair,
+  collect: Collect,
+  faulty: Faulty,
+  ticker: Ticker,
+};
 
 /** Each node code imports the default export of its fixture module. */
 const NODES: Record<string, NodeImport> = Object.fromEntries(
-  CODES.map((code) => [code, { from: pathToFileURL(join(FIXTURES, `${code}.cjs`)).href }]),
+  Object.keys(FIXTURE_NODES).map((code) => [code, { from: pathToFileURL(join(FIXTURES, `${code}.mts`)).href }]),
 );
-
-interface SinkEntry {
-  readonly nodeId: string;
-  readonly value: unknown;
-}
 
 function node(nodeId: string, code: string, type: NodeKind, params: ParamBag = {}): INodeInfo {
   return { nodeId, code, name: nodeId, type, bizData: { params } };
@@ -60,29 +70,21 @@ const PROGRAM: IGraph = {
   ],
 };
 
-function loadFixture(code: string): NodeConstructor {
-  // The fixtures are CommonJS classes shared by both backends.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- dynamic fixture lookup by code
-  return require(join(FIXTURES, `${code}.cjs`)) as NodeConstructor;
-}
-
-function sinkOf(): SinkEntry[] {
-  const holder = globalThis as { hlangSink?: SinkEntry[] };
-  const entries = holder.hlangSink ?? [];
-  holder.hlangSink = [];
+/** Runs `graph` with the interpreter; the fixture sinks report through the `record` middleware. */
+function runInterpreted(graph: IGraph): SinkEntry[] {
+  const registry = new NodeRegistry();
+  for (const [code, nodeClass] of Object.entries(FIXTURE_NODES)) {
+    registry.register(code, nodeClass);
+  }
+  const entries: SinkEntry[] = [];
+  const handle = interpret(graph, { registry, createFlow: () => new Flow() }, { middleware: { record: (entry: SinkEntry) => entries.push(entry) } });
+  handle.dispose();
   return entries;
 }
 
-function runInterpreted(graph: IGraph): SinkEntry[] {
-  sinkOf();
-  const registry = new NodeRegistry();
-  for (const code of CODES) {
-    registry.register(code, loadFixture(code));
-  }
-  const handle = interpret(graph, { registry, createFlow: () => new Flow() });
-  handle.dispose();
-  return sinkOf();
-}
+/** Runs the compiled program once and prints what its sinks reported through `record`. */
+const RUN_AND_PRINT_RECORDED =
+  'const entries = []; const handle = program.run({ middleware: { record: (entry) => entries.push(entry) } }); handle.dispose(); console.log(JSON.stringify(entries));';
 
 let fileCounter = 0;
 
@@ -109,7 +111,7 @@ describe('compile', () => {
     const second = compile(PROGRAM, { nodes: NODES });
     expect(second.code).toBe(first.code);
     const portable = compile(PROGRAM, {
-      nodes: Object.fromEntries(CODES.map((code) => [code, { from: `./nodes/${code}.js` }])),
+      nodes: Object.fromEntries(Object.keys(FIXTURE_NODES).map((code) => [code, { from: `./nodes/${code}.js` }])),
     });
     expect(portable.code).toMatchSnapshot();
   });
@@ -128,7 +130,7 @@ describe('compile', () => {
     const { code } = compile(PROGRAM, { nodes: NODES });
     const output = runCompiled(
       code,
-      'const handle = program.run(); handle.dispose(); console.log(JSON.stringify(globalThis.hlangSink));',
+      RUN_AND_PRINT_RECORDED,
     );
     expect(JSON.parse(output)).toEqual(expected);
   });
@@ -148,7 +150,7 @@ describe('compile', () => {
     const { code } = compile(graph, { nodes: NODES });
     const output = runCompiled(
       code,
-      'const handle = program.run(); handle.dispose(); console.log(JSON.stringify(globalThis.hlangSink));',
+      RUN_AND_PRINT_RECORDED,
     );
     expect(JSON.parse(output)).toEqual(expected);
   });
@@ -179,6 +181,29 @@ describe('compile', () => {
     });
   });
 
+  it('gives nodes a frozen copy of the middleware, in both backends', () => {
+    // Middleware carries the host's services; nodes cannot add to it to share state.
+    const graph: IGraph = { nodeList: [node('a', 'source', 'R', { values: [] })], connections: [] };
+    const host = { tag: 'm' };
+    const registry = new NodeRegistry();
+    registry.register('source', Source);
+    const handle = interpret(graph, { registry, createFlow: () => new Flow() }, { middleware: host });
+    const interpreted = handle.getNode('a');
+    const middleware: unknown = interpreted !== undefined && 'opts' in interpreted && typeof interpreted.opts === 'object' && interpreted.opts !== null && 'middleware' in interpreted.opts ? interpreted.opts.middleware : undefined;
+    handle.dispose();
+    expect({ frozen: Object.isFrozen(middleware), hostFrozen: Object.isFrozen(host), middleware }).toEqual({
+      frozen: true,
+      hostFrozen: false,
+      middleware: { tag: 'm' },
+    });
+
+    const output = runCompiled(
+      compile(graph, { nodes: NODES }).code,
+      "const host = { tag: 'm' }; const handle = program.run({ middleware: host }); const m = handle.nodes.a.opts.middleware; console.log(JSON.stringify({ frozen: Object.isFrozen(m), hostFrozen: Object.isFrozen(host), middleware: m })); handle.dispose();",
+    );
+    expect(JSON.parse(output)).toEqual({ frozen: true, hostFrozen: false, middleware: { tag: 'm' } });
+  });
+
   it('defaults env to "prod" and generates a flow id', () => {
     const graph: IGraph = { nodeList: [node('a', 'source', 'R', { values: [] })], connections: [] };
     const output = runCompiled(
@@ -196,12 +221,13 @@ describe('compile', () => {
     const output = runCompiled(
       compile(graph, { nodes: NODES }).code,
       [
-        'const handle = program.run();',
+        'const entries = [];',
+        'const handle = program.run({ middleware: { record: (entry) => entries.push(entry) } });',
         'await new Promise((resolve) => setTimeout(resolve, 60));',
         'handle.dispose();',
-        'const stopped = globalThis.hlangSink.length;',
+        'const stopped = entries.length;',
         'await new Promise((resolve) => setTimeout(resolve, 60));',
-        'console.log(JSON.stringify({ ticked: stopped > 0, stable: globalThis.hlangSink.length === stopped }));',
+        'console.log(JSON.stringify({ ticked: stopped > 0, stable: entries.length === stopped }));',
       ].join('\n'),
     );
     // The process exiting at all proves no interval outlived dispose().

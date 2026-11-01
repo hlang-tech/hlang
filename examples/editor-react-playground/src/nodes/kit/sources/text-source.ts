@@ -3,7 +3,7 @@
  */
 
 import { defineNode } from '../../define-node';
-import { rt, paramsOf, asCtor } from '../../runtime-boundary';
+import { rt, paramsOf } from '../../runtime-boundary';
 import type { INodeConstructionOptions, RuntimePortLike } from '../../runtime-boundary';
 
 class TextSource extends rt.ReadableNode {
@@ -11,7 +11,7 @@ class TextSource extends rt.ReadableNode {
     super(opts);
     rt.Port.O('Output').attach(this);
   }
-  _read(o: (name: string) => RuntimePortLike): void {
+  override _read(o: (name: string) => RuntimePortLike): void {
     const params = paramsOf(this);
     const text = typeof params.text === 'string' ? params.text : '';
     o('Output').send(text);
@@ -24,5 +24,5 @@ export const textSource = defineNode({
   displayName: 'Text Source',
   group: 'sources',
   defaultParams: { text: 'hello, hlang' },
-  ctor: asCtor(TextSource),
+  ctor: TextSource,
 });

@@ -1,38 +1,35 @@
 {
-  "compileOnSave": true,
   "compilerOptions": {
-    "target": "es2017",
-    "module": "commonjs",
-    "outDir": "./lib",
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2022", "dom"],
     "rootDir": "./src",
+    "noEmit": true,
+
     "strict": true,
-    "noImplicitAny": false,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "ignoreDeprecations": "5.0",
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": false,
-    "pretty": true,
-    "noEmitOnError": false,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "noImplicitOverride": true,
+    "alwaysStrict": true,
+
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
-    "strictPropertyInitialization": false,
-    "noFallthroughCasesInSwitch": true,
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "inlineSourceMap": true,
-    // Inline the interop helpers: tslib is not a dependency of this package.
-    "importHelpers": false,
-    "inlineSources": true,
-    "declaration": true
+
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
-  "exclude": [
-    "test*",
-    "node_modules*"
-  ],
-  "include": [
-    "src/**/*"
-  ],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "lib", "test"]
 }

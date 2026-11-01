@@ -51,25 +51,55 @@ const CASES: readonly Case[] = [
 ];
 
 /**
- * Each folder's color; the tab and its sheet share it, so they read as one
- * piece. `row` is the same color for the strip beside the next folder's tab,
- * where (from md up, with the folders joined) the folder behind shows.
+ * Each folder's color; the tab, its shoulder and its sheet share it, so they
+ * read as one piece. `strip` is the same color for the row beside the next
+ * folder's tab, where the folder behind shows.
  */
-const TONES: readonly { readonly sheet: string; readonly fill: string; readonly row: string }[] = [
-  { sheet: 'bg-surface', fill: 'fill-surface', row: 'md:bg-surface' },
-  { sheet: 'bg-surface-2', fill: 'fill-surface-2', row: 'md:bg-surface-2' },
-  { sheet: 'bg-surface-3', fill: 'fill-surface-3', row: 'md:bg-surface-3' },
+const TONES: readonly { readonly sheet: string; readonly fill: string; readonly strip: string }[] = [
+  { sheet: 'bg-surface', fill: 'fill-surface', strip: 'md:bg-surface' },
+  { sheet: 'bg-surface-2', fill: 'fill-surface-2', strip: 'md:bg-surface-2' },
+  { sheet: 'bg-surface-3', fill: 'fill-surface-3', strip: 'md:bg-surface-3' },
 ];
 
-/** Header height plus a gap, then one tab height per folder already stacked. */
+/** Height of a folder's tab row, in px. */
+const TAB_HEIGHT = 48;
+/** Header height plus a gap: where the first folder sticks. */
 const STACK_TOP = 77;
-const TAB_STEP = 56;
 
-type StackStyle = CSSProperties & Record<'--stack-top', string>;
+type StackStyle = CSSProperties & Record<'--stack-top' | '--tab-height' | '--tuck' | '--overlap' | '--sheet-height', string>;
 
-/** Where folder `index` sticks, and its place in the stack. */
-function stackStyle(index: number): StackStyle {
-  return { '--stack-top': `${String(STACK_TOP + index * TAB_STEP)}px`, zIndex: index + 1 };
+/**
+ * The height of every sheet: most of the viewport, at most 760px, and never
+ * less than the tallest case's text needs at md width.
+ */
+const SHEET_HEIGHT = 'max(min(78svh, 760px), 420px)';
+
+/**
+ * Geometry of the stack, from md up.
+ *
+ * Folder `index` sticks exactly one tab row below the folder before it, so its
+ * tab row lies on that folder's sheet top. The strip beside its tab takes the
+ * color of the folder behind and rounds its top-right corner like that sheet,
+ * so the two outlines coincide and every corner left open shows the color
+ * directly above it.
+ *
+ * Every sheet has the same height, and each runs on under the folders after it
+ * by one tab row per folder (`--tuck`). The next folder gives that length back
+ * with a negative top margin (`--overlap`), so the flow is unchanged. A sticky
+ * box releases when its margin box meets the end of the stack, and stuck, every
+ * folder's box then ends on the same line: the stack leaves as one piece, and
+ * behind the last folder's rounded bottom lie the same rounded bottoms. In
+ * flow, the tucked sheet fills whatever the next folder's corners leave open.
+ */
+function stackStyle(index: number, count: number): StackStyle {
+  return {
+    '--stack-top': `${String(STACK_TOP + index * TAB_HEIGHT)}px`,
+    '--tab-height': `${String(TAB_HEIGHT)}px`,
+    '--tuck': `${String((count - 1 - index) * TAB_HEIGHT)}px`,
+    '--overlap': `${String(index === 0 ? 0 : (count - index) * TAB_HEIGHT)}px`,
+    '--sheet-height': SHEET_HEIGHT,
+    zIndex: index + 1,
+  };
 }
 
 export function BuiltOn() {
@@ -82,36 +112,35 @@ export function BuiltOn() {
       />
       <div className="mt-14 space-y-3 md:space-y-0">
         {CASES.map((item, index) => {
-          const tone = TONES[index % TONES.length] ?? { sheet: 'bg-surface', fill: 'fill-surface', row: 'md:bg-surface' };
+          const tone = TONES[index % TONES.length] ?? { sheet: 'bg-surface', fill: 'fill-surface', strip: 'md:bg-surface' };
           const behind = index > 0 ? TONES[(index - 1) % TONES.length] : undefined;
-          const last = index === CASES.length - 1;
           const external = item.link.href.startsWith('http');
           return (
             <article
               key={item.name}
               aria-labelledby={`case-${String(index)}`}
-              // The offset applies only where the folders stick; in normal flow it would shift them.
-              className="relative md:sticky md:top-(--stack-top)"
-              style={stackStyle(index)}
+              // The offsets apply only where the folders stack; in normal flow they would shift them.
+              className="relative md:sticky md:top-(--stack-top) md:mt-[calc(var(--overlap)*-1)]"
+              style={stackStyle(index, CASES.length)}
             >
-              {/* The folder tab: a rounded top-left corner and a curved shoulder into the sheet.
-                  Beside it shows the folder behind, so its row takes that folder's color. */}
-              <div className={`flex items-end ${behind?.row ?? ''}`}>
+              {/* The folder tab: a rounded top-left corner and a curved shoulder into the
+                  sheet. The row beside it is the folder behind, in that folder's color. */}
+              <div className={`flex items-end ${behind === undefined ? '' : `${behind.strip} md:rounded-tr-panel`}`}>
                 <h3
                   id={`case-${String(index)}`}
-                  className={`flex h-12 items-center whitespace-nowrap rounded-tl-[18px] pl-5 pr-1 text-[clamp(18px,5vw,24px)] font-semibold tracking-[-0.02em] sm:pl-6 ${tone.sheet}`}
+                  className={`flex h-(--tab-height) items-center whitespace-nowrap rounded-tl-[18px] pl-5 pr-1 text-[clamp(18px,5vw,24px)] font-semibold tracking-[-0.02em] sm:pl-6 ${tone.sheet}`}
                 >
                   {item.name}
                 </h3>
-                <svg aria-hidden viewBox="0 0 44 48" preserveAspectRatio="none" className={`-ml-px h-12 w-11 shrink-0 ${tone.fill}`}>
+                <svg aria-hidden viewBox="0 0 44 48" preserveAspectRatio="none" className={`-ml-px h-(--tab-height) w-11 shrink-0 ${tone.fill}`}>
                   <path d="M0 0 C 18 0 22 48 44 48 L 0 48 Z" />
                 </svg>
                 {/* Inset like the sheet's content, so the context lines up with it instead of the sheet's edge. */}
                 <p className="ml-auto hidden min-w-0 truncate pb-3.5 pl-6 text-xs text-muted sm:block sm:pr-4 md:pr-6">{item.context}</p>
               </div>
-              {/* From md up the folders join: only the last one rounds its bottom. */}
-              <div className={`rounded-b-panel rounded-tr-panel ${last ? '' : 'md:rounded-b-none'} ${tone.sheet}`}>
-                <div className="grid gap-8 p-3 pb-7 sm:p-4 sm:pb-8 md:min-h-[min(78svh,760px)] md:grid-cols-12 md:items-center md:gap-6 md:p-6">
+              {/* Every sheet is the same height and runs on under the folders after it (see stackStyle). */}
+              <div className={`rounded-b-panel rounded-tr-panel md:pb-(--tuck) ${tone.sheet}`}>
+                <div className="grid gap-8 p-3 pb-7 sm:p-4 sm:pb-8 md:h-(--sheet-height) md:grid-cols-12 md:items-center md:gap-6 md:p-6">
                   <figure className="min-w-0 md:col-span-7">
                     <div className="relative overflow-hidden rounded-[calc(var(--radius-panel)-8px)]">
                       <Image
@@ -121,7 +150,7 @@ export function BuiltOn() {
                         height={item.image.height}
                         sizes="(min-width: 768px) 56vw, 100vw"
                         quality={92}
-                        className="block aspect-[16/10] w-full object-cover"
+                        className="block aspect-[16/10] w-full object-cover md:max-h-[calc(var(--sheet-height)-3rem)]"
                       />
                       <span aria-hidden className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-line ring-inset" />
                     </div>

@@ -3,7 +3,7 @@
  */
 
 import { defineNode } from '../../define-node';
-import { rt, asCtor } from '../../runtime-boundary';
+import { rt } from '../../runtime-boundary';
 import type { INodeConstructionOptions, RuntimePortLike } from '../../runtime-boundary';
 
 class Uppercase extends rt.TransformNode {
@@ -12,7 +12,7 @@ class Uppercase extends rt.TransformNode {
     rt.Port.I('Input').attach(this);
     rt.Port.O('Output').attach(this);
   }
-  _transform(i: (name: string) => RuntimePortLike, o: (name: string) => RuntimePortLike): void {
+  override _transform(i: (name: string) => RuntimePortLike, o: (name: string) => RuntimePortLike): void {
     i('Input').receive((payload: unknown) => {
       o('Output').send(typeof payload === 'string' ? payload.toUpperCase() : payload);
     });
@@ -25,5 +25,5 @@ export const uppercase = defineNode({
   displayName: 'Uppercase',
   group: 'transforms',
   defaultParams: { enabled: true, note: 'uppercases its input' },
-  ctor: asCtor(Uppercase),
+  ctor: Uppercase,
 });

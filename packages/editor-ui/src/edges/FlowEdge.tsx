@@ -12,16 +12,14 @@
 import type { ReactElement } from 'react';
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, useInternalNode } from '@xyflow/react';
 import type { EdgeProps } from '@xyflow/react';
-import type { HlangRFEdge } from '@hlang-org/editor-react';
+import type { HlangRFEdge, HlangRFNode } from '@hlang-org/editor-react';
 import { useEdgeFlowing } from '../live/LiveSignalContext';
 import './FlowEdge.css';
 
 /** Read a string `role` param off the source node, if any. */
 function useSourceRole(sourceId: string): string | undefined {
-  const node = useInternalNode(sourceId);
-  const editorNode = (node?.data as { editorNode?: { params?: Record<string, unknown> } } | undefined)
-    ?.editorNode;
-  const role = editorNode?.params?.role;
+  const node = useInternalNode<HlangRFNode>(sourceId);
+  const role = node?.data.editorNode.params.role;
   return typeof role === 'string' && role.length > 0 ? role : undefined;
 }
 

@@ -1,17 +1,15 @@
 import { defineConfig } from 'tsup';
 
-// The ES module build. The CommonJS build is tsc's output in lib/ (see the
-// `build` script), unchanged so that `require` and deep `lib/...` imports keep
-// working; this adds lib/index.mjs and its declarations next to it. The two
-// builds share no state: nodes are told apart by their `type`, not by class
-// identity, so a program that loads both still works.
+// One ES module build. The runtime ships a single implementation so a program
+// holds one copy of it however it loads it: `import`, or `require` (Node.js
+// loads an ES module through `require` since 20.19 and 22.12). Two copies could
+// not share nodes, whose engine state is private to the copy that made them.
 export default defineConfig({
   entry: ['src/index.ts'],
   format: ['esm'],
   outDir: 'lib',
-  outExtension: () => ({ js: '.mjs' }),
   dts: true,
-  clean: false,
+  clean: true,
   sourcemap: true,
-  target: 'es2019',
+  target: 'es2022',
 });

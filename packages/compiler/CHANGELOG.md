@@ -1,5 +1,11 @@
 # @hlang-org/compiler
 
+## 2.1.0
+
+### Minor Changes
+
+- 9a8323b: Compiled programs give nodes a frozen copy of the middleware, as the interpreter does, so nodes cannot add to it to share state. The parity tests run typed ES module fixtures in both backends and report through middleware instead of a global.
+
 ## 2.0.1
 
 ### Patch Changes

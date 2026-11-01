@@ -4,7 +4,7 @@
  */
 
 import { defineNode } from '../../define-node';
-import { asCtor, rt } from '../../runtime-boundary';
+import { rt } from '../../runtime-boundary';
 import type { INodeConstructionOptions, RuntimePortLike } from '../../runtime-boundary';
 
 class ScanSum extends rt.TransformNode {
@@ -13,7 +13,7 @@ class ScanSum extends rt.TransformNode {
     rt.Port.I('Input').attach(this);
     rt.Port.O('Output').attach(this);
   }
-  _transform(i: (name: string) => RuntimePortLike, o: (name: string) => RuntimePortLike): void {
+  override _transform(i: (name: string) => RuntimePortLike, o: (name: string) => RuntimePortLike): void {
     let total = 0;
     i('Input').receive((payload: unknown) => {
       if (typeof payload === 'number') {
@@ -29,5 +29,5 @@ export const scanSum = defineNode({
   kind: 'T',
   displayName: 'Scan · Sum',
   group: 'transforms',
-  ctor: asCtor(ScanSum),
+  ctor: ScanSum,
 });

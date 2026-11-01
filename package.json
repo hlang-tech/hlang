@@ -25,7 +25,7 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo run build lint:pkg --filter='./packages/*' && node scripts/release/publish.mjs",
-    "lint:docs": "markdownlint-cli2 \"**/*.md\" \"#**/node_modules\" \"#**/CHANGELOG.md\" \"#.playwright-mcp\" \"#.serena\" \"#website/.taste-skill\" \"#website/.next\" \"#website/.generated\"",
+    "lint:docs": "markdownlint-cli2 \"**/*.md\" \"#**/node_modules\" \"#**/CHANGELOG.md\" \"#.playwright-mcp\" \"#.serena\" \"#website/.taste-skill\" \"#website/.next\" \"#website/.generated\" \"#website/test-results\" \"#website/playwright-report\"",
     "release:mirror": "node scripts/release/mirror-scope.mjs"
   },
   "devDependencies": {

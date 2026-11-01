@@ -1,5 +1,23 @@
 # @hlang-org/editor-ui
 
+## 0.3.0
+
+### Minor Changes
+
+- 75c24cb: - `NodeSearchTriggers` handlers declare only what they read (`PointerPosition`, `TouchPositions`, `ConnectionEnd`, exported), so React Flow's events fit them and they can be called with plain data. `connectableCandidates` takes any validator with `canLink`.
+  - The outline thumbnail, the edge role label, and the node search are typed without assertions.
+
+### Patch Changes
+
+- 6576790: - The live signal store notifies once per frame however many signals arrive in it. It used to notify synchronously on every signal once its frame loop was running, which cost a pass over every subscriber per message on a busy stream.
+  - `TokenName` names every token `tokens.css` declares: the glass, warning, activity, and cost tokens were missing, so `createTheme` could not override them.
+- Updated dependencies [75c24cb]
+- Updated dependencies [75c24cb]
+- Updated dependencies [2088608]
+  - @hlang-org/editor-core@0.2.0
+  - @hlang-org/editor-react@0.1.2
+  - @hlang-org/interpreter@2.0.0
+
 ## 0.2.2
 
 ### Patch Changes

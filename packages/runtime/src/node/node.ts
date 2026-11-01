@@ -5,88 +5,87 @@
  * ------       ------
  *
  */
-import {
-  STREAM_TYPE,
-  ERROR_PORT_NAME,
-  NODE_ID_PREFIX,
-  IDENTITY,
-} from '../type';
-import Port from '../base/port';
-import Flow from '../base/flow';
+import type Port from '../base/port';
+import { ERROR_PORT_NAME, IDENTITY, NODE_ID_PREFIX, STREAM_TYPE } from '../type';
+import type { NodeKind } from '../type';
 import { uuid } from '../utils';
 
-class PortMap {
-  mapShape: {[key: string]: {[key: string]: Port}};
+/** Resolves one of a node's ports by name; throws if the node has no such port. */
+export type PortAccessor = (name: string) => Port;
 
-  constructor() {
-    this.mapShape = {
-      [STREAM_TYPE.I]: {},
-      [STREAM_TYPE.O]: {},
+/** What a node is constructed with. A node declares its own shape as a type argument. */
+export type NodeOptions = Readonly<Record<string, unknown>>;
+
+/**
+ * Engine access to a node's private state, for the modules that build and run
+ * a graph. Set once by the class below and never exported from the package.
+ */
+export let nodeInternals: {
+  /** Every port of one direction, in the order they were attached. */
+  readonly portsOf: (node: Node<object>, type: STREAM_TYPE) => readonly Port[];
+  /** Registers `port` on `node` under its name; `Port#attach` calls this. */
+  readonly attachPort: (node: Node<object>, port: Port) => void;
+  /** Runs `start` the first time it is called for `node`, never again. */
+  readonly startOnce: (node: Node<object>, start: () => void) => void;
+};
+
+/**
+ * The base of the three node kinds. Subclass `ReadableNode`, `TransformNode`
+ * or `WriteableNode`; `TOptions` is the shape of the options the node is
+ * constructed with.
+ *
+ * A node holds its own options and ports and nothing else: it cannot reach the
+ * flow that runs it or any other node, so the only thing nodes share is the
+ * messages on their connections.
+ */
+export default abstract class Node<TOptions extends object = NodeOptions> {
+  static {
+    nodeInternals = {
+      portsOf: (node, type) => [...node.#ports[type].values()],
+      attachPort: (node, port) => {
+        node.#ports[port.type].set(port.name, port);
+      },
+      startOnce: (node, start) => {
+        if (node.#started) {
+          return;
+        }
+        node.#started = true;
+        start();
+      },
     };
   }
 
-  get(K) {
-    return this.mapShape[K];
-  }
+  abstract readonly type: NodeKind;
+  readonly id: string = `${NODE_ID_PREFIX}-${uuid.create()}`;
+  readonly identity: symbol = IDENTITY.NODE;
+  opts: TOptions;
 
-  getIn(key) {
-    // TODO
-    const [type, name] = key.split('.');
-    return this.mapShape[type][name];
-  }
+  readonly #ports: Record<STREAM_TYPE, Map<string, Port>> = {
+    [STREAM_TYPE.I]: new Map(),
+    [STREAM_TYPE.O]: new Map(),
+  };
+  #started = false;
 
-  setIn(key, val) {
-    // TODO
-    const [type, name] = key.split('.');
-    this.mapShape[type][name] = val;
-  }
-}
+  /** Resolves an input port. Bound to the node, so it can be passed around as `$i`. */
+  readonly I: PortAccessor = (name) => this.#port(STREAM_TYPE.I, name);
 
-export default class Node {
-  type: Symbol;
-  id: string;
-  opts: {[key: string]: any};
-  portMap: PortMap;
-  isRunning: boolean;
-  flow: Flow | null;
-  identity: Symbol;
-  I: (name: string) => Port;
-  O: (name: string) => Port;
+  /** Resolves an output port. Bound to the node, so it can be passed around as `$o`. */
+  readonly O: PortAccessor = (name) => this.#port(STREAM_TYPE.O, name);
 
-  constructor(opts) {
+  constructor(opts: TOptions) {
     this.opts = opts;
-    this.portMap = new PortMap();
-    this.id = `${NODE_ID_PREFIX}-${uuid.create()}`;
-    this.isRunning = false;
-    this.flow = null;
-    this.identity = IDENTITY.NODE;
-
-    Object.keys(STREAM_TYPE).forEach((k) => {
-      Object.defineProperty(this, k, {
-        get: function () {
-          return (name) => this.portMap.getIn(`${k}.${name}`);
-        },
-      });
-    });
   }
 
-  executeOnce(type, ...args) {
-    if (this.isRunning) return;
-
-    this.isRunning = true;
-
-    this[`_${type}`](...args);
+  /** The error output (`@node/error`); Readable and Transform nodes have one. */
+  E(): Port | undefined {
+    return this.#ports[STREAM_TYPE.O].get(ERROR_PORT_NAME);
   }
 
-  E(): Port {
-    return this.portMap.getIn(`${STREAM_TYPE.O}.${ERROR_PORT_NAME}`);
-  }
-
-  attach(flow) {
-    this.flow = flow;
-  }
-
-  attachPort(port) {
-    this.portMap.setIn(`${port.type}.${port.name}`, port);
+  #port(type: STREAM_TYPE, name: string): Port {
+    const port = this.#ports[type].get(name);
+    if (port === undefined) {
+      throw new Error(`Node ${this.id} has no ${type === STREAM_TYPE.I ? 'input' : 'output'} port "${name}".`);
+    }
+    return port;
   }
 }

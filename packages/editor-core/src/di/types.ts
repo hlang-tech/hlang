@@ -25,8 +25,8 @@ export interface IServiceDependency {
  */
 export interface ServiceIdentifier<T> {
   (target: object, propertyKey: string | undefined, parameterIndex: number): void;
-  /** Phantom marker for the service type. */
-  readonly type: T;
+  /** Phantom marker for the service type: never set, only inferred from. */
+  readonly type?: T;
   /** Unique service name (for diagnostics and identity). */
   readonly serviceName: string;
 }

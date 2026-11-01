@@ -5,13 +5,10 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import * as runtime from '@hlang-org/runtime';
+import { Flow, Port, ReadableNode, WriteableNode } from '@hlang-org/runtime';
+import type { PortAccessor } from '@hlang-org/runtime';
 import { NodeRegistry as RuntimeNodeRegistry } from '@hlang-org/interpreter';
-import type {
-  IRuntimeFlow,
-  INodeConstructionOptions,
-  NodeConstructor,
-} from '@hlang-org/interpreter';
+import type { INodeConstructionOptions } from '@hlang-org/interpreter';
 import {
   createEditorCore,
   InterpreterGraphRunner,
@@ -21,18 +18,12 @@ import {
 import type { Endpoint } from '../src';
 import { readableDescriptor, writableDescriptor } from './fixtures/descriptors';
 
-interface RuntimePortLike {
-  send(msg: unknown): void;
-  receive(next: (msg: unknown) => void): unknown;
-  attach(node: unknown): void;
-}
-interface RuntimeStatics {
-  Port: { I(name: string): RuntimePortLike; O(name: string): RuntimePortLike };
-  Flow: new (opts?: Record<string, unknown>) => IRuntimeFlow;
-  ReadableNode: new (opts: unknown) => object;
-  WriteableNode: new (opts: unknown) => object;
-}
-const rt = runtime as unknown as RuntimeStatics;
+const rt = {
+  Port,
+  Flow,
+  ReadableNode: ReadableNode<INodeConstructionOptions>,
+  WriteableNode: WriteableNode<INodeConstructionOptions>,
+} as const;
 
 const out = (nodeId: string): Endpoint => ({ nodeId, portId: 'Output' });
 const inp = (nodeId: string): Endpoint => ({ nodeId, portId: 'Input' });
@@ -47,7 +38,7 @@ describe('InterpreterGraphRunner (integration)', () => {
         super(opts);
         rt.Port.O('Output').attach(this);
       }
-      _read(o: (name: string) => RuntimePortLike): void {
+      override _read(o: PortAccessor): void {
         o('Output').send('payload');
       }
     }
@@ -56,14 +47,14 @@ describe('InterpreterGraphRunner (integration)', () => {
         super(opts);
         rt.Port.I('Input').attach(this);
       }
-      _write(i: (name: string) => RuntimePortLike): void {
+      override _write(i: PortAccessor): void {
         i('Input').receive(p => received.push(p));
       }
     }
 
     const runtimeRegistry = new RuntimeNodeRegistry()
-      .register('test-source', Source as unknown as NodeConstructor)
-      .register('test-sink', Sink as unknown as NodeConstructor);
+      .register('test-source', Source)
+      .register('test-sink', Sink);
 
     const runner = new InterpreterGraphRunner(
       runtimeRegistry,

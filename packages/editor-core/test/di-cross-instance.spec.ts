@@ -6,26 +6,24 @@
  * one instance of a service-identifier module, so a token imported by one
  * package is a DIFFERENT object than the same-named token used to register the
  * service inside the core. The `ServiceCollection` keys by `serviceName`, so
- * resolution still works. This test reproduces that duplication explicitly.
+ * resolution still works. This test loads a second, real instance of the
+ * identifier module to reproduce that duplication.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { ServiceCollection, IIdGenerator, CountingIdGenerator } from '../src';
-import type { ServiceIdentifier } from '../src';
 
 describe('ServiceCollection resolves across duplicate same-named identifiers', () => {
-  it('a distinct token object with the same serviceName resolves the service', () => {
+  it('a distinct token object with the same serviceName resolves the service', async () => {
     const collection = new ServiceCollection();
     collection.set(IIdGenerator, new CountingIdGenerator());
 
-    // A distinct token OBJECT that shares the registered name — this is what a
-    // second bundled module instance produces. `createDecorator` dedupes by
-    // name within one module, so we build the equivalent shape directly.
-    const noop = (): void => undefined;
-    const duplicateToken = Object.assign(noop, {
-      serviceName: 'idGenerator',
-      type: undefined,
-    }) as unknown as ServiceIdentifier<{ nextEdgeId(): string }>;
+    // A second instance of the identifier module, as a second bundled copy of
+    // the package would load: its `createDecorator` builds a distinct token
+    // object under the same name.
+    vi.resetModules();
+    const secondInstance = await import('../src/di/decorator');
+    const duplicateToken = secondInstance.createDecorator<{ nextEdgeId(): string }>('idGenerator');
 
     expect(duplicateToken).not.toBe(IIdGenerator);
     expect(duplicateToken.serviceName).toBe(IIdGenerator.serviceName);

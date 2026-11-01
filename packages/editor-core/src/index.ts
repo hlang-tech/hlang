@@ -22,6 +22,7 @@ export type { ServiceIdentifier, IServiceDependency, Newable } from './di';
 
 // Domain model
 export { ERROR_PORT_NAME } from './model/types';
+export { parseGraphSnapshot } from './model/parse-snapshot';
 export type {
   NodeId,
   EdgeId,

@@ -82,6 +82,9 @@ export { useNodeSearchTriggers } from './command-palette/useNodeSearchTriggers';
 export type {
   NodeSearchTriggers,
   NodeSearchTriggerOptions,
+  PointerPosition,
+  TouchPositions,
+  ConnectionEnd,
 } from './command-palette/useNodeSearchTriggers';
 export {
   searchNodes,
