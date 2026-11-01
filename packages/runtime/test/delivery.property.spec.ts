@@ -24,7 +24,66 @@ const layered = fc
     }),
   );
 
+/** Builds the layered graph; returns its source, its sinks and how many paths reach each sink. */
+function build({ widths, masks, values }: { widths: number[]; masks: number[][]; values: number[] }) {
+  const source = new Values(values);
+  const firstWidth = widths[0] ?? 1;
+  let layer = Array.from({ length: firstWidth }, () => new Apply((value) => value));
+  let paths = layer.map(() => 1);
+  for (const node of layer) {
+    source.O("out").connect(node.I("in"));
+  }
+  masks.forEach((layerMasks) => {
+    const next = layerMasks.map(() => new Apply((value) => value));
+    const nextPaths = layerMasks.map((mask, target) => {
+      let count = 0;
+      layer.forEach((node, index) => {
+        if ((mask >> index) & 1) {
+          const input = next[target];
+          if (input !== undefined) node.O("out").connect(input.I("in"));
+          count += paths[index] ?? 0;
+        }
+      });
+      return count;
+    });
+    layer = next;
+    paths = nextPaths;
+  });
+  const sinks = layer.map((node) => {
+    const sink = new Collect();
+    node.O("out").connect(sink.I("in"));
+    return sink;
+  });
+  return { source, sinks, paths };
+}
+
 describe("delivery (properties)", () => {
+  it("delivers in slices exactly what it delivers synchronously, in the same order", () => {
+    fc.assert(
+      fc.property(layered, fc.nat({ max: 3 }), (graph, budgetMs) => {
+        const synchronous = build(graph);
+        new Flow().run(synchronous.source);
+
+        let time = 0;
+        const continuations: (() => void)[] = [];
+        const sliced = build(graph);
+        // Every delivery takes 1 ms of this clock, so slices of `budgetMs` break the run up.
+        sliced.sinks.forEach((sink) => {
+          sink.I("in").receive(() => {
+            time += 1;
+          });
+        });
+        new Flow({ slice: { budgetMs, now: () => time, yieldTo: (resume) => continuations.push(resume) } }).run(sliced.source);
+        for (let next = continuations.shift(); next !== undefined; next = continuations.shift()) {
+          next();
+        }
+
+        expect(sliced.sinks.map((sink) => sink.seen)).toEqual(synchronous.sinks.map((sink) => sink.seen));
+      }),
+      { numRuns: 300 },
+    );
+  });
+
   it("delivers each value once per path, in the order it was sent", () => {
     fc.assert(
       fc.property(layered, ({ widths, masks, values }) => {

@@ -104,12 +104,24 @@ export interface IRuntimeFlowObserver {
   readonly delivered?: (event: IRuntimeDeliveryEvent) => void;
 }
 
+/** How a flow shares its thread. Mirrors the runtime's `SliceOptions`. */
+export interface IRuntimeSliceOptions {
+  /** How long one slice of deliveries may run, in milliseconds. */
+  readonly budgetMs?: number;
+  /** The clock the budget is measured with. */
+  readonly now?: () => number;
+  /** Schedules the next slice in a later task. */
+  readonly yieldTo?: (resume: () => void) => void;
+}
+
 /** What the interpreter asks of the flow it creates. Mirrors the runtime's `FlowOptions`. */
 export interface IRuntimeFlowOptions {
   /** Receives a failure the graph cannot carry, such as a Writable's handler throwing. */
   readonly onError?: (error: unknown, node: IRuntimeNode | null) => void;
   /** Present when the run is traced. */
   readonly observer?: IRuntimeFlowObserver;
+  /** Present when the run shares its thread (`@hlang-org/runtime` 2.2 and later). */
+  readonly slice?: IRuntimeSliceOptions;
 }
 
 /** A runtime `Flow`. `run` must be called with a Readable (R) root node. */

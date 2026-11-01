@@ -20,6 +20,7 @@ export type {
   IRuntimeNode,
   IRuntimeFlow,
   IRuntimeFlowOptions,
+  IRuntimeSliceOptions,
   IRuntimeFlowObserver,
   IRuntimeDeliveryEvent,
   FlowFactory,

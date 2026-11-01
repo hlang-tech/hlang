@@ -1,6 +1,7 @@
 import type { Subscription } from 'rxjs';
 import build from '../core/build';
-import { deliveries } from '../core/delivery';
+import { DeliveryQueue } from '../core/delivery';
+import type { SliceOptions } from '../core/delivery';
 import type { AnyNode, Teardown } from '../node';
 import { nodeInternals } from '../node/node';
 import { NODE_TYPE, STREAM_TYPE } from '../type';
@@ -63,6 +64,15 @@ export interface FlowOptions {
    * are not timed and cost nothing extra.
    */
   readonly observer?: FlowObserver;
+  /**
+   * Shares the thread: deliveries run in slices of at most `budgetMs`, and
+   * the flow yields to the rest of the program between them. Without it, a
+   * flow delivers everything a send causes before the send returns, which is
+   * fastest, but work that never ends by itself (a feedback loop with no
+   * asynchronous step) then holds the thread for good. Pass `{}` for the
+   * defaults.
+   */
+  readonly slice?: SliceOptions;
 }
 
 /** A node this flow started, and the teardown its start returned, if any. */
@@ -81,6 +91,8 @@ interface Started {
 export default class Flow {
   readonly #onError: FailureHandler | undefined;
   readonly #observer: FlowObserver | undefined;
+  /** This flow's deliveries; no other flow waits on them. */
+  readonly #deliveries: DeliveryQueue;
   /** The connections this flow has wired, by output and input port id. */
   readonly #wired = new Set<string>();
   /** The subscriptions that carry those connections. */
@@ -92,6 +104,7 @@ export default class Flow {
   constructor(options: FlowOptions = {}) {
     this.#onError = options.onError;
     this.#observer = options.observer;
+    this.#deliveries = new DeliveryQueue(options.slice);
   }
 
   /** Whether `dispose` has been called. */
@@ -142,7 +155,8 @@ export default class Flow {
 
   /**
    * Ends every node this flow started. In order: the flow's connections are
-   * cut, so nothing more is delivered (messages already queued are dropped);
+   * cut, so nothing more is delivered (messages already queued are dropped,
+   * and a scheduled slice does nothing);
    * each node's teardown runs, the last started first, with a failing one
    * reported like any other failure while the rest still run; then the nodes'
    * ports complete, which ends every subscription made on them, and later
@@ -156,6 +170,7 @@ export default class Flow {
       return;
     }
     this.#disposed = true;
+    this.#deliveries.close();
     for (const connection of this.#connections.splice(0)) {
       connection.unsubscribe();
     }
@@ -195,6 +210,7 @@ export default class Flow {
   /** Subscribes each connection once: what its output sends is delivered to its input. */
   #wire(connections: readonly IPortDesc[]): void {
     const delivered = this.#observer?.delivered;
+    const deliveries = this.#deliveries;
     for (const { src, dst, source, target } of connections) {
       const key = `${src.id}@${dst.id}`;
       if (this.#wired.has(key)) {

@@ -188,6 +188,7 @@ export function interpret(
       }
       errorStream.next({ nodeId, error });
     },
+    ...(options.slice === undefined ? {} : { slice: options.slice }),
     ...(options.trace === true
       ? {
           observer: {

@@ -18,6 +18,7 @@ import type { NodeConstructor } from '@hlang-org/interpreter';
 import Collect from './fixtures/nodes/collect.mts';
 import FailingSink from './fixtures/nodes/failing-sink.mts';
 import Faulty from './fixtures/nodes/faulty.mts';
+import Loop from './fixtures/nodes/loop.mts';
 import Pair from './fixtures/nodes/pair.mts';
 import Scale from './fixtures/nodes/scale.mts';
 import Source from './fixtures/nodes/source.mts';
@@ -38,6 +39,7 @@ const FIXTURE_NODES: Readonly<Record<string, NodeConstructor>> = {
   collect: Collect,
   faulty: Faulty,
   'failing-sink': FailingSink,
+  loop: Loop,
   ticker: Ticker,
   'teardown-ticker': TeardownTicker,
 };
@@ -269,6 +271,28 @@ describe('compile', () => {
       'const errors = []; const handle = program.run({ onError: (event) => errors.push(event) }); handle.dispose(); console.log(JSON.stringify(errors));',
     );
     expect(JSON.parse(output)).toEqual([{ nodeId: 'f', error: 'bad:7' }]);
+  });
+
+  it('runs a graph that loops forever in slices when asked, and stops it on dispose', () => {
+    const graph: IGraph = {
+      nodeList: [node('a', 'source', 'R', { values: [1] }), node('x', 'loop', 'T'), node('y', 'loop', 'T')],
+      connections: [link('a', 'x'), link('x', 'y'), link('y', 'x')],
+    };
+    const output = runCompiled(
+      compile(graph, { nodes: NODES }).code,
+      [
+        'let count = 0;',
+        "const handle = program.run({ slice: { budgetMs: 1 }, middleware: { record: () => { count += 1; } } });",
+        // run() returned and this timer fires: the loop shares the thread.
+        'await new Promise((resolve) => setTimeout(resolve, 40));',
+        'handle.dispose();',
+        'const stopped = count;',
+        'await new Promise((resolve) => setTimeout(resolve, 40));',
+        'console.log(JSON.stringify({ looped: stopped > 0, stopped: count === stopped }));',
+      ].join('\n'),
+    );
+    // The child process exiting at all proves dispose ended the loop.
+    expect(JSON.parse(output)).toEqual({ looped: true, stopped: true });
   });
 
   it('reports the same node errors as the interpreter', () => {

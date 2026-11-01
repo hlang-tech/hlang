@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 import { Flow, Port, ReadableNode, WriteableNode } from '@hlang-org/runtime';
 import type { PortAccessor } from '@hlang-org/runtime';
 import { NodeRegistry as RuntimeNodeRegistry } from '@hlang-org/interpreter';
-import type { INodeConstructionOptions, INodeDeliveryEvent } from '@hlang-org/interpreter';
+import type { INodeConstructionOptions, INodeDeliveryEvent, IRuntimeFlowOptions } from '@hlang-org/interpreter';
 import {
   createEditorCore,
   InterpreterGraphRunner,
@@ -132,5 +132,29 @@ describe('InterpreterGraphRunner (integration)', () => {
     handle?.dispose();
 
     expect(events).toEqual([]);
+  });
+
+  it('shares the thread by default, so a graph that loops forever cannot freeze the editor', () => {
+    class Source extends rt.ReadableNode {
+      constructor(opts: INodeConstructionOptions) {
+        super(opts);
+        rt.Port.O('Output').attach(this);
+      }
+    }
+    const registry = new RuntimeNodeRegistry().register('test-source', Source);
+    const graph = {
+      nodeList: [{ code: 'test-source', name: 'source', type: 'R' as const, nodeId: 'source', bizData: { params: {} } }],
+      connections: [],
+    };
+    const seen: IRuntimeFlowOptions[] = [];
+    const createFlow = (flowOptions: IRuntimeFlowOptions) => {
+      seen.push(flowOptions);
+      return new rt.Flow(flowOptions);
+    };
+
+    new InterpreterGraphRunner(registry, createFlow).run(graph).dispose();
+    new InterpreterGraphRunner(registry, createFlow, { slice: false }).run(graph).dispose();
+
+    expect(seen.map(options => options.slice)).toEqual([{}, undefined]);
   });
 });

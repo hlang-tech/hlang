@@ -8,7 +8,7 @@
  * this boundary.
  */
 
-import type { IRuntimeNode } from './runtime-contract';
+import type { IRuntimeNode, IRuntimeSliceOptions } from './runtime-contract';
 
 /** A cancellable subscription handle. */
 export interface IDisposable {
@@ -67,6 +67,15 @@ export interface IInterpretOptions {
    * default: an untraced run reads no clock and records nothing per message.
    */
   readonly trace?: boolean;
+  /**
+   * Share the thread: the flow delivers in slices of at most `budgetMs` and
+   * yields to the rest of the program between them, so a graph that loops
+   * forever with no asynchronous step (feedback between transforms is legal)
+   * neither freezes a page nor starves a server, and `dispose` can stop it.
+   * Off by default: an unsliced run delivers everything a send causes before
+   * the send returns, which is fastest. Pass `{}` for the defaults.
+   */
+  readonly slice?: IRuntimeSliceOptions;
 }
 
 /**
