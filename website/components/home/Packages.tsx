@@ -6,6 +6,11 @@ import { enter } from '@/lib/enter';
 
 const INSTALL = 'npm install @hlang-org/runtime @hlang-org/interpreter';
 
+/** An npm scope, kept on one line. */
+function Scope({ name }: { readonly name: string }) {
+  return <code className="whitespace-nowrap rounded-[6px] bg-surface-2 px-1.5 py-0.5 font-mono text-[0.88em] text-ink">{name}</code>;
+}
+
 function docsPath(short: string): string {
   if (short === 'ir') {
     return '/docs/igraph';
@@ -22,11 +27,16 @@ export async function Packages() {
   const install = await highlight(INSTALL, 'sh');
 
   return (
-    <section aria-labelledby="packages-title" className="frame py-28 md:py-36">
+    <section aria-labelledby="packages-title" className="frame py-20 md:py-36">
       <SectionHeader
         id="packages-title"
         title="Seven packages"
-        lead="Every package is published under @hlang-org, and with identical builds and versions under @hlang-tech. Use one scope in a project."
+        lead={
+          <>
+            Every package is published under <Scope name="@hlang-org" />, and with identical builds and versions under{' '}
+            <Scope name="@hlang-tech" />. Use one scope in a project.
+          </>
+        }
       />
       <div className="mt-14 grid gap-x-6 gap-y-14 lg:grid-cols-12">
         <div className="min-w-0 lg:col-span-6">

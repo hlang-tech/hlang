@@ -37,13 +37,13 @@ function NodeMark({ kind }: { readonly kind: Kind }) {
 
 export function Intro() {
   return (
-    <section className="frame py-28 md:py-36" aria-labelledby="intro-title">
+    <section className="frame py-20 md:py-36" aria-labelledby="intro-title">
       <h2 id="intro-title" className="sr-only">
         What an hlang program is
       </h2>
       <p className="mx-auto max-w-[24ch] text-center text-[clamp(28px,8.2vw,38px)] leading-[1.06] font-semibold tracking-[-0.035em] text-balance sm:text-l" data-enter style={enter(0)}>
         A Readable <NodeMark kind="R" /> sends, a Transform <NodeMark kind="T" /> maps, a Writable <NodeMark kind="W" />{' '}
-        receives, and every port between them is a live stream.
+        receives, <span className="text-muted">and every port between them is a live stream.</span>
       </p>
     </section>
   );

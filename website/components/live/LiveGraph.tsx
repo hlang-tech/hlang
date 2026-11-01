@@ -344,7 +344,7 @@ interface NodeCardProps {
 
 function NodeCard({ ref, kind, title, note, children }: NodeCardProps) {
   return (
-    <div ref={ref} className="relative w-[min(100%,300px)] rounded-card bg-surface-2 p-4 ring-1 ring-line ring-inset">
+    <div ref={ref} className="relative w-full rounded-card bg-surface-2 p-4 ring-1 ring-line ring-inset sm:w-[min(100%,300px)]">
       <div className="mb-3 flex items-center gap-2.5">
         <span className="grid size-6 place-items-center rounded-full bg-surface-3 text-[13px] font-semibold text-silver">{kind}</span>
         <span className="font-medium text-ink">{title}</span>

@@ -15,7 +15,7 @@ const CAPABILITIES: readonly { readonly title: string; readonly body: string }[]
 
 export function LumenSection() {
   return (
-    <section id="lumen" aria-labelledby="lumen-title" className="frame scroll-mt-20 py-28 md:py-36">
+    <section id="lumen" aria-labelledby="lumen-title" className="frame scroll-mt-20 py-20 md:py-36">
       <SectionHeader
         id="lumen-title"
         title="Lumen, the editor for hlang graphs"

@@ -26,7 +26,6 @@ packages/compiler/test/.generated/
 
 # Website
 website/.next/
-website/.next-dev/
 website/.generated/
 website/.taste-skill/
 website/next-env.d.ts

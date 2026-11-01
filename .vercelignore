@@ -6,7 +6,6 @@ packages/*/lib
 packages/compiler/test/.generated
 examples/*/dist
 website/.next
-website/.next-dev
 website/.generated
 website/.taste-skill
 website/public/media
