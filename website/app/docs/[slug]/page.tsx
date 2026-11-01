@@ -42,7 +42,7 @@ export default async function GuidePage({ params }: Params) {
         <>
           The examples on this page run in CI.{' '}
           <Link
-            href={`${SITE.repository}/blob/main/website/content/docs/${guide.slug}.md`}
+            href={`${SITE.repository}/blob/main/website/content/docs/${encodeURIComponent(guide.slug)}.md`}
             target="_blank"
             rel="noreferrer"
             className="underline decoration-silver-lo underline-offset-4 hover:text-ink"
