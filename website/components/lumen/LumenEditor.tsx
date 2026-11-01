@@ -556,8 +556,8 @@ function Output({ log, running }: { readonly log: readonly { readonly id: number
 export function LumenEditor(props: LumenEditorProps): ReactElement {
   return (
     <ReactFlowProvider>
-      {/* The editor's own box: its toasts stack inside it, not on the page. */}
-      <div className="relative h-full">
+      {/* The editor's own box: its toasts stack inside it and below the page's header. */}
+      <div className="relative isolate h-full">
         <ToastProvider>
           <EditorBody {...props} />
         </ToastProvider>
