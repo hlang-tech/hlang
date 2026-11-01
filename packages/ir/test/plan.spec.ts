@@ -13,6 +13,16 @@ function link(from: string, to: string, fromPort = 'out', toPort = 'in'): IConne
   };
 }
 
+/**
+ * A graph as it arrives: JSON, where the types do not hold. Tests use it to
+ * prove that planGraph checks at run time what the types only document. This
+ * is the one place the input is deliberately outside the IGraph types.
+ */
+function received(json: unknown): IGraph {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- deliberately invalid input, see above
+  return json as IGraph;
+}
+
 function codeOf(fn: () => unknown): string | undefined {
   try {
     fn();
@@ -109,11 +119,8 @@ describe('planGraph', () => {
   });
 
   it('rejects an unknown node kind', () => {
-    // A graph usually arrives as JSON, where the types do not hold; this input is
-    // deliberately outside INodeInfo to prove planGraph checks the kind at run time.
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- deliberately invalid input, see above
-    const bad = { ...node('a', 'R'), type: 'X' } as unknown as INodeInfo;
-    expect(codeOf(() => planGraph({ nodeList: [bad], connections: [] }))).toBe('invalid-node-kind');
+    const graph = received({ nodeList: [{ ...node('a', 'R'), type: 'X' }], connections: [] });
+    expect(codeOf(() => planGraph(graph))).toBe('invalid-node-kind');
   });
 
   it('rejects a connection to an unknown node', () => {
@@ -152,5 +159,45 @@ describe('planGraph', () => {
     const plan = planGraph(graph);
     expect(plan.nodes[0]?.config).toEqual({ params: { n: 1 } });
     expect(plan.nodes[0]?.config).not.toBe(graph.nodeList[0]?.bizData);
+  });
+
+  describe('bounded connections (RFC 0001)', () => {
+    const graph = (extra: Readonly<Record<string, unknown>>): IGraph =>
+      received({ nodeList: [node('r1', 'R'), node('w1', 'W')], connections: [{ ...link('r1', 'w1'), ...extra }] });
+
+    it('carries capacity and overflow into the plan', () => {
+      expect(planGraph(graph({ capacity: 4, overflow: 'drop-oldest' })).connections).toEqual([
+        { source: { nodeId: 'r1', portId: 'out' }, target: { nodeId: 'w1', portId: 'in' }, capacity: 4, overflow: 'drop-oldest' },
+      ]);
+    });
+
+    it('leaves an unbounded connection as it was', () => {
+      expect(planGraph(graph({})).connections).toEqual([
+        { source: { nodeId: 'r1', portId: 'out' }, target: { nodeId: 'w1', portId: 'in' } },
+      ]);
+    });
+
+    it('rejects a capacity that is not a positive integer', () => {
+      for (const capacity of [0, -1, 1.5, '4', null]) {
+        expect(codeOf(() => planGraph(graph({ capacity })))).toBe('invalid-connection');
+      }
+    });
+
+    it('carries a capacity without an overflow', () => {
+      expect(planGraph(graph({ capacity: 2 })).connections[0]).toEqual({
+        source: { nodeId: 'r1', portId: 'out' },
+        target: { nodeId: 'w1', portId: 'in' },
+        capacity: 2,
+      });
+    });
+
+    it('names in its error a value JSON cannot print', () => {
+      expect(() => planGraph(graph({ capacity: () => 2 }))).toThrow('has capacity function; expected a positive integer');
+    });
+
+    it('rejects an unknown overflow, and an overflow without a capacity', () => {
+      expect(codeOf(() => planGraph(graph({ capacity: 2, overflow: 'drop-newest' })))).toBe('invalid-connection');
+      expect(codeOf(() => planGraph(graph({ overflow: 'drop-oldest' })))).toBe('invalid-connection');
+    });
   });
 });

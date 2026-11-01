@@ -184,6 +184,29 @@ export function makeLoopTransform(counter: { count: number }): NodeConstructor {
   return LoopTransformNode;
 }
 
+/**
+ * A W sink whose handler works on each value asynchronously (one macrotask)
+ * and records the most it ever worked on at once into `stats`.
+ */
+export function makeAsyncSink(stats: { inFlight: number; maxInFlight: number; seen: unknown[] }): NodeConstructor {
+  class AsyncSinkNode extends WriteableNode {
+    constructor(opts: INodeConstructionOptions) {
+      super(opts);
+      Port.I('Input').attach(this);
+    }
+    override _write(i: PortAccessor): void {
+      i('Input').receive(async (payload: unknown) => {
+        stats.inFlight += 1;
+        stats.maxInFlight = Math.max(stats.maxInFlight, stats.inFlight);
+        await new Promise(resolve => setTimeout(resolve, 1));
+        stats.seen.push(payload);
+        stats.inFlight -= 1;
+      });
+    }
+  }
+  return AsyncSinkNode;
+}
+
 /** A W sink whose handler throws `failure` for every message. */
 export function makeThrowingSink(failure: Error): NodeConstructor {
   class ThrowingSinkNode extends WriteableNode {

@@ -22,6 +22,7 @@ import Faulty from './fixtures/nodes/faulty.mts';
 import Loop from './fixtures/nodes/loop.mts';
 import Pair from './fixtures/nodes/pair.mts';
 import Scale from './fixtures/nodes/scale.mts';
+import SlowCollect from './fixtures/nodes/slow-collect.mts';
 import Source from './fixtures/nodes/source.mts';
 import TeardownTicker from './fixtures/nodes/teardown-ticker.mts';
 import Ticker from './fixtures/nodes/ticker.mts';
@@ -42,6 +43,7 @@ const FIXTURE_NODES: Readonly<Record<string, NodeConstructor>> = {
   'failing-sink': FailingSink,
   loop: Loop,
   countdown: Countdown,
+  'slow-collect': SlowCollect,
   ticker: Ticker,
   'teardown-ticker': TeardownTicker,
 };
@@ -273,6 +275,43 @@ describe('compile', () => {
       'const errors = []; const handle = program.run({ onError: (event) => errors.push(event) }); handle.dispose(); console.log(JSON.stringify(errors));',
     );
     expect(JSON.parse(output)).toEqual([{ nodeId: 'f', error: 'bad:7' }]);
+  });
+
+  it('prints a bounded connection with its capacity and overflow', () => {
+    const graph: IGraph = {
+      nodeList: [node('a', 'source', 'R', { values: [1] }), node('w', 'collect', 'W')],
+      connections: [{ ...link('a', 'w'), capacity: 2, overflow: 'drop-oldest' }],
+    };
+    expect(compile(graph, { nodes: NODES }).code).toContain('nodes["a"].O("out").connect(nodes["w"].I("in"), {\n    capacity: 2,\n    overflow: "drop-oldest"\n  });');
+  });
+
+  it('runs a bounded connection the same way as the interpreter: one value at a time', async () => {
+    const graph: IGraph = {
+      nodeList: [node('a', 'source', 'R', { values: [1, 2, 3] }), node('w', 'slow-collect', 'W')],
+      connections: [{ ...link('a', 'w'), capacity: 2 }],
+    };
+    const registry = new NodeRegistry();
+    for (const [code, nodeClass] of Object.entries(FIXTURE_NODES)) {
+      registry.register(code, nodeClass);
+    }
+    const entries: SinkEntry[] = [];
+    const handle = interpret(graph, { registry, createFlow: (options) => new Flow(options) }, { middleware: { record: (entry: SinkEntry) => entries.push(entry) } });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    handle.dispose();
+
+    const compiled: unknown = JSON.parse(
+      runCompiled(
+        compile(graph, { nodes: NODES }).code,
+        'const entries = []; const handle = program.run({ middleware: { record: (entry) => entries.push(entry) } }); await new Promise((resolve) => setTimeout(resolve, 50)); handle.dispose(); console.log(JSON.stringify(entries));',
+      ),
+    );
+
+    expect(entries.map((entry) => entry.value)).toEqual([
+      { value: 1, concurrent: 1 },
+      { value: 2, concurrent: 1 },
+      { value: 3, concurrent: 1 },
+    ]);
+    expect(compiled).toEqual(entries);
   });
 
   it('runs a Transform connected to itself the same way as the interpreter', () => {

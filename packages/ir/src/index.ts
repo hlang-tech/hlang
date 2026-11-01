@@ -14,6 +14,7 @@ export type {
   ParamBag,
   IBizData,
   IConnectionEndpoint,
+  ConnectionOverflow,
   IConnection,
   IPortInfo,
   INodeInfo,

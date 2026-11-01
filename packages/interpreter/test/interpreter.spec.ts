@@ -22,7 +22,11 @@ import {
   makePairSink,
   makeThrowingSink,
   makeLoopTransform,
+  makeAsyncSink,
 } from './fixtures/nodes';
+import { Port, ReadableNode } from './fixtures/nodes';
+import type { PortAccessor } from '@hlang-org/runtime';
+import type { INodeConstructionOptions } from '../src';
 
 /** Build interpreter deps from the real runtime Flow + a fresh registry. */
 function makeDeps(register: (r: NodeRegistry) => void): IInterpreterDeps {
@@ -507,5 +511,52 @@ describe('slicing', () => {
       },
     }).dispose();
     expect(seen.map(options => options.slice)).toEqual([undefined]);
+  });
+});
+
+describe('bounded connections (RFC 0001)', () => {
+  /** A Readable that sends 1..5 at once. */
+  function graphWith(capacity?: number): IGraph {
+    const connection = edge('r1', 'w1');
+    return {
+      nodeList: [rNode('r1', 'burst'), wNode('w1', 'slow')],
+      connections: [capacity === undefined ? connection : { ...connection, capacity }],
+    };
+  }
+
+  async function run(capacity?: number) {
+    const stats: { inFlight: number; maxInFlight: number; seen: unknown[] } = { inFlight: 0, maxInFlight: 0, seen: [] };
+    class Burst extends ReadableNode {
+      constructor(opts: INodeConstructionOptions) {
+        super(opts);
+        Port.O('Output').attach(this);
+      }
+      override _read(o: PortAccessor): void {
+        for (const value of [1, 2, 3, 4, 5]) {
+          o('Output').send(value);
+        }
+      }
+    }
+    const handle = interpret(
+      graphWith(capacity),
+      makeDeps(r => {
+        r.register('burst', Burst);
+        r.register('slow', makeAsyncSink(stats));
+      }),
+    );
+    await new Promise(resolve => setTimeout(resolve, 60));
+    handle.dispose();
+    return stats;
+  }
+
+  it('passes a connection\'s capacity to the runtime: one message at a time, in order', async () => {
+    const stats = await run(2);
+    expect(stats.maxInFlight).toBe(1);
+    expect(stats.seen).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('leaves an unbounded connection as it was: asynchronous work overlaps', async () => {
+    const stats = await run();
+    expect(stats.maxInFlight).toBe(5);
   });
 });

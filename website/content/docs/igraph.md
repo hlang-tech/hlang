@@ -11,7 +11,7 @@ An `IGraph` is a program as data: a list of nodes and a list of connections. `@h
 ```js file=lib/graph.mjs
 ```
 
-Each node has a `nodeId` (unique in the graph), a `code` (the node type a backend resolves), a `name` and a `type`: `'R'`, `'T'` or `'W'`. Parameters go in `bizData.params`. A connection's `Output` is the upstream port and its `Input` is the downstream port.
+Each node has a `nodeId` (unique in the graph), a `code` (the node type a backend resolves), a `name` and a `type`: `'R'`, `'T'` or `'W'`. Parameters go in `bizData.params`. A connection's `Output` is the upstream port and its `Input` is the downstream port. A connection may be bounded, as in Flow-Based Programming: `capacity` (a positive integer) is how many messages it holds, counting the ones its input is still working on, and a sender to a full connection waits; `overflow: "drop-oldest"` drops its oldest waiting message instead.
 
 ## planGraph
 
@@ -32,7 +32,7 @@ A graph that breaks a rule throws a `GraphError` with one of these codes:
 | `duplicate-node-id` | Two nodes share a `nodeId`. |
 | `invalid-node-kind` | A node's `type` is not `R`, `T` or `W`. |
 | `unknown-node` | A connection names a node that is not in `nodeList`. |
-| `invalid-connection` | A connection leaves a Writable node, enters a Readable node, or targets the `@node/error` port, which is an output. |
+| `invalid-connection` | A connection leaves a Writable node, enters a Readable node, or targets the `@node/error` port, which is an output; or its `capacity` is not a positive integer, its `overflow` is not `"drop-oldest"`, or it has an `overflow` without a `capacity`. |
 | `no-readable-root` | The graph has no Readable node to run from. |
 
 The full API is in the [ir reference](/docs/api/ir).
