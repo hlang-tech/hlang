@@ -259,14 +259,21 @@ function runBody(plan: ExecutionPlan, localByCode: ReadonlyMap<string, string>):
     });
   }
 
-  // 3. Wire every connection: source.O(port).connect(target.I(port)).
-  for (const { source, target } of plan.connections) {
+  // 3. Wire every connection: source.O(port).connect(target.I(port)), with
+  //    a bounded connection's capacity and overflow (RFC 0001).
+  for (const { source, target, capacity, overflow } of plan.connections) {
+    const input = call(member(nodeRef(target.nodeId), 'I'), [str(target.portId)]);
+    const bounds =
+      capacity === undefined
+        ? []
+        : [
+            object([
+              property('capacity', num(capacity)),
+              ...(overflow === undefined ? [] : [property('overflow', str(overflow))]),
+            ]),
+          ];
     body.push(
-      statement(
-        call(member(call(member(nodeRef(source.nodeId), 'O'), [str(source.portId)]), 'connect'), [
-          call(member(nodeRef(target.nodeId), 'I'), [str(target.portId)]),
-        ]),
-      ),
+      statement(call(member(call(member(nodeRef(source.nodeId), 'O'), [str(source.portId)]), 'connect'), [input, ...bounds])),
     );
   }
 

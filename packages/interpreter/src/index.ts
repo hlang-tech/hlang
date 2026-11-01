@@ -21,6 +21,7 @@ export type {
   IRuntimeFlow,
   IRuntimeFlowOptions,
   IRuntimeSliceOptions,
+  IRuntimeConnectOptions,
   IRuntimeFlowObserver,
   IRuntimeDeliveryEvent,
   FlowFactory,

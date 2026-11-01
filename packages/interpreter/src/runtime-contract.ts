@@ -33,8 +33,17 @@ export interface IRuntimePort {
    * The returned value is an RxJS `Subscription`; we treat it opaquely.
    */
   receive(next: (msg: unknown) => void): unknown;
-  /** Wire this Output port to a downstream Input port. Throws unless O -> I. */
-  connect(port: IRuntimePort): IRuntimePort;
+  /**
+   * Wire this Output port to a downstream Input port. Throws unless O -> I.
+   * With a capacity, the connection is bounded (`@hlang-org/runtime` 2.2+).
+   */
+  connect(port: IRuntimePort, options?: IRuntimeConnectOptions): IRuntimePort;
+}
+
+/** How a connection is bounded (RFC 0001). Mirrors the runtime's `ConnectOptions`. */
+export interface IRuntimeConnectOptions {
+  readonly capacity?: number;
+  readonly overflow?: 'drop-oldest';
 }
 
 /**

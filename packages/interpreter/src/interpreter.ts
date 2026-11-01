@@ -166,8 +166,15 @@ export function interpret(
   }
 
   // 3. Wire connections: source.O(portId).connect(target.I(portId)).
-  for (const { source, target } of plan.connections) {
-    nodeOf(source.nodeId).O(source.portId).connect(nodeOf(target.nodeId).I(target.portId));
+  //    A bounded connection passes its capacity and overflow (RFC 0001).
+  for (const { source, target, capacity, overflow } of plan.connections) {
+    const input = nodeOf(target.nodeId).I(target.portId);
+    const output = nodeOf(source.nodeId).O(source.portId);
+    if (capacity === undefined) {
+      output.connect(input);
+    } else {
+      output.connect(input, overflow === undefined ? { capacity } : { capacity, overflow });
+    }
   }
 
   // 4. Run every Readable root. The runtime subscribes downstream (W->T->R)
