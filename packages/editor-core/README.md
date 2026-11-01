@@ -67,7 +67,7 @@ handle?.onDelivery?.(({ sourceNodeId, targetNodeId, message, duration }) => log(
 handle?.dispose();
 ```
 
-The handle reports node errors (`onError`), data passing a connection (`onActivity`), and every delivered message with how long the receiving node took (`onDelivery`). `InterpreterGraphRunner` traces runs by default, because the editor is where graphs are inspected, and runs them in slices that share the thread, so a graph that loops forever cannot freeze the page and Stop can end it. Its third argument turns either off: `{ trace: false }`, `{ slice: false }`.
+The handle reports node errors (`onError`), data passing a connection (`onActivity`), and every delivered message with how long the receiving node took (`onDelivery`). `InterpreterGraphRunner` traces runs by default, because the editor is where graphs are inspected, and runs them in slices that share the thread, so a graph that loops forever cannot freeze the page and Stop can end it. It also freezes messages as they are sent, so a node that mutates what it received fails at once instead of corrupting another branch. Its third argument turns any of these off: `{ trace: false }`, `{ slice: false }`, `{ freezeMessages: false }`.
 
 ## The editor core
 

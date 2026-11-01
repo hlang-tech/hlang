@@ -4,6 +4,7 @@ import type { AnyNode } from '../node';
 import { nodeInternals } from '../node/node';
 import { IDENTITY, NODE_TYPE, STREAM_TYPE } from '../type';
 import { uuid } from '../utils';
+import { deepFreeze } from '../core/freeze';
 
 /**
  * Handles a message arriving on a port. Messages are not typed by the engine:
@@ -123,6 +124,8 @@ export let portInternals: {
   readonly whenGated: (port: Port, listener: () => void) => () => void;
   /** Lets a flow report room in this output's bounded connections. */
   readonly setSenderState: (port: Port, state: SenderState | undefined) => void;
+  /** Makes this output deep-freeze the plain data it sends (RFC 0001). */
+  readonly setFreeze: (port: Port, freeze: boolean) => void;
   /** Lets a flow learn when this output closes. */
   readonly setCloseHandler: (port: Port, handler: (() => void) | undefined) => void;
   /** Whether this output has been closed. */
@@ -181,6 +184,9 @@ class Port {
       setSenderState: (port, state) => {
         port.#sender = state;
       },
+      setFreeze: (port, freeze) => {
+        port.#freeze = freeze;
+      },
       setCloseHandler: (port, handler) => {
         port.#onClose = handler;
       },
@@ -222,6 +228,7 @@ class Port {
   readonly #endHandlers: (() => void)[] = [];
   #ended = false;
   #closed = false;
+  #freeze = false;
   #onClose: (() => void) | undefined = undefined;
 
   /** A new input port. */
@@ -263,6 +270,9 @@ class Port {
   send(message: unknown): boolean {
     if (this.#closed) {
       throw new Error(`Port "${this.name}" is closed.`);
+    }
+    if (this.#freeze) {
+      deepFreeze(message);
     }
     this.#stream.next(message);
     return this.#sender?.hasRoom() ?? true;
