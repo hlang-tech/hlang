@@ -157,40 +157,44 @@ const { code, imports } = compile(graph, {
 
 ## 基于 hlang 构建
 
-语言、执行后端与编辑器是彼此独立的层。任何能产出 `IGraph` 的工具都可以使用解释器或编译器，因此不同的产品可以在同一个引擎上构建各自的界面。
+语言、执行后端与编辑器是彼此独立的层。任何能产出 `IGraph` 的工具，都可以用解释器运行它，或用编译器交付它，因此每个产品都能在同一个引擎上构建自己的界面。
 
-### 零售门店营运（CHINASHOP 2020）
-
-<p align="center">
-  <img src="./media/ui.png" alt="基于 hlang 构建的节点开发工具：画布上带具名端口的 Readable、Transform、Writable 节点，以及属性面板与运行日志" width="100%">
-</p>
-
-在第 22 届中国零售业博览会（CHINASHOP 2020）上，盒马的商业平台 Rex 展示了门店营运数字化解决方案，hlang 是其中的逻辑编排引擎：复杂的门店营运逻辑以流程编排的方式被搭建、演示与调试。截图是为此基于 hlang 构建的节点开发工具，包含 Readable、Transform、Writable 节点、具名端口、属性面板与运行日志。[阅读活动回顾](https://www.xiaoa.name/events/hlang-chinashop-2020/)。
-
-### AStack
-
-[AStack](https://github.com/astack-tech/astack) 是一个可组合的 TypeScript AI 智能体与工作流框架，它的组件、端口与流水线建立在 hlang 的计算模型之上。
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <a href="https://www.xiaoa.name/events/hlang-chinashop-2020/"><img src="./media/showcase/chinashop-2020.png" alt="基于 hlang 构建的节点开发工具，包含 Readable、Transform、Writable 节点" width="100%"></a>
+      <p><b>零售门店营运</b><br><sub>盒马 Rex · CHINASHOP 2020</sub></p>
+      <p>Rex 门店营运解决方案的逻辑编排引擎，门店逻辑以流程的方式被搭建、演示与调试。</p>
+    </td>
+    <td width="33%" valign="top">
+      <a href="https://github.com/astack-tech/astack"><img src="./media/showcase/astack.png" alt="AStack" width="100%"></a>
+      <p><b>AStack</b><br><sub>AI 智能体与工作流</sub></p>
+      <p>可组合的 TypeScript AI 应用框架，组件、端口与流水线建立在 hlang 的计算模型之上。</p>
+    </td>
+    <td width="33%" valign="top">
+      <a href="#lumen"><img src="./media/showcase/lumen.png" alt="Lumen 编辑器" width="100%"></a>
+      <p><b>Lumen</b><br><sub>编辑器技术栈 · 开发中</sub></p>
+      <p>本仓库开发的节点编辑器，也是 Prism 的基础——一款面向图像与视频创作者的工具。</p>
+    </td>
+  </tr>
+</table>
 
 ### Lumen
 
-<p align="center">
-  <img src="./media/lumen-editor.png" alt="Lumen 编辑器：左侧是流程大纲，画布上是图片节点与意图节点，右侧是渲染预览与属性面板" width="100%">
-</p>
+Lumen 编辑 `IGraph`，并通过解释器运行它。三层之间的依赖严格单向，每一层都可以替换。
 
-Lumen 是本仓库开发的编辑器技术栈：编辑 `IGraph`，并通过解释器运行它。它分为三层，依赖方向严格单向：
+| | `editor-core` | `editor-react` | `editor-ui` |
+| --- | --- | --- | --- |
+| **层** | 模型 | 绑定 | 设计 |
+| **依⁠赖** | `ir`、`interpreter` | `editor-core`、React Flow | `editor-react` |
+| **职⁠责** | 带撤销重做的命令、连接校验、编辑期诊断、`IGraph` 序列化。不依赖 React 与 DOM。 | 把核心绑定到 [React Flow](https://reactflow.dev) 的 hooks。输出端口映射为 source，输入端口映射为 target。 | 图片与意图节点、实时连线、大纲、属性面板、节点搜索、右键菜单与快捷键。 |
 
-- **`editor-core`**：不依赖 React 与 DOM。所有修改都经由命令完成，因此撤销重做覆盖全部编辑。它负责连接校验（输出到输入、节点类型、端口类型）、编辑期诊断，以及到 `IGraph` 的序列化。
-- **`editor-react`**：把核心绑定到 [React Flow](https://reactflow.dev)，输出端口映射为 React Flow 的 source，输入端口映射为 target。
-- **`editor-ui`**：设计系统，包括带图片的资产节点、意图胶囊节点、实时连线、大纲树、属性面板、节点搜索、右键菜单与快捷键。
-
-每一层都可以替换：可以在 `editor-react` 之上换一套设计系统，也可以在 `editor-core` 之上换一个框架绑定。[playground](./examples/editor-react-playground) 组装了全部三层：
+可以在 `editor-react` 之上换一套设计系统，也可以在 `editor-core` 之上换一个框架绑定。试试 [playground](./examples/editor-react-playground)：
 
 ```sh
 pnpm install
 pnpm dev:playground
 ```
-
-Lumen 正在活跃开发中，它是 Prism 的基础——一款面向图像与视频创作者的节点式工具。
 
 ## 架构
 
