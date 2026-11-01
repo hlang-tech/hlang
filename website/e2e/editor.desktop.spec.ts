@@ -16,16 +16,20 @@ test('the shortcut sheet opens inside the editor, not over the page', async ({ p
 
   const sheet = page.getByRole('dialog', { name: 'Keyboard shortcuts' });
   await expect(sheet).toBeVisible();
-  const canvas = await editor.locator('.hl-region-canvas').boundingBox();
-  const card = await sheet.boundingBox();
-  expect(canvas).not.toBeNull();
-  expect(card).not.toBeNull();
-  if (canvas !== null && card !== null) {
-    expect(card.x).toBeGreaterThanOrEqual(canvas.x);
-    expect(card.y).toBeGreaterThanOrEqual(canvas.y);
-    expect(card.x + card.width).toBeLessThanOrEqual(canvas.x + canvas.width);
-    expect(card.y + card.height).toBeLessThanOrEqual(canvas.y + canvas.height);
-  }
+  // Both boxes are measured in one frame: the page may still be scrolling, so
+  // two separate measurements could compare different moments.
+  const inside = await sheet.evaluate(element => {
+    const card = element.getBoundingClientRect();
+    const canvas = element.closest('.hl-region-canvas')?.getBoundingClientRect();
+    return (
+      canvas !== undefined &&
+      card.left >= canvas.left &&
+      card.top >= canvas.top &&
+      card.right <= canvas.right &&
+      card.bottom <= canvas.bottom
+    );
+  });
+  expect(inside).toBe(true);
 
   // Scrolled under the sticky header, the sheet stays below it: the editor's
   // layers never stack above the page's. The site scrolls smoothly, so this
