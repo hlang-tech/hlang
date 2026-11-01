@@ -174,7 +174,7 @@ const { code, imports } = compile(graph, {
     <td width="33%" valign="top">
       <a href="#lumen"><img src="./media/showcase/lumen.png" alt="Lumen 编辑器" width="100%"></a>
       <p><b>Lumen</b><br><sub>编辑器技术栈 · 开发中</sub></p>
-      <p>本仓库开发的节点编辑器，也是 Prism 的基础——一款面向图像与视频创作者的工具。</p>
+      <p>本仓库开发的节点编辑器：无头核心、React 绑定与面向创作工具的设计系统。</p>
     </td>
   </tr>
 </table>

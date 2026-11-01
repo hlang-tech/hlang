@@ -1,7 +1,7 @@
 /**
  * The node-body extension point. In M-UI-1 this renders nothing (generic nodes
  * stay clean R/T/W cards). M-UI-5 wires it to the NodeBodyRegistry so a host
- * (e.g. Prism) can render custom content — image/video previews, inline
+ * application can render custom content — image/video previews, inline
  * widgets — per node `code`/`kind` without editor-ui knowing anything about it.
  */
 

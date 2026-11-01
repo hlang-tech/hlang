@@ -174,7 +174,7 @@ The language, the execution backends, and the editors are separate layers. Anyth
     <td width="33%" valign="top">
       <a href="#lumen"><img src="./media/showcase/lumen.png" alt="The Lumen editor" width="100%"></a>
       <p><b>Lumen</b><br><sub>Editor stack · in development</sub></p>
-      <p>The node editor developed in this repository, and the foundation of Prism, a tool for image and video creators.</p>
+      <p>The node editor developed in this repository: a headless core, React bindings, and a design system for creative tools.</p>
     </td>
   </tr>
 </table>
