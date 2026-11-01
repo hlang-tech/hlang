@@ -180,3 +180,23 @@ export function makeCollectorSink(collector: unknown[]): NodeConstructor {
   }
   return asNodeConstructor(CollectorSinkNode);
 }
+
+/** A W sink with two named inputs, `Left` and `Right`, recording each separately. */
+export function makePairSink(collector: { Left: unknown[]; Right: unknown[] }): NodeConstructor {
+  class PairSinkNode extends WriteableNode {
+    constructor(opts: INodeConstructionOptions) {
+      super(opts);
+      Port.I('Left').attach(this);
+      Port.I('Right').attach(this);
+    }
+    _write(i: (name: string) => RuntimePortLike): void {
+      i('Left').receive((payload: unknown) => {
+        collector.Left.push(payload);
+      });
+      i('Right').receive((payload: unknown) => {
+        collector.Right.push(payload);
+      });
+    }
+  }
+  return asNodeConstructor(PairSinkNode);
+}

@@ -18,6 +18,7 @@ import {
   EchoTransformNode,
   makeCollectorSink,
   makeStreamingSource,
+  makePairSink,
 } from './fixtures/nodes';
 
 /** Build interpreter deps from the real runtime Flow + a fresh registry. */
@@ -46,10 +47,10 @@ function tNode(nodeId: string, code: string): IGraph['nodeList'][number] {
 function wNode(nodeId: string, code: string): IGraph['nodeList'][number] {
   return { code, name: code, type: 'W', nodeId, bizData: { params: {} } };
 }
-function edge(fromNodeId: string, toNodeId: string): IGraph['connections'][number] {
+function edge(fromNodeId: string, toNodeId: string, toPort = 'Input'): IGraph['connections'][number] {
   return {
     Output: { nodeId: fromNodeId, portConf: { id: 'Output' } },
-    Input: { nodeId: toNodeId, portConf: { id: 'Input' } },
+    Input: { nodeId: toNodeId, portConf: { id: toPort } },
   };
 }
 
@@ -267,5 +268,21 @@ describe('interpret', () => {
     expect(handle.getNode('w1')).toBeDefined();
     expect(handle.getNode('nope')).toBeUndefined();
     expect(handle.roots).toHaveLength(1);
+  });
+
+  it('case 10: two connections between the same two nodes both deliver', () => {
+    const received = { Left: [] as unknown[], Right: [] as unknown[] };
+    const deps = makeDeps(r => {
+      r.register('src', asNodeConstructor(ValueSourceNode));
+      r.register('pair', makePairSink(received));
+    });
+    const graph: IGraph = {
+      nodeList: [rNode('r1', 'src', 'v'), wNode('w1', 'pair')],
+      connections: [edge('r1', 'w1', 'Left'), edge('r1', 'w1', 'Right')],
+    };
+
+    interpret(graph, deps);
+
+    expect(received).toEqual({ Left: ['v'], Right: ['v'] });
   });
 });

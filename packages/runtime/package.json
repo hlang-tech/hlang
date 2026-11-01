@@ -77,7 +77,6 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@vitest/coverage-v8": "^5.0.5",
-    "moment": "^2.29.1",
     "publint": "^0.3.25",
     "rxjs": "^6.6.7",
     "tsup": "^9.0.0",

@@ -133,6 +133,26 @@ describe('compile', () => {
     expect(JSON.parse(output)).toEqual(expected);
   });
 
+  it('delivers on every connection between the same two nodes, in both backends', () => {
+    // One output feeds both inputs of `join`: two connections between one pair of nodes.
+    const graph: IGraph = {
+      nodeList: [node('numbers', 'source', 'R', { values: [1] }), node('join', 'pair', 'T'), node('joined', 'collect', 'W')],
+      connections: [link('numbers', 'join', 'out', 'a'), link('numbers', 'join', 'out', 'b'), link('join', 'joined')],
+    };
+    const expected = [
+      { nodeId: 'joined', value: 'a:1' },
+      { nodeId: 'joined', value: 'b:1' },
+    ];
+
+    expect(runInterpreted(graph)).toEqual(expected);
+    const { code } = compile(graph, { nodes: NODES });
+    const output = runCompiled(
+      code,
+      'const handle = program.run(); handle.dispose(); console.log(JSON.stringify(globalThis.hlangSink));',
+    );
+    expect(JSON.parse(output)).toEqual(expected);
+  });
+
   it('passes flowId, env, middleware, and config to every node like the interpreter', () => {
     const graph: IGraph = {
       nodeList: [node('a', 'source', 'R', { values: [1] }), node('b', 'collect', 'W')],
