@@ -9,10 +9,12 @@ From the repository root:
 
 ```sh
 pnpm install
-pnpm --filter @hlang-org/website dev
+pnpm dev:website
 ```
 
-Turborepo builds the workspace packages the site imports before the dev server starts.
+Turborepo builds the workspace packages the site imports and runs `generate` (the API reference
+and the copied media) before the dev server starts. `generate` is a task of its own, so `build`,
+`dev` and CI run it once and reuse its cached output.
 
 ## Source of truth
 

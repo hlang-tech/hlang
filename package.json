@@ -20,6 +20,7 @@
     "lint:pkg": "turbo run lint:pkg",
     "check": "turbo run build typecheck lint test",
     "dev:playground": "turbo run dev --filter=@hlang-org/example-editor-react-playground",
+    "dev:website": "turbo run dev --filter=@hlang-org/website",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "changeset": "changeset",
     "version-packages": "changeset version",
