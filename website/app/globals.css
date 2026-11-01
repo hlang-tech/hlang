@@ -1,0 +1,499 @@
+@import 'tailwindcss';
+
+/*
+ * hlang design tokens. Black and silver carry the identity; the cold spark
+ * appears only where data is moving. The dark set is shared with the Lumen
+ * editor tokens (packages/editor-ui/src/tokens/tokens.css); the light set keeps
+ * the same roles on paper: "silver" becomes graphite, the metal that marks.
+ * Components use the roles only, so every part of the site follows the theme.
+ */
+:root {
+  color-scheme: light;
+  --ground: #f5f6f8;
+  --surface: #eceef1;
+  --surface-2: #e2e5e9;
+  --surface-3: #d5d9df;
+  --ink: #0b0d10;
+  --muted: #535963;
+  --silver: #23272e;
+  --silver-lo: #626872;
+  --spark: #2a5fc4;
+
+  /* Code: one color per syntax role, each at least 4.5:1 on the code surfaces. */
+  --code-bg: var(--surface);
+  --code-fg: #262a31;
+  --code-comment: #5c626c;
+  --code-keyword: #6a2fd0;
+  --code-punctuation: #565c66;
+  --code-string: #196633;
+  --code-constant: #8f4508;
+  --code-function: #1757b3;
+  --code-type: #0a625e;
+  --code-parameter: #7f4310;
+  --code-property: #333a46;
+
+}
+
+:root.dark {
+  color-scheme: dark;
+  --ground: #08090b;
+  --surface: #0f1114;
+  --surface-2: #15181c;
+  --surface-3: #1d2126;
+  --ink: #eef1f6;
+  --muted: #9ba1ab;
+  --silver: #c8ccd4;
+  --silver-lo: #7d828c;
+  --spark: #a7c7ff;
+
+  --code-bg: var(--surface);
+  --code-fg: #c9cdd6;
+  --code-comment: #7f8590;
+  --code-keyword: #c3a6ff;
+  --code-punctuation: #9298a2;
+  --code-string: #9fd7a8;
+  --code-constant: #f2b886;
+  --code-function: #8cc4ff;
+  --code-type: #7fd4d0;
+  --code-parameter: #e8c9a3;
+  --code-property: #b8c2d2;
+
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-silver: var(--silver);
+  --color-silver-lo: var(--silver-lo);
+  --color-spark: var(--spark);
+  /* The hairline: a 1px edge that defines a surface on any ground, in both themes. */
+  --color-line: color-mix(in oklab, var(--ink) 9%, transparent);
+  --color-line-strong: color-mix(in oklab, var(--ink) 16%, transparent);
+  /* Names the Magic UI components read. */
+  --color-background: var(--ground);
+  --color-border: var(--color-line-strong);
+}
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, Menlo, monospace;
+
+  /* Five type steps for the whole site. */
+  --text-xs: 14px;
+  --text-xs--line-height: 1.45;
+  --text-s: 17px;
+  --text-s--line-height: 1.55;
+  --text-m: clamp(22px, 2.1vw, 32px);
+  --text-m--line-height: 1.22;
+  --text-l: clamp(38px, 4.2vw, 64px);
+  --text-l--line-height: 1.02;
+  --text-xl: clamp(88px, 23vw, 360px);
+  --text-xl--line-height: 0.82;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+
+  /* One radius scale: a panel holds cards, a card holds inner parts. */
+  --radius-panel: 24px;
+  --radius-card: 14px;
+  --radius-inner: 10px;
+}
+
+:root {
+  --margin: clamp(16px, 2.2vw, 32px);
+}
+
+/* The theme toggler's circular reveal (Magic UI AnimatedThemeToggler). */
+:root[data-magicui-theme-vt='active']::view-transition-old(root),
+:root[data-magicui-theme-vt='active']::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+:root[data-magicui-theme-vt='active']::view-transition-new(root) {
+  clip-path: var(--magicui-theme-vt-clip-from);
+}
+
+/*
+ * Base and component rules live in their cascade layers, so a utility on an
+ * element (text-balance, px-*) always wins over them.
+ */
+@layer base {
+  html {
+    background: var(--color-ground);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Code shows the characters a reader copies: no ligatures anywhere on the site. */
+  code,
+  pre,
+  kbd,
+  samp {
+    font-variant-ligatures: none;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--text-s);
+    line-height: var(--text-s--line-height);
+    font-feature-settings: 'ss01', 'cv11';
+  }
+
+  ::selection {
+    background: var(--color-silver);
+    color: var(--color-ground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-silver);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  .frame {
+    padding-inline: var(--margin);
+  }
+
+  /* Headings: tight tracking at display sizes. */
+  .display {
+    letter-spacing: -0.035em;
+    font-weight: 600;
+  }
+}
+
+/* Entrance: content is visible without script; the script adds the travel. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-enter] {
+    transition:
+      opacity 700ms var(--ease-out-quart),
+      transform 700ms var(--ease-out-quart);
+    transition-delay: calc(var(--enter-index, 0) * 80ms);
+  }
+  .js [data-enter]:not([data-entered]) {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+/*
+ * Documentation prose: every element the Markdown pipeline (lib/markdown.ts)
+ * produces, for guides and for the API reference TypeDoc generates.
+ */
+.prose-hlang {
+  max-width: 76ch;
+  font-size: var(--text-s);
+  line-height: 1.7;
+  color: var(--color-ink);
+}
+.prose-hlang > :first-child {
+  margin-top: 0;
+}
+.prose-hlang :is(h2, h3, h4, h5, h6) {
+  scroll-margin-top: 96px;
+  text-wrap: balance;
+}
+.prose-hlang h2 {
+  margin: 72px 0 18px;
+  font-size: var(--text-m);
+  line-height: var(--text-m--line-height);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.prose-hlang h3 {
+  margin: 48px 0 12px;
+  font-size: 20px;
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.prose-hlang h4 {
+  margin: 32px 0 10px;
+  font-size: var(--text-s);
+  font-weight: 600;
+}
+.prose-hlang :is(h5, h6) {
+  margin: 24px 0 8px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.prose-hlang .heading-anchor {
+  color: inherit;
+  text-decoration: none;
+}
+.prose-hlang .heading-anchor::after {
+  content: '#';
+  margin-left: 0.4em;
+  color: var(--color-silver-lo);
+  opacity: 0;
+  transition: opacity 150ms;
+}
+.prose-hlang .heading-anchor:hover::after,
+.prose-hlang .heading-anchor:focus-visible::after {
+  opacity: 1;
+}
+.prose-hlang :is(p, ul, ol, table, figure, blockquote, details) {
+  margin: 0 0 20px;
+}
+.prose-hlang :is(ul, ol) {
+  padding-left: 22px;
+}
+.prose-hlang ul {
+  list-style: disc;
+}
+.prose-hlang ol {
+  list-style: decimal;
+}
+.prose-hlang li {
+  margin-bottom: 6px;
+  padding-left: 4px;
+}
+.prose-hlang li::marker {
+  color: var(--color-silver-lo);
+}
+.prose-hlang :is(li > ul, li > ol) {
+  margin: 6px 0 0;
+}
+.prose-hlang a:not(.heading-anchor) {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--color-silver-lo);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color 150ms;
+}
+.prose-hlang a:not(.heading-anchor):hover {
+  text-decoration-color: var(--color-ink);
+}
+.prose-hlang strong {
+  font-weight: 600;
+}
+.prose-hlang hr {
+  margin: 48px 0;
+  border: 0;
+  border-top: 1px solid var(--color-line);
+}
+.prose-hlang img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-card);
+}
+.prose-hlang kbd {
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  padding: 1px 6px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px var(--color-line-strong);
+}
+
+/* Inline code. */
+.prose-hlang :not(pre) > code {
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
+  font-size: 0.86em;
+  padding: 0.12em 0.4em;
+  border-radius: 6px;
+  background: var(--color-surface-2);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+  overflow-wrap: anywhere;
+}
+.prose-hlang a > code {
+  text-decoration: inherit;
+}
+
+/* Code frames: a label and a copy button over a highlighted block. */
+.prose-hlang .code-frame {
+  margin: 24px 0;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+.prose-hlang .code-frame-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  padding: 0 8px 0 16px;
+  border-bottom: 1px solid var(--color-line);
+  font-size: 13px;
+  color: var(--color-muted);
+}
+.prose-hlang .code-frame-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.prose-hlang .code-frame-copy {
+  flex: none;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition:
+    color 150ms,
+    background-color 150ms;
+}
+.prose-hlang .code-frame-copy:hover {
+  color: var(--color-ink);
+  background: var(--color-surface-2);
+}
+.prose-hlang pre {
+  margin: 0;
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  line-height: 1.65;
+  tab-size: 2;
+  /* Code shows the characters a reader copies: no ligatures. */
+  font-variant-ligatures: none;
+  background: transparent !important;
+}
+.prose-hlang .code-frame pre {
+  max-height: 34rem;
+}
+.prose-hlang .source-line {
+  margin-bottom: 12px;
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+.prose-hlang .source-line a:not(.heading-anchor) {
+  color: var(--color-muted);
+}
+.prose-hlang pre:focus-visible {
+  outline-offset: -2px;
+}
+.prose-hlang pre code {
+  font-family: inherit;
+}
+.prose-hlang .code-frame[data-language='text'] pre {
+  color: var(--color-silver);
+}
+
+/* Tables: the wrapper scrolls a wide table on a narrow screen; the table fills it. */
+.prose-hlang .table-scroll {
+  margin: 0 0 24px;
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-card);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+.prose-hlang .table-scroll:focus-visible {
+  outline-offset: 2px;
+}
+.prose-hlang table {
+  width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 15px;
+  line-height: 1.55;
+}
+.prose-hlang :is(th, td) {
+  padding: 10px 14px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--color-line);
+}
+.prose-hlang :is(th, td) + :is(th, td) {
+  border-left: 1px solid var(--color-line);
+}
+.prose-hlang tr:last-child > td {
+  border-bottom: 0;
+}
+.prose-hlang th {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-muted);
+  background: var(--color-surface);
+  white-space: nowrap;
+}
+/* A name or a type in a cell stays on one line; the table scrolls instead. */
+.prose-hlang td code {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+/* Blockquotes and GitHub-style alerts. */
+.prose-hlang blockquote {
+  padding: 2px 0 2px 18px;
+  color: var(--color-muted);
+  box-shadow: inset 2px 0 0 var(--color-line-strong);
+}
+.prose-hlang blockquote.alert {
+  padding: 14px 18px;
+  color: var(--color-ink);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+.prose-hlang blockquote.alert > :last-child {
+  margin-bottom: 0;
+}
+.prose-hlang blockquote.alert::before {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.prose-hlang .alert-note::before {
+  content: 'Note';
+}
+.prose-hlang .alert-tip::before {
+  content: 'Tip';
+}
+.prose-hlang .alert-important::before {
+  content: 'Important';
+}
+.prose-hlang .alert-warning::before {
+  content: 'Warning';
+}
+.prose-hlang .alert-caution::before {
+  content: 'Caution';
+}
+.prose-hlang .alert-warning,
+.prose-hlang .alert-caution {
+  box-shadow: inset 0 0 0 1px var(--color-line-strong);
+}
+
+/* A value travelling a route once: a short lit segment along a path with pathLength 1. */
+.backends-pulse {
+  stroke-dasharray: 0.08 1.2;
+  stroke-dashoffset: 0.08;
+  opacity: 0;
+  animation: backends-pulse 1100ms var(--ease-out-quart) both;
+}
+@keyframes backends-pulse {
+  0% {
+    stroke-dashoffset: 0.08;
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -1;
+    opacity: 0;
+  }
+}

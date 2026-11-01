@@ -1,0 +1,199 @@
+/*
+ * Host styles for the Lumen editor embedded on the home page. The shell,
+ * toolbar, canvas chrome, nodes, edges and inspector come from
+ * @hlang-org/editor-ui; this file styles only what the host composes around
+ * them (the node palette and the output strip), adapted from
+ * examples/editor-react-playground. Everything is scoped to `.lumen-embed`.
+ */
+
+.lumen-embed {
+  /* editor-ui names the Inter family; the site loads Inter through next/font. */
+  --hl-font-ui: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --hl-font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  position: relative;
+  height: 100%;
+  outline: none;
+}
+
+/* Panels scroll without native scrollbar chrome. */
+.lumen-embed * {
+  scrollbar-width: none;
+}
+.lumen-embed *::-webkit-scrollbar {
+  display: none;
+}
+
+.lumen-embed .hl-canvas {
+  width: 100%;
+  height: 100%;
+}
+.lumen-embed .hl-canvas-pan .react-flow__pane {
+  cursor: grab;
+}
+.lumen-embed .hl-canvas-pan .react-flow__pane.dragging {
+  cursor: grabbing;
+}
+
+/*
+ * On touch screens a one-finger drag on empty canvas scrolls the page instead
+ * of being captured by the canvas; nodes still drag, ports still connect, and
+ * two fingers zoom. React Flow documents `.react-flow__pane` for styling.
+ */
+.lumen-embed[data-touch] .react-flow__pane {
+  touch-action: pan-y;
+}
+
+.lumen-embed .hl-toolbar-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--hl-line-strong);
+}
+.lumen-embed .lumen-flow-name {
+  font-size: 13px;
+  color: var(--hl-ink-2);
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+/* Left rail: Outline and Insert. */
+.lumen-embed .hl-leftrail {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.lumen-embed .hl-leftrail-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.lumen-embed .hl-rail-hint {
+  margin: 4px 0 8px;
+  padding: 0 14px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--hl-ink-3);
+}
+.lumen-embed .hl-rail-group {
+  padding: 10px 14px 4px;
+  font-size: 11px;
+  color: var(--hl-ink-3);
+}
+.lumen-embed .hl-rail-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 12px 6px;
+}
+.lumen-embed .hl-chip {
+  --hl-kind: var(--hl-silver);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: var(--hl-r-sm);
+  border: 1px solid var(--hl-line-strong);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--hl-ink);
+  font-family: var(--hl-font-ui);
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s var(--hl-ease),
+    background 0.15s var(--hl-ease);
+}
+.lumen-embed .hl-chip-r {
+  --hl-kind: var(--hl-r);
+}
+.lumen-embed .hl-chip-t {
+  --hl-kind: var(--hl-t);
+}
+.lumen-embed .hl-chip-w {
+  --hl-kind: var(--hl-w);
+}
+.lumen-embed .hl-chip:hover {
+  border-color: color-mix(in oklab, var(--hl-silver) 45%, var(--hl-line-strong));
+  background: rgba(255, 255, 255, 0.06);
+}
+.lumen-embed .hl-chip:focus-visible {
+  outline: 2px solid var(--hl-kind);
+  outline-offset: 2px;
+}
+.lumen-embed .hl-chip-kind {
+  font-family: var(--hl-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--hl-void);
+  background: var(--hl-kind);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.lumen-embed .hl-chip-label {
+  color: var(--hl-ink-2);
+}
+.lumen-embed .hl-chip:hover .hl-chip-label {
+  color: var(--hl-ink);
+}
+
+/* Right column: the inspector, scrolling as a whole. */
+.lumen-embed .hl-rightstack {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.lumen-embed .hl-rightstack .hl-inspector {
+  flex: none;
+  height: auto;
+}
+
+/* Output strip: the values the Console node receives. */
+.lumen-embed .hl-output {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  height: 92px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--hl-line);
+  background: var(--hl-void-2);
+  overflow: hidden;
+}
+.lumen-embed .hl-output-tag {
+  flex-shrink: 0;
+  padding-top: 2px;
+  font-size: 11px;
+  color: var(--hl-silver);
+}
+.lumen-embed .hl-output-body {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 3px;
+  min-width: 0;
+  font-family: var(--hl-font-mono);
+  font-size: 12.5px;
+  color: var(--hl-ink);
+}
+.lumen-embed .hl-output-line {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+}
+.lumen-embed .hl-output-line:not(:first-child) {
+  color: var(--hl-ink-3);
+}
+.lumen-embed .hl-output-arrow {
+  color: var(--hl-silver);
+  opacity: 0.7;
+}
+.lumen-embed .hl-output-idle {
+  font-size: 12.5px;
+  color: var(--hl-ink-3);
+}
