@@ -1,0 +1,17 @@
+# Upload sources only: Vercel installs dependencies and builds from scratch.
+node_modules
+.turbo
+coverage
+packages/*/lib
+packages/compiler/test/.generated
+examples/*/dist
+website/.next
+website/.next-dev
+website/.generated
+website/.taste-skill
+website/public/media
+website/*.tsbuildinfo
+.playwright-mcp
+.serena
+*.log
+*.tgz
