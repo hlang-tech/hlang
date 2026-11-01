@@ -65,4 +65,13 @@ const root = useRef<HTMLDivElement>(null);
 useEditorHotkeys(core, { scope: root });
 ```
 
+On a phone or a tablet without a trackpad the home page's editor is read-only, as design tools' viewers are: the graph can be looked at, selected and run, and the console works, but nothing changes it. The host decides, and the core enforces it:
+
+```ts
+const core = createEditorCore({ readOnly: true });
+core.mode.setReadOnly(false); // when editing becomes possible
+```
+
+A read-only core refuses every command and every undo and redo, so no path can change the graph. The canvas follows `useReadOnly(core)` from `editor-react`: pass `nodesDraggable`, `nodesConnectable` and `edgesReconnectable` as `false` to React Flow, and `readOnly` to `CanvasDock`.
+
 The full APIs are in the references for [editor-core](/docs/api/editor-core), [editor-react](/docs/api/editor-react) and [editor-ui](/docs/api/editor-ui).

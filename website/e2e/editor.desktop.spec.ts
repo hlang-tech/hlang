@@ -53,3 +53,25 @@ test('the shortcut sheet opens inside the editor, not over the page', async ({ p
   await expect(sheet).toBeHidden();
   expect(errors).toEqual([]);
 });
+
+test('on a desktop the editor edits: nodes drag, and the dock has its editing tools', async ({ page }) => {
+  await page.goto('/#lumen');
+  const editor = page.getByRole('application', { name: 'Lumen editor' });
+  await editor.scrollIntoViewIfNeeded();
+  await expect(editor.locator('.react-flow__node').first()).toBeVisible();
+  await expect(editor.locator('.hl-readonly-badge')).toHaveCount(0);
+  await expect(editor.getByRole('button', { name: 'Undo' })).toBeVisible();
+
+  const node = editor.locator('.react-flow__node').first();
+  const before = await node.evaluate(element => element.getBoundingClientRect().left);
+  const box = await node.boundingBox();
+  expect(box).not.toBeNull();
+  if (box !== null) {
+    await page.mouse.move(box.x + 12, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 92, box.y + box.height / 2 + 40, { steps: 8 });
+    await page.mouse.up();
+  }
+  await expect.poll(() => node.evaluate(element => element.getBoundingClientRect().left)).not.toBe(before);
+});
+
