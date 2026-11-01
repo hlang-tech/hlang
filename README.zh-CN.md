@@ -13,6 +13,7 @@
   <a href="https://www.npmjs.com/package/@hlang-org/runtime"><img src="https://img.shields.io/npm/v/@hlang-org/runtime?label=%40hlang-org%2Fruntime&color=c8ccd4&labelColor=0f1114" alt="npm"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-c8ccd4?labelColor=0f1114" alt="MIT license"></a>
   <a href="https://hlang.tech/docs"><img src="https://img.shields.io/badge/docs-hlang.tech-c8ccd4?labelColor=0f1114" alt="文档"></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/hlang-tech/hlang"><img src="https://api.scorecard.dev/projects/github.com/hlang-tech/hlang/badge" alt="OpenSSF Scorecard"></a>
 </p>
 
 <p align="center">
