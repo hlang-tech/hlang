@@ -96,8 +96,9 @@ function route(graph: Box, plan: Box, interpreter: Box, compiler: Box): Routes {
   }
 
   const left = Math.min(graph.left, plan.left, interpreter.left, compiler.left);
-  // Close to the cards when there is room beside them; in the page margin when there is not.
-  const rail = left < 64 ? left / 2 : left - 24;
+  // Stacked on a phone, text and cards share a 32px left gutter and the rail
+  // runs in its middle; with columns, the rail runs in the gap left of the cards.
+  const rail = left < 80 ? left - 16 : left - 24;
   const graphOut = leftOut(graph);
   const planIn = leftIn(plan);
   const planOut = leftOut(plan);
@@ -171,7 +172,7 @@ export function BackendsGrid({ heading, lead, fields }: BackendsGridProps) {
 
   return (
     <section aria-labelledby="backends-title">
-      <SectionHeader id="backends-title" title={heading} lead={lead} className="frame pb-14 pt-28 md:pt-36" />
+      <SectionHeader id="backends-title" title={heading} lead={lead} className="frame pb-14 pt-20 md:pt-36" />
       <div ref={container} className="relative grid xl:grid-cols-4">
       {fields.map((field, index) => (
         <div
@@ -179,11 +180,11 @@ export function BackendsGrid({ heading, lead, fields }: BackendsGridProps) {
           className={`relative min-w-0 px-[var(--margin)] py-12 md:py-14 xl:flex xl:min-h-[72svh] xl:flex-col xl:px-7 xl:py-8 ${field.tone}`}
         >
           {/* Stacked: the clause, then its card. On one row (xl): the card mid-field, the clause at the foot. */}
-          <div className="md:grid md:grid-cols-12 md:items-center md:gap-x-6 xl:contents">
+          <div className="pl-8 md:grid md:grid-cols-12 md:items-center md:gap-x-6 md:pl-0 xl:contents">
             <p className="max-w-[18ch] text-m font-medium tracking-[-0.02em] md:col-span-6 xl:order-last xl:mt-auto" data-enter style={enter(1)}>
               {field.clause}
             </p>
-            <div className="mt-6 min-w-0 pl-6 md:col-span-5 md:col-start-8 md:mt-0 md:pl-0 xl:absolute xl:inset-x-7 xl:top-[30%]">
+            <div className="mt-6 min-w-0 md:col-span-5 md:col-start-8 md:mt-0 md:pl-0 xl:absolute xl:inset-x-7 xl:top-[30%]">
               <div
                 ref={element => { cards.current[index] = element; }}
                 className="relative z-20 w-full min-w-0 max-w-[296px]"

@@ -114,6 +114,7 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
 
   const wide = useMedia('(min-width: 1024px)');
   const touch = useMedia('(pointer: coarse)');
+  const narrow = useMedia('(max-width: 639px)');
 
   const { core, descriptors } = useMemo(() => {
     const kit = createLumenKit(value => {
@@ -145,14 +146,16 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
   const [canvasMode, setCanvasMode] = useState<CanvasMode>('select');
   const [zoom, setZoom] = useState(1);
 
-  // Load the starter flow once: import the IGraph and take each node's ports from its descriptor.
+  // Load the starter flow once: import the IGraph and take each node's ports from
+  // its descriptor. A narrow canvas starts with the compact flow.
   const loaded = useRef(false);
+  const compact = useRef(narrow);
   useEffect(() => {
     if (loaded.current) {
       return;
     }
     loaded.current = true;
-    const snapshot = core.serialization.fromIGraph(starterFlow());
+    const snapshot = core.serialization.fromIGraph(starterFlow(compact.current));
     const enriched = {
       ...snapshot,
       nodes: snapshot.nodes.map(node => ({

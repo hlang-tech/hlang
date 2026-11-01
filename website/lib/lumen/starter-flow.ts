@@ -2,9 +2,12 @@
  * The flow the Lumen editor opens with. It is data: an IGraph, the same format
  * the interpreter runs and the compiler prints.
  *
- * Interval counts up and Scale multiplies each count by ten; Range sends 1 to 5
- * once and Filter keeps the values of 3 and more. Merge interleaves both
- * streams, Sum keeps the running total, and Console shows it.
+ * The full flow: Interval counts up and Scale multiplies each count by ten;
+ * Range sends 1 to 5 once and Filter keeps the values of 3 and more. Merge
+ * interleaves both streams, Sum keeps the running total, and Console shows it.
+ *
+ * The compact flow, for a narrow canvas, is the same idea in three nodes that
+ * stay readable at phone width: Interval, Sum, Console.
  */
 
 import type { IConnection, IGraph, INodeInfo, ParamValue } from '@hlang-org/interpreter';
@@ -26,7 +29,17 @@ function link(from: string, to: string, toPort = 'Input'): IConnection {
   };
 }
 
-export function starterFlow(): IGraph {
+export function starterFlow(compact = false): IGraph {
+  if (compact) {
+    return {
+      nodeList: [
+        node('interval', 'interval', 'R', { x: 0, y: 0 }, { periodMs: 700 }),
+        node('sum', 'sum', 'T', { x: 140, y: 0 }),
+        node('console', 'console', 'W', { x: 275, y: 0 }),
+      ],
+      connections: [link('interval', 'sum'), link('sum', 'console')],
+    };
+  }
   return {
     nodeList: [
       node('interval', 'interval', 'R', { x: 0, y: 0 }, { periodMs: 700 }),

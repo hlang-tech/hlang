@@ -8,7 +8,8 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { SITE, siteUrl } from '@/lib/site';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+// Optical sizing: headings get Inter's display cut, text keeps the text cut.
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap', axes: ['opsz'] });
 const jetbrains = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains', display: 'swap' });
 
 export const metadata: Metadata = {
