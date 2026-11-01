@@ -2,7 +2,7 @@
 
 | | |
 | --- | --- |
-| Status | Draft, for review |
+| Status | Accepted (2026-11-02) |
 | Packages | `@hlang-org/runtime`, `@hlang-org/ir`, `@hlang-org/interpreter`, `@hlang-org/compiler`, the editor packages |
 | Release | 2.x, additive: a graph that uses none of this runs exactly as today |
 
@@ -146,8 +146,10 @@ Each step is its own pull request, with failing tests first and CI followed to t
 4. Editor: capacity on edges, occupancy and end of stream in the live view, run log entries.
 5. Runtime: `freezeMessages`, with the editor enabling it.
 
-## Questions for review
+## Decisions
 
-1. Should an input fed by a bounded connection default to `concurrency: 1` (FBP), or should concurrency always be explicit?
-2. Should a Transform close its outputs automatically when its inputs have ended (proposed), or only when it says so?
-3. `drop-oldest` is the only lossy connection attribute (JavaFBP has the same one). Is that the right line?
+Settled in review, as proposed:
+
+1. An input fed by a bounded connection defaults to `concurrency: 1` (FBP), so declaring a capacity is enough to get FBP's behavior end to end.
+2. A Transform closes its outputs automatically once its inputs have ended and its handlers have settled; a node that keeps producing opts out.
+3. `drop-oldest` is the only lossy connection attribute, as in JavaFBP. Other lossy strategies (latest only, sampling) are nodes in the graph, where they can be seen.
