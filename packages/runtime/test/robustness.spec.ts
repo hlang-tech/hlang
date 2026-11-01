@@ -26,21 +26,53 @@ class FailOn extends TransformNode {
   }
 }
 
-describe("delivery", () => {
-  it("runs a chain of 100,000 Transforms without growing the stack", () => {
-    const source = new Values([7]);
-    let previous: ReadableNode | TransformNode = source;
-    for (let index = 0; index < 100_000; index += 1) {
-      const step = new Apply((value) => asNumber(value) + 1);
-      previous.O("out").connect(step.I("in"));
-      previous = step;
+/** Runs a chain of `length` Transforms from one value; returns what arrived and the stack depth at arrival. */
+function runChain(length: number): { readonly arrived: unknown; readonly depth: number } {
+  let arrived: unknown;
+  let depth = 0;
+  class Probe extends WriteableNode {
+    constructor() {
+      super({});
+      Port.I("in").attach(this);
     }
-    const sink = new Collect();
-    previous.O("out").connect(sink.I("in"));
 
-    new Flow().run(source);
+    override _write($i: PortAccessor) {
+      $i("in").receive((value) => {
+        arrived = value;
+        depth = stackDepth();
+      });
+    }
+  }
+  const source = new Values([0]);
+  let previous: ReadableNode | TransformNode = source;
+  for (let index = 0; index < length; index += 1) {
+    const step = new Apply((value) => asNumber(value) + 1);
+    previous.O("out").connect(step.I("in"));
+    previous = step;
+  }
+  previous.O("out").connect(new Probe().I("in"));
+  new Flow().run(source);
+  return { arrived, depth };
+}
 
-    expect(sink.seen).toEqual([100_007]);
+/** The number of frames on the call stack where it is called. */
+function stackDepth(): number {
+  const limit = Error.stackTraceLimit;
+  Error.stackTraceLimit = Number.POSITIVE_INFINITY;
+  try {
+    return (new Error().stack ?? "").split("\n").length;
+  } finally {
+    Error.stackTraceLimit = limit;
+  }
+}
+
+describe("delivery", () => {
+  it("delivers at the same stack depth however long the chain is", () => {
+    const short = runChain(10);
+    const long = runChain(5000);
+    expect(short.arrived).toBe(10);
+    expect(long.arrived).toBe(5000);
+    expect(long.depth).toBe(short.depth);
   });
 
   it("keeps the order of messages on one connection", () => {

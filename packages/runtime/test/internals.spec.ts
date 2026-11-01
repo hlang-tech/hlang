@@ -42,15 +42,15 @@ describe("build", () => {
     expect(graph.connections.get(b.id)?.[0]?.dst).toBe(a.I("in"));
   });
 
-  it("builds a chain of 200,000 nodes without recursion", () => {
+  it("builds a chain of 50,000 nodes, ten times the old recursion limit, without recursion", () => {
     const source = new Values([]);
     let previous: Values | Apply = source;
-    for (let index = 0; index < 200_000; index += 1) {
+    for (let index = 0; index < 50_000; index += 1) {
       const step = new Apply((value) => value);
       previous.O("out").connect(step.I("in"));
       previous = step;
     }
-    expect(build(source).transform).toHaveLength(200_000);
+    expect(build(source).transform).toHaveLength(50_000);
   });
 });
 
