@@ -2,7 +2,7 @@
   "name": "@hlang-org/example-editor-react-playground",
   "version": "0.0.0",
   "private": true,
-  "description": "A minimal Vite playground that drives @hlang-org/editor-react end-to-end. Plain React Flow styling — the design system arrives with @hlang-org/editor-ui.",
+  "description": "Prism, a node-based tool for image and video creators in development, built on the Lumen editor packages.",
   "type": "module",
   "scripts": {
     "dev": "vite",
