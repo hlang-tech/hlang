@@ -1,6 +1,6 @@
 {
   "name": "@hlang-org/compiler",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Ahead-of-time compiler for hlang: compiles an IGraph program into a standalone ES module.",
   "keywords": [
     "hlang",

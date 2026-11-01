@@ -1,6 +1,6 @@
 {
   "name": "@hlang-org/runtime",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "The hlang runtime: flow-based programming on RxJS streams. Readable, Transform, and Writable nodes connected through typed ports.",
   "keywords": [
     "hlang",
