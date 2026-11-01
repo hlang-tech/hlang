@@ -19,13 +19,15 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write # tags and GitHub Releases
-  id-token: write # npm trusted publishing and provenance
+  contents: read
 
 jobs:
   release:
     name: Publish pending versions
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # tags and GitHub Releases
+      id-token: write # npm trusted publishing and provenance
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -39,10 +41,14 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
-      # Trusted publishing needs npm 11.5.1 or later. The exact version is pinned
-      # so a release never runs an npm it was not tested with.
-      - name: Use a current npm
-        run: npm install --global npm@11.21.1
+      # Trusted publishing needs npm 11.5.1 or later; Node 24 bundles it since
+      # 24.5.0. Stop with a clear message if the toolchain ever falls behind.
+      - name: Check that npm supports trusted publishing
+        run: >-
+          node -e "const [a, b, c] = process.argv[1].split('.').map(Number);
+          if (a < 11 || (a === 11 && (b < 5 || (b === 5 && c < 1)))) {
+          console.error('npm ' + process.argv[1] + ' cannot publish with trusted publishing; it needs 11.5.1 or later.');
+          process.exit(1); }" "$(npm --version)"
 
       - name: Check for unpublished versions
         id: check
