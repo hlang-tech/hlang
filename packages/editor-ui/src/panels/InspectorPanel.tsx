@@ -12,6 +12,7 @@ import { useSelection } from '@hlang-org/editor-react';
 import { KIND_ROLE } from '../tokens/tokens';
 import { deriveParamSchema } from '../schema/param-field';
 import { useNodeParams } from '../hooks/useNodeParams';
+import { NodeRunStats } from './NodeRunStats';
 import { ParamForm } from './ParamForm';
 import './InspectorPanel.css';
 
@@ -87,6 +88,8 @@ export function InspectorPanel({ core, emptyState }: InspectorPanelProps): React
           />
         )}
       </section>
+
+      <NodeRunStats nodeId={node.id} />
 
       <section className="hl-inspector-section">
         <h3 className="hl-inspector-section-title">Ports</h3>

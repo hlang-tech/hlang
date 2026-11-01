@@ -9,6 +9,45 @@ import type Port from './port';
 import { portInternals, reportFailure } from './port';
 import type { FailureHandler } from './port';
 
+/** One message delivered on one connection, as a `FlowObserver` sees it. */
+export interface DeliveryEvent {
+  /** The node that sent the message, and the name of its output port. */
+  readonly source: AnyNode;
+  readonly sourcePort: string;
+  /** The node that received it, and the name of its input port. */
+  readonly target: AnyNode;
+  readonly targetPort: string;
+  readonly message: unknown;
+  /**
+   * How long the target's handlers took, in milliseconds. Messages they send
+   * are queued, not delivered inside this one, so this is their own work.
+   * Work a handler schedules for later (a timer, a promise, an asynchronous
+   * pipe) is not included.
+   */
+  readonly duration: number;
+}
+
+/** A handler failing on a port, as a `FlowObserver` sees it. */
+export interface FailureEvent {
+  /** The node whose handler failed (`null` for a port not attached to one). */
+  readonly node: AnyNode | null;
+  /** The name of the port the handler was receiving on. */
+  readonly port: string;
+  readonly error: unknown;
+}
+
+/**
+ * Watches a running flow: every delivery and every handler failure, for logs,
+ * metrics, tracing or a live view of the graph. It only observes: failures are
+ * still routed as without it (a Transform's to its error port, others to
+ * `onError`). An observer that throws is reported to `onError` and the flow
+ * carries on.
+ */
+export interface FlowObserver {
+  readonly delivered?: (event: DeliveryEvent) => void;
+  readonly failed?: (event: FailureEvent) => void;
+}
+
 /** How a host creates a flow. */
 export interface FlowOptions {
   /**
@@ -19,6 +58,11 @@ export interface FlowOptions {
    * error port either way.
    */
   readonly onError?: FailureHandler;
+  /**
+   * Sees every delivery and every handler failure. Without one, deliveries
+   * are not timed and cost nothing extra.
+   */
+  readonly observer?: FlowObserver;
 }
 
 /** A node this flow started, and the teardown its start returned, if any. */
@@ -36,6 +80,7 @@ interface Started {
  */
 export default class Flow {
   readonly #onError: FailureHandler | undefined;
+  readonly #observer: FlowObserver | undefined;
   /** The connections this flow has wired, by output and input port id. */
   readonly #wired = new Set<string>();
   /** The subscriptions that carry those connections. */
@@ -46,6 +91,7 @@ export default class Flow {
 
   constructor(options: FlowOptions = {}) {
     this.#onError = options.onError;
+    this.#observer = options.observer;
   }
 
   /** Whether `dispose` has been called. */
@@ -67,9 +113,17 @@ export default class Flow {
     }
     const graph = build(root);
     const nodes: readonly AnyNode[] = [...graph.writable, ...graph.transform, ...graph.readable];
+    const failed = this.#observer?.failed;
     for (const node of nodes) {
       for (const port of this.#portsOf(node)) {
         portInternals.setFailureHandler(port, this.#onError);
+        if (failed !== undefined) {
+          portInternals.setFailureObserver(port, (error) => {
+            this.#notify(() => {
+              failed({ node, port: port.name, error });
+            });
+          });
+        }
       }
     }
 
@@ -140,17 +194,40 @@ export default class Flow {
 
   /** Subscribes each connection once: what its output sends is delivered to its input. */
   #wire(connections: readonly IPortDesc[]): void {
-    for (const { src, dst } of connections) {
+    const delivered = this.#observer?.delivered;
+    for (const { src, dst, source, target } of connections) {
       const key = `${src.id}@${dst.id}`;
       if (this.#wired.has(key)) {
         continue;
       }
       this.#wired.add(key);
       this.#connections.push(
-        src.receive((message) => {
-          deliveries.deliver(dst, message);
-        }),
+        src.receive(
+          delivered === undefined
+            ? (message) => {
+                deliveries.deliver(dst, message);
+              }
+            : (message) => {
+                deliveries.deliver(dst, message, (duration) => {
+                  if (this.#disposed) {
+                    return;
+                  }
+                  this.#notify(() => {
+                    delivered({ source, sourcePort: src.name, target, targetPort: dst.name, message, duration });
+                  });
+                });
+              },
+        ),
       );
+    }
+  }
+
+  /** Runs an observer callback; one that throws is reported, never propagated. */
+  #notify(callback: () => void): void {
+    try {
+      callback();
+    } catch (error: unknown) {
+      reportFailure(this.#onError, error, null);
     }
   }
 }

@@ -148,3 +148,66 @@ describe('LiveSignalStore', () => {
   });
 });
 
+
+describe('LiveSignalStore#markDelivery', () => {
+  const ab = { sourceNodeId: 'a', sourcePortId: 'out', targetNodeId: 'b', targetPortId: 'in' };
+
+  it('pulses the sender and the receiver for every delivered message, as it happens', () => {
+    const store = new LiveSignalStore(fakeDeps());
+    store.markDelivery(ab);
+    store.markDelivery(ab);
+    expect([store.getNodePulse('a'), store.getNodePulse('b'), store.getNodePulse('c')]).toEqual([2, 2, 0]);
+    expect([store.getNodeState('a'), store.getNodeState('b')]).toEqual(['active', 'active']);
+  });
+
+  it('lights only the edge that carried the message', () => {
+    const store = new LiveSignalStore(fakeDeps());
+    store.setEdgeIndex([
+      { id: 'to-b', sourceNodeId: 'a', sourcePortId: 'out', targetNodeId: 'b', targetPortId: 'in', isError: false },
+      { id: 'to-c', sourceNodeId: 'a', sourcePortId: 'out', targetNodeId: 'c', targetPortId: 'in', isError: false },
+    ]);
+    store.markDelivery(ab);
+    expect([store.getEdgePulse('to-b'), store.getEdgePulse('to-c')]).toEqual([1, 0]);
+    expect([store.isEdgeFlowing('to-b'), store.isEdgeFlowing('to-c')]).toEqual([true, false]);
+  });
+
+  it('notifies a node once for every frame in which it ran, so a faster node flashes more often', () => {
+    // A 700 ms clock and a 1000 ms clock, each running for 7 s. Under the old
+    // active-window rule the faster one never left its window and stopped
+    // flashing, while the slower one flashed every second.
+    const deps = fakeDeps();
+    const store = new LiveSignalStore(deps);
+    const flashes = { fast: 0, slow: 0 };
+    store.subscribeNode('fast', () => {
+      flashes.fast += 1;
+    });
+    store.subscribeNode('slow', () => {
+      flashes.slow += 1;
+    });
+    const seen = { fast: 0, slow: 0 };
+    for (let t = 16; t <= 7000; t += 16) {
+      deps.tick(16);
+      if (Math.floor(deps.time / 700) > Math.floor((deps.time - 16) / 700)) {
+        store.markDelivery({ sourceNodeId: 'fast', sourcePortId: 'out', targetNodeId: 'x', targetPortId: 'in' });
+      }
+      if (Math.floor(deps.time / 1000) > Math.floor((deps.time - 16) / 1000)) {
+        store.markDelivery({ sourceNodeId: 'slow', sourcePortId: 'out', targetNodeId: 'x', targetPortId: 'in' });
+      }
+      seen.fast = store.getNodePulse('fast');
+      seen.slow = store.getNodePulse('slow');
+    }
+    deps.tick(16);
+    expect(seen).toEqual({ fast: 9, slow: 6 });
+    // At least one notification per execution (state changes may add more).
+    expect(flashes.fast).toBeGreaterThanOrEqual(seen.fast);
+    expect(flashes.slow).toBeGreaterThanOrEqual(seen.slow);
+    expect(flashes.fast).toBeGreaterThan(flashes.slow);
+  });
+
+  it('forgets pulses on reset', () => {
+    const store = new LiveSignalStore(fakeDeps());
+    store.markDelivery(ab);
+    store.reset();
+    expect([store.getNodePulse('a'), store.getNodePulse('b')]).toEqual([0, 0]);
+  });
+});

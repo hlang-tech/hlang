@@ -13,7 +13,7 @@ import type { ReactElement } from 'react';
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, useInternalNode } from '@xyflow/react';
 import type { EdgeProps } from '@xyflow/react';
 import type { HlangRFEdge, HlangRFNode } from '@hlang-org/editor-react';
-import { useEdgeFlowing } from '../live/LiveSignalContext';
+import { useEdgeFlowing, useEdgePulse } from '../live/LiveSignalContext';
 import './FlowEdge.css';
 
 /** Read a string `role` param off the source node, if any. */
@@ -45,6 +45,8 @@ export function FlowEdge(props: EdgeProps<HlangRFEdge>): ReactElement {
   const isError = data?.isError ?? false;
   const isValue = data?.stream === 'value';
   const flowing = useEdgeFlowing(id);
+  // One flash per message this edge carried; a new count mounts a new path, so it plays once.
+  const pulse = useEdgePulse(id);
   const role = useSourceRole(source);
   const className = [
     'hl-edge',
@@ -60,6 +62,7 @@ export function FlowEdge(props: EdgeProps<HlangRFEdge>): ReactElement {
       <g className={className}>
         <BaseEdge id={id} path={path} className="hl-edge-base" />
         <path d={path} className="hl-edge-flow" />
+        {pulse > 0 && <path key={pulse} d={path} className="hl-edge-pulse" />}
       </g>
       {role !== undefined && (
         <EdgeLabelRenderer>

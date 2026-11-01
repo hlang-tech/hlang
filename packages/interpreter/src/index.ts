@@ -19,6 +19,9 @@ export type {
   IRuntimePort,
   IRuntimeNode,
   IRuntimeFlow,
+  IRuntimeFlowOptions,
+  IRuntimeFlowObserver,
+  IRuntimeDeliveryEvent,
   FlowFactory,
   NodeConstructor,
   INodeConstructionOptions,
@@ -44,6 +47,7 @@ export type {
   IDisposable,
   INodeErrorEvent,
   INodeActivityEvent,
+  INodeDeliveryEvent,
   IInterpretOptions,
   IExecutionHandle,
 } from './types';

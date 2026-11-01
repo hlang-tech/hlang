@@ -6,7 +6,7 @@
  * the core's public surface.
  */
 
-import type { IGraph, INodeErrorEvent, INodeActivityEvent } from '@hlang-org/interpreter';
+import type { IGraph, INodeErrorEvent, INodeActivityEvent, INodeDeliveryEvent } from '@hlang-org/interpreter';
 import { createDecorator } from '../di';
 import type { IDisposable, IGraphModel } from './interfaces';
 import { ISerializationService } from './serialization-interface';
@@ -16,6 +16,12 @@ export interface IExecutionHandle extends IDisposable {
   onError(listener: (event: INodeErrorEvent) => void): IDisposable;
   /** Subscribe to node output-port emissions — the "living stream" signal. */
   onActivity(listener: (event: INodeActivityEvent) => void): IDisposable;
+  /**
+   * Subscribe to every message delivered on a connection, with how long the
+   * receiving node took, when the runner traces the run. A runner that cannot
+   * trace leaves it out.
+   */
+  onDelivery?(listener: (event: INodeDeliveryEvent) => void): IDisposable;
 }
 
 /**

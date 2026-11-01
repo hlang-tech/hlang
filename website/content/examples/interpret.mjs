@@ -9,7 +9,7 @@ const registry = new NodeRegistry()
   .register('uppercase', Uppercase)
   .register('print', Print);
 
-const handle = interpret(graph, { registry, createFlow: () => new Flow() });
+const handle = interpret(graph, { registry, createFlow: (options) => new Flow(options) });
 handle.onError(({ nodeId, error }) => console.error(nodeId, error));
 
 // Stop every node and release its subscriptions.

@@ -50,13 +50,6 @@
   box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node),
     0 0 0 1px color-mix(in oklab, var(--hl-spark) 70%, transparent),
     0 0 28px -6px var(--hl-spark);
-  animation: hl-node-pulse 0.7s var(--hl-ease);
-}
-@keyframes hl-node-pulse {
-  0% {
-    box-shadow: var(--hl-glass-edge-hi), var(--hl-shadow-node),
-      0 0 0 2px var(--hl-spark), 0 0 36px -4px var(--hl-spark);
-  }
 }
 /* A node that threw during the run goes coral. */
 .hl-node.is-live-error {

@@ -60,11 +60,14 @@ import { NodeRegistry } from '@hlang-org/interpreter';
 import { createEditorCore, InterpreterGraphRunner } from '@hlang-org/editor-core';
 
 const runtimeNodes = new NodeRegistry().register('numbers', Numbers);
-const core = createEditorCore({ graphRunner: new InterpreterGraphRunner(runtimeNodes, () => new Flow()) });
+const core = createEditorCore({ graphRunner: new InterpreterGraphRunner(runtimeNodes, (options) => new Flow(options)) });
 
 const handle = core.execution?.run(core.model);
+handle?.onDelivery?.(({ sourceNodeId, targetNodeId, message, duration }) => log(sourceNodeId, targetNodeId, message, duration));
 handle?.dispose();
 ```
+
+The handle reports node errors (`onError`), data passing a connection (`onActivity`), and every delivered message with how long the receiving node took (`onDelivery`). `InterpreterGraphRunner` traces runs by default, because the editor is where graphs are inspected; pass `{ trace: false }` as its third argument to turn that off.
 
 ## The editor core
 

@@ -88,6 +88,30 @@ export interface INodeConstructionOptions {
  */
 export type NodeConstructor = new (opts: INodeConstructionOptions) => IRuntimeNode;
 
+/** One message delivered on one connection, as the runtime reports it. */
+export interface IRuntimeDeliveryEvent {
+  readonly source: IRuntimeNode;
+  readonly sourcePort: string;
+  readonly target: IRuntimeNode;
+  readonly targetPort: string;
+  readonly message: unknown;
+  /** How long the target's handlers took, in milliseconds. */
+  readonly duration: number;
+}
+
+/** Watches a runtime flow. Mirrors the runtime's `FlowObserver`. */
+export interface IRuntimeFlowObserver {
+  readonly delivered?: (event: IRuntimeDeliveryEvent) => void;
+}
+
+/** What the interpreter asks of the flow it creates. Mirrors the runtime's `FlowOptions`. */
+export interface IRuntimeFlowOptions {
+  /** Receives a failure the graph cannot carry, such as a Writable's handler throwing. */
+  readonly onError?: (error: unknown, node: IRuntimeNode | null) => void;
+  /** Present when the run is traced. */
+  readonly observer?: IRuntimeFlowObserver;
+}
+
 /** A runtime `Flow`. `run` must be called with a Readable (R) root node. */
 export interface IRuntimeFlow {
   run(rootNode: IRuntimeNode): void;
@@ -99,8 +123,12 @@ export interface IRuntimeFlow {
   dispose?(): void;
 }
 
-/** Factory that produces a fresh `Flow` instance. */
-export type FlowFactory = () => IRuntimeFlow;
+/**
+ * Produces a fresh `Flow` from the options the interpreter passes, typically
+ * `options => new Flow(options)`. A factory that ignores them still runs the
+ * graph, without tracing and without a node id on Writable failures.
+ */
+export type FlowFactory = (options: IRuntimeFlowOptions) => IRuntimeFlow;
 
 // Node kinds and the error port name are defined once, in the IR.
 export { ERROR_PORT_NAME } from '@hlang-org/ir';

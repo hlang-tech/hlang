@@ -9,6 +9,7 @@
  */
 
 import { NodeRegistry as RuntimeNodeRegistry } from '@hlang-org/interpreter';
+import type { FlowFactory } from '@hlang-org/interpreter';
 import type { NodeDescriptor } from '@hlang-org/editor-core';
 import { rt } from './runtime-boundary';
 import {
@@ -33,7 +34,7 @@ export function nodeDescriptors(): readonly NodeDescriptor[] {
 /** Assemble the runtime registry + a flow factory for the interpreter. */
 export function makeRuntime(reporters: SinkReporters): {
   registry: RuntimeNodeRegistry;
-  createFlow: () => { run(root: unknown): void };
+  createFlow: FlowFactory;
 } {
   const registry = new RuntimeNodeRegistry();
   for (const node of KIT_NODES) {
@@ -41,5 +42,5 @@ export function makeRuntime(reporters: SinkReporters): {
   }
   registry.register('console-sink', makeConsoleSink(reporters.onConsole));
   registry.register('collect-sink', makeCollectSink(reporters.onCollect));
-  return { registry, createFlow: () => new rt.Flow({}) };
+  return { registry, createFlow: options => new rt.Flow(options) };
 }

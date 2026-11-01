@@ -16,6 +16,7 @@ import { Flow } from '@hlang-org/runtime';
 import { interpret, NodeRegistry } from '@hlang-org/interpreter';
 import type { NodeConstructor } from '@hlang-org/interpreter';
 import Collect from './fixtures/nodes/collect.mts';
+import FailingSink from './fixtures/nodes/failing-sink.mts';
 import Faulty from './fixtures/nodes/faulty.mts';
 import Pair from './fixtures/nodes/pair.mts';
 import Scale from './fixtures/nodes/scale.mts';
@@ -36,6 +37,7 @@ const FIXTURE_NODES: Readonly<Record<string, NodeConstructor>> = {
   pair: Pair,
   collect: Collect,
   faulty: Faulty,
+  'failing-sink': FailingSink,
   ticker: Ticker,
   'teardown-ticker': TeardownTicker,
 };
@@ -79,7 +81,7 @@ function runInterpreted(graph: IGraph): SinkEntry[] {
     registry.register(code, nodeClass);
   }
   const entries: SinkEntry[] = [];
-  const handle = interpret(graph, { registry, createFlow: () => new Flow() }, { middleware: { record: (entry: SinkEntry) => entries.push(entry) } });
+  const handle = interpret(graph, { registry, createFlow: (options) => new Flow(options) }, { middleware: { record: (entry: SinkEntry) => entries.push(entry) } });
   handle.dispose();
   return entries;
 }
@@ -189,7 +191,7 @@ describe('compile', () => {
     const host = { tag: 'm' };
     const registry = new NodeRegistry();
     registry.register('source', Source);
-    const handle = interpret(graph, { registry, createFlow: () => new Flow() }, { middleware: host });
+    const handle = interpret(graph, { registry, createFlow: (options) => new Flow(options) }, { middleware: host });
     const interpreted = handle.getNode('a');
     const middleware: unknown = interpreted !== undefined && 'opts' in interpreted && typeof interpreted.opts === 'object' && interpreted.opts !== null && 'middleware' in interpreted.opts ? interpreted.opts.middleware : undefined;
     handle.dispose();
@@ -267,6 +269,53 @@ describe('compile', () => {
       'const errors = []; const handle = program.run({ onError: (event) => errors.push(event) }); handle.dispose(); console.log(JSON.stringify(errors));',
     );
     expect(JSON.parse(output)).toEqual([{ nodeId: 'f', error: 'bad:7' }]);
+  });
+
+  it('reports the same node errors as the interpreter', () => {
+    const graph: IGraph = {
+      nodeList: [
+        node('a', 'source', 'R', { values: [7, 8] }),
+        node('f', 'faulty', 'T'),
+        node('w', 'failing-sink', 'W'),
+      ],
+      connections: [link('a', 'f'), link('a', 'w')],
+    };
+    const describe = (error: unknown): unknown => (error instanceof Error ? error.message : error);
+    const registry = new NodeRegistry();
+    for (const [code, nodeClass] of Object.entries(FIXTURE_NODES)) {
+      registry.register(code, nodeClass);
+    }
+    const interpreted: unknown[] = [];
+    const handle = interpret(graph, { registry, createFlow: (options) => new Flow(options) });
+    handle.onError(({ nodeId, error }) => interpreted.push({ nodeId, error: describe(error) }));
+    handle.dispose();
+
+    const compiled: unknown = JSON.parse(
+      runCompiled(
+        compile(graph, { nodes: NODES }).code,
+        'const errors = []; const handle = program.run({ onError: ({ nodeId, error }) => errors.push({ nodeId, error: error instanceof Error ? error.message : error }) }); handle.dispose(); console.log(JSON.stringify(errors));',
+      ),
+    );
+
+    expect(interpreted).toEqual([
+      { nodeId: 'f', error: 'bad:7' },
+      { nodeId: 'w', error: 'sink:7' },
+      { nodeId: 'f', error: 'bad:8' },
+      { nodeId: 'w', error: 'sink:8' },
+    ]);
+    expect(compiled).toEqual(interpreted);
+  });
+
+  it('reports a Writable handler failure through onError with its node id', () => {
+    const graph: IGraph = {
+      nodeList: [node('a', 'source', 'R', { values: [7] }), node('w', 'failing-sink', 'W')],
+      connections: [link('a', 'w')],
+    };
+    const output = runCompiled(
+      compile(graph, { nodes: NODES }).code,
+      'const errors = []; const handle = program.run({ onError: ({ nodeId, error }) => errors.push({ nodeId, error: error.message }) }); handle.dispose(); console.log(JSON.stringify(errors));',
+    );
+    expect(JSON.parse(output)).toEqual([{ nodeId: 'w', error: 'sink:7' }]);
   });
 
   it('serializes nested params, including keys that are not identifiers', () => {

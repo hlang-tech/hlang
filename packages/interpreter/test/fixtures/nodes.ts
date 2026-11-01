@@ -163,6 +163,22 @@ export class EchoTransformNode extends TransformNode {
   }
 }
 
+/** A W sink whose handler throws `failure` for every message. */
+export function makeThrowingSink(failure: Error): NodeConstructor {
+  class ThrowingSinkNode extends WriteableNode {
+    constructor(opts: INodeConstructionOptions) {
+      super(opts);
+      Port.I('Input').attach(this);
+    }
+    override _write(i: PortAccessor): void {
+      i('Input').receive(() => {
+        throw failure;
+      });
+    }
+  }
+  return ThrowingSinkNode;
+}
+
 /** A W sink that records everything it receives into `collector`. */
 export function makeCollectorSink(collector: unknown[]): NodeConstructor {
   class CollectorSinkNode extends WriteableNode {

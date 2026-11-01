@@ -155,38 +155,72 @@
 }
 
 /* Output strip: the values the Console node receives. */
+.lumen-console {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.lumen-console > * {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Both views share one header row: the tabs, then the view's own controls. */
+.lumen-console-head,
+.lumen-console .hl-runlog-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  height: 38px;
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--hl-line);
+  flex: none;
+}
+.lumen-console-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  flex: none;
+}
+.lumen-console .hl-railtabs {
+  margin: 0;
+  flex: none;
+}
+.lumen-console .hl-railtab {
+  flex: none;
+  padding: 4px 10px;
+  font-size: 11.5px;
+}
+
 .lumen-embed .hl-output {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  height: 92px;
-  padding: 10px 16px;
+  flex-direction: column;
   border-top: 1px solid var(--hl-line);
   background: var(--hl-void-2);
   overflow: hidden;
 }
-.lumen-embed .hl-output-tag {
-  flex-shrink: 0;
-  padding-top: 2px;
-  font-size: 11px;
-  color: var(--hl-silver);
-}
 .lumen-embed .hl-output-body {
   display: flex;
-  flex-direction: column-reverse;
-  justify-content: flex-end;
+  flex-direction: column;
   gap: 3px;
   min-width: 0;
+  padding: 10px 16px;
   font-family: var(--hl-font-mono);
   font-size: 12.5px;
   color: var(--hl-ink);
+  flex: 1;
+  min-height: 0;
+  /* Oldest first, newest last, as in a terminal; the region scrolls on its own. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .lumen-embed .hl-output-line {
   display: flex;
   gap: 8px;
   white-space: nowrap;
 }
-.lumen-embed .hl-output-line:not(:first-child) {
+.lumen-embed .hl-output-line:not(:last-child) {
   color: var(--hl-ink-3);
 }
 .lumen-embed .hl-output-arrow {
@@ -194,6 +228,7 @@
   opacity: 0.7;
 }
 .lumen-embed .hl-output-idle {
+  padding: 10px 16px;
   font-size: 12.5px;
   color: var(--hl-ink-3);
 }

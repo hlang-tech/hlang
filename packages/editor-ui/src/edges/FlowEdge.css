@@ -78,3 +78,26 @@
   box-shadow: var(--hl-glass-edge), 0 2px 8px -3px rgba(0, 0, 0, 0.6);
   white-space: nowrap;
 }
+
+/* One flash per message the edge carried (see FlowEdge), fading out. */
+.hl-edge-pulse {
+  fill: none;
+  stroke: var(--hl-spark);
+  stroke-width: 2.5;
+  pointer-events: none;
+  opacity: 0;
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--hl-spark) 70%, transparent));
+  animation: hl-edge-pulse 0.6s var(--hl-ease);
+}
+.hl-edge.is-error .hl-edge-pulse {
+  stroke: var(--hl-error);
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--hl-error) 70%, transparent));
+}
+@keyframes hl-edge-pulse {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
