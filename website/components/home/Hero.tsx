@@ -1,8 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { Connection } from '@/components/Connection';
 import { LiveGraph } from '@/components/live/LiveGraph';
 import type { ProgramViews } from '@/components/live/LiveGraph';
+import { Pipeline } from '@/components/home/Pipeline';
 import { PortButton } from '@/components/PortButton';
 import { highlight } from '@/lib/highlight';
 import { liveGraph, TRANSFORM_CODES } from '@/lib/live-graph';
@@ -31,8 +31,8 @@ export async function Hero() {
   return (
     <section className="frame grid gap-3 py-3 lg:grid-cols-2" aria-labelledby="hero-title">
       <div className="flex min-w-0 flex-col overflow-hidden rounded-panel bg-surface ring-1 ring-line ring-inset lg:min-h-[calc(100svh-89px)]">
-        <div className="px-6 pt-6 text-silver sm:px-10 sm:pt-8">
-          <Connection width={640} rise={22} weight={4} className="h-auto w-full max-w-full" />
+        <div className="px-6 pt-6 sm:px-10 sm:pt-8">
+          <Pipeline />
         </div>
         <div className="flex flex-1 flex-col items-center justify-center px-6 py-14 text-center sm:px-10">
           <h1 id="hero-title" className="flex items-center gap-[clamp(10px,3vw,16px)] text-[clamp(44px,14vw,64px)] font-semibold leading-none tracking-[-0.05em]" data-enter>

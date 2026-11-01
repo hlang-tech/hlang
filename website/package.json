@@ -14,7 +14,8 @@
     "test": "node scripts/run-examples.mjs",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "node scripts/generate.mjs && tsc --noEmit",
-    "clean": "rm -rf .next .generated"
+    "clean": "rm -rf .next .generated",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@hlang-org/compiler": "workspace:*",
@@ -27,6 +28,7 @@
     "@shikijs/rehype": "^4.5.0",
     "@xyflow/react": "^12.12.0",
     "clsx": "^2.1.1",
+    "github-slugger": "^2.0.0",
     "gray-matter": "^4.0.3",
     "hast-util-to-string": "^3.0.1",
     "motion": "^14.9.0",
@@ -48,6 +50,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/hast": "^3.0.5",
     "@types/mdast": "^4.0.4",
@@ -59,7 +62,7 @@
     "tailwindcss": "^4.3.3",
     "typedoc": "^0.28.20",
     "typedoc-plugin-markdown": "^4.14.1",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.1"
   }
 }

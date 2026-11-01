@@ -33,6 +33,13 @@ jobs:
       - name: Build, typecheck, lint, test
         run: pnpm check
 
+      # Browser checks of the website built by `pnpm check`.
+      - name: Install Chromium for the browser tests
+        run: pnpm --filter @hlang-org/website exec playwright install --with-deps chromium
+
+      - name: Browser tests
+        run: pnpm --filter @hlang-org/website test:e2e
+
       - name: Validate publishable packages
         run: pnpm lint:pkg
 

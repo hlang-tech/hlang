@@ -1,7 +1,12 @@
-/** Toast — transient glass confirmations, stacked bottom-center. */
+/**
+ * Toast — transient glass confirmations, stacked bottom-center of the editor.
+ * The stack is positioned against the nearest positioned ancestor of the
+ * `ToastProvider`, so an editor embedded in a larger page shows its toasts in
+ * itself; a full-window editor needs nothing extra.
+ */
 
 .hl-toast-stack {
-  position: fixed;
+  position: absolute;
   z-index: 70;
   left: 50%;
   bottom: 28px;

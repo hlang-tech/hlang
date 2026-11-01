@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { Terminal } from './Connection';
+import { Terminal } from './Terminal';
 
 interface PortButtonProps {
   readonly href: string;

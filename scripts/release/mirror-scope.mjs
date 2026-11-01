@@ -17,76 +17,23 @@
  * Usage (after `pnpm build`):
  *   node scripts/release/mirror-scope.mjs            # publish
  *   node scripts/release/mirror-scope.mjs --dry-run  # verify only
- * The registry comes from the usual npm configuration (`npm_config_registry`).
+ * The registry comes from the usual npm configuration (`npm_config_registry`). In
+ * the release workflow npm authenticates with GitHub's OIDC token (trusted
+ * publishing) and attaches provenance; see .github/workflows/release.yml.
  */
 
-import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+import { dependencyOrder, isPublished, publishArgs, readPackages, run, SOURCE_SCOPE } from './lib.mjs';
 
-const SOURCE_SCOPE = '@hlang-org';
 const MIRROR_SCOPE = '@hlang-tech';
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const DRY_RUN = process.argv.includes('--dry-run');
 const CODE_FILE = /\.(?:c|m)?js$|\.d\.(?:c|m)?ts$|\.map$/;
 const DEPENDENCY_FIELDS = ['dependencies', 'peerDependencies', 'optionalDependencies', 'devDependencies'];
 
-/** Run a command; returns trimmed stdout, or '' when output is inherited. */
-function run(command, args, options = {}) {
-  const output = execFileSync(command, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], ...options });
-  return typeof output === 'string' ? output.trim() : '';
-}
-
-/** Public workspace packages in the source scope, keyed by name. */
-function readPackages() {
-  const packagesDir = join(ROOT, 'packages');
-  const packages = new Map();
-  for (const entry of readdirSync(packagesDir)) {
-    const dir = join(packagesDir, entry);
-    const manifest = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
-    if (manifest.private !== true && manifest.name.startsWith(`${SOURCE_SCOPE}/`)) {
-      packages.set(manifest.name, { dir, manifest });
-    }
-  }
-  return packages;
-}
-
-/** Packages ordered so every package follows its internal dependencies. */
-function dependencyOrder(packages) {
-  const ordered = [];
-  const visiting = new Set();
-  const done = new Set();
-  const visit = (name) => {
-    if (done.has(name)) return;
-    if (visiting.has(name)) throw new Error(`Dependency cycle through ${name}`);
-    visiting.add(name);
-    const { manifest } = packages.get(name);
-    for (const field of ['dependencies', 'peerDependencies']) {
-      for (const dependency of Object.keys(manifest[field] ?? {})) {
-        if (packages.has(dependency)) visit(dependency);
-      }
-    }
-    visiting.delete(name);
-    done.add(name);
-    ordered.push(name);
-  };
-  [...packages.keys()].sort().forEach(visit);
-  return ordered;
-}
-
 function mirrorName(name) {
   return name.replace(`${SOURCE_SCOPE}/`, `${MIRROR_SCOPE}/`);
-}
-
-function isPublished(name, version) {
-  try {
-    // A 404 (not yet published) is the expected answer, so its output is discarded.
-    return run('npm', ['view', `${name}@${version}`, 'version'], { stdio: ['ignore', 'pipe', 'ignore'] }) === version;
-  } catch {
-    return false;
-  }
 }
 
 function filesUnder(dir) {
@@ -181,10 +128,7 @@ function mirrorPackage(name, packages, workDir) {
     console.log(`= ${target}@${manifest.version} already published, skipped`);
     return;
   }
-  const publishArgs = ['publish', mirrorTarball, '--access', 'public'];
-  if (manifest.version.includes('-')) publishArgs.push('--tag', 'next');
-  if (DRY_RUN) publishArgs.push('--dry-run');
-  run('npm', publishArgs, { stdio: 'inherit' });
+  run('npm', publishArgs(mirrorTarball, manifest.version, DRY_RUN), { stdio: 'inherit' });
   console.log(`${DRY_RUN ? '~' : '+'} ${target}@${manifest.version}`);
 }
 

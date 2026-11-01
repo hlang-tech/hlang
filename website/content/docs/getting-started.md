@@ -11,7 +11,7 @@ order: 2
 npm install @hlang-org/runtime @hlang-org/interpreter
 ```
 
-The runtime is CommonJS with type declarations; ES modules import its named exports. The other packages ship ES modules and CommonJS.
+Every package ships an ES module and a CommonJS build with type declarations, so `import` and `require` both work.
 
 ## Write three nodes
 

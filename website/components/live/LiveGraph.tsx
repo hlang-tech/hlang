@@ -254,10 +254,16 @@ function GraphView({ code, text, output, arrivals, pulses, log, onInput, onCode 
                     {pulses
                       .filter(item => item.edge === edge)
                       .map(item => (
-                        <circle key={item.id} r={4.5} className="fill-spark motion-reduce:hidden">
-                          <animateMotion dur="0.7s" fill="freeze" path={wire.d} />
-                          <animate attributeName="opacity" values="1;1;0" dur="0.9s" fill="freeze" />
-                        </circle>
+                        // A lit segment travelling the wire itself: it never exists off the path.
+                        <path
+                          key={item.id}
+                          d={wire.d}
+                          fill="none"
+                          pathLength={1}
+                          strokeWidth={4}
+                          strokeLinecap="round"
+                          className="wire-pulse stroke-spark motion-reduce:hidden"
+                        />
                       ))}
                   </g>
                 );

@@ -477,6 +477,63 @@
   box-shadow: inset 0 0 0 1px var(--color-line-strong);
 }
 
+/*
+ * A value travelling the hero pipeline: across the Readable-to-Transform wire,
+ * then the Transform-to-Writable wire, then a rest. Both wires share one cycle.
+ */
+.pipeline-pulse-a,
+.pipeline-pulse-b {
+  opacity: 0;
+  animation: 4.8s var(--ease-out-quart) 1.2s infinite both;
+}
+.pipeline-pulse-a {
+  animation-name: pipeline-pulse-a;
+}
+.pipeline-pulse-b {
+  animation-name: pipeline-pulse-b;
+}
+@keyframes pipeline-pulse-a {
+  0% {
+    opacity: 1;
+    left: -2.5rem;
+  }
+  22% {
+    opacity: 1;
+    left: 100%;
+  }
+  22.01%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pipeline-pulse-b {
+  0%,
+  26% {
+    opacity: 0;
+    left: -2.5rem;
+  }
+  26.01% {
+    opacity: 1;
+    left: -2.5rem;
+  }
+  48% {
+    opacity: 1;
+    left: 100%;
+  }
+  48.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* A value travelling a live-graph wire: the same lit segment, quicker. */
+.wire-pulse {
+  stroke-dasharray: 0.1 1.2;
+  stroke-dashoffset: 0.1;
+  opacity: 0;
+  animation: backends-pulse 800ms var(--ease-out-quart) both;
+}
+
 /* A value travelling a route once: a short lit segment along a path with pathLength 1. */
 .backends-pulse {
   stroke-dasharray: 0.08 1.2;

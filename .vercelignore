@@ -14,3 +14,5 @@ website/*.tsbuildinfo
 .serena
 *.log
 *.tgz
+website/test-results
+website/playwright-report

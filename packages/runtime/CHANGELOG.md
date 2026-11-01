@@ -1,5 +1,18 @@
 # @hlang-org/runtime
 
+## 1.1.0
+
+### Minor Changes
+
+- 058f4d5: Add an ES module build. `import` resolves to `lib/index.mjs`; `require` still
+  resolves to the CommonJS build in `lib/`, unchanged, and deep `lib/...` imports
+  keep working through the `exports` map. Vite and other ESM tools no longer need
+  to convert the runtime from CommonJS.
+
+### Patch Changes
+
+- 47d9059: Built with TypeScript 6. The CommonJS build now inlines its module interop helpers instead of relying on `tslib`, which is not a dependency of this package. The public API and the type declarations are unchanged.
+
 ## 1.0.7
 
 ### Patch Changes
