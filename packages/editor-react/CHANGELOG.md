@@ -1,5 +1,16 @@
 # @hlang-org/editor-react
 
+## 0.3.0
+
+### Minor Changes
+
+- 96777a2: Add `useReadOnly(core)`, which follows the editor's read-only mode. A node that is not locked no longer sets React Flow's `draggable` and `selectable` to `true`; it leaves them unset, so the canvas's `nodesDraggable` and `elementsSelectable` decide (a read-only canvas can stop every drag). Locked nodes still set both to `false`.
+
+### Patch Changes
+
+- Updated dependencies [c704c6f]
+  - @hlang-org/editor-core@0.4.0
+
 ## 0.2.0
 
 ### Minor Changes
