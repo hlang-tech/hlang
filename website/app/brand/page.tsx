@@ -9,6 +9,7 @@ import { SITE } from '@/lib/site';
 export const metadata: Metadata = {
   title: 'Brand',
   description: 'The hlang mark, its construction, its colors and the files to use.',
+  alternates: { canonical: '/brand' },
 };
 
 /** The brand guide is the repository's own: media/brand/README.md. */

@@ -19,7 +19,9 @@ interface Params {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { pkg } = await params;
   const item = getApiPackages().find(entry => entry.short === pkg);
-  return item === undefined ? {} : { title: `${item.name} API`, description: item.description };
+  return item === undefined
+    ? {}
+    : { title: `${item.name} API`, description: item.description, alternates: { canonical: `/docs/api/${item.short}` } };
 }
 
 export default async function ApiPage({ params }: Params) {
