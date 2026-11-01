@@ -44,6 +44,7 @@ export function AssetNodeChrome({ node, selected }: AssetNodeChromeProps): React
     selected ? 'is-selected' : '',
     live === 'active' ? 'is-active' : '',
     live === 'error' ? 'is-live-error' : '',
+    live === 'finished' ? 'is-finished' : '',
   ]
     .filter(Boolean)
     .join(' ');

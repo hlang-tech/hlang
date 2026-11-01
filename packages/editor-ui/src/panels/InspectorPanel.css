@@ -211,3 +211,10 @@
   text-align: left;
   line-height: 1.5;
 }
+
+.hl-runstats-cell.is-warning dd {
+  color: var(--hl-warning);
+}
+.hl-runstats-cell.is-done dd {
+  color: var(--hl-ink-2);
+}

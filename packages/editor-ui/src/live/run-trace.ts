@@ -10,7 +10,13 @@
  * long the run, while the statistics keep counting everything.
  */
 
-import type { INodeDeliveryEvent, INodeErrorEvent } from '@hlang-org/editor-core';
+import type {
+  INodeDeliveryEvent,
+  INodeDroppedEvent,
+  INodeEndedEvent,
+  INodeErrorEvent,
+  INodeFinishedEvent,
+} from '@hlang-org/editor-core';
 import { defaultLiveDeps } from './live-signal-store';
 import type { LiveSignalStoreDeps } from './live-signal-store';
 
@@ -40,7 +46,36 @@ export interface RunErrorEntry {
   readonly error: unknown;
 }
 
-export type RunLogEntry = RunDeliveryEntry | RunErrorEntry;
+/** An input that ended (RFC 0001): every connection into it closed and its messages done. */
+export interface RunEndedEntry {
+  readonly kind: 'ended';
+  readonly seq: number;
+  readonly at: number;
+  readonly nodeId: string;
+  readonly portId: string;
+}
+
+/** A node that finished (RFC 0001): its inputs ended and its outputs closed. */
+export interface RunFinishedEntry {
+  readonly kind: 'finished';
+  readonly seq: number;
+  readonly at: number;
+  readonly nodeId: string;
+}
+
+/** A message a full `drop-oldest` connection dropped (RFC 0001). */
+export interface RunDroppedEntry {
+  readonly kind: 'dropped';
+  readonly seq: number;
+  readonly at: number;
+  readonly sourceNodeId: string;
+  readonly sourcePortId: string;
+  readonly targetNodeId: string;
+  readonly targetPortId: string;
+  readonly message: unknown;
+}
+
+export type RunLogEntry = RunDeliveryEntry | RunErrorEntry | RunEndedEntry | RunFinishedEntry | RunDroppedEntry;
 
 /** One node's activity during the run. */
 export interface NodeRunSummary {
@@ -52,6 +87,10 @@ export interface NodeRunSummary {
   readonly maxMs: number;
   readonly lastReceived: unknown;
   readonly lastSent: unknown;
+  /** Messages a full `drop-oldest` connection into this node dropped. */
+  readonly dropped: number;
+  /** Whether the node has finished: its inputs ended and its outputs closed. */
+  readonly finished: boolean;
 }
 
 export interface RunTraceOptions {
@@ -69,6 +108,8 @@ interface MutableStats {
   maxMs: number;
   lastReceived: unknown;
   lastSent: unknown;
+  dropped: number;
+  finished: boolean;
 }
 
 type Listener = () => void;
@@ -146,6 +187,34 @@ export class RunTrace {
     this.changed();
   }
 
+  recordEnded(event: INodeEndedEvent): void {
+    this.append({ kind: 'ended', seq: this.nextSeq(), at: this.elapsed(), nodeId: event.nodeId, portId: event.portId });
+    this.statsFor(event.nodeId);
+    this.changed();
+  }
+
+  recordFinished(event: INodeFinishedEvent): void {
+    this.append({ kind: 'finished', seq: this.nextSeq(), at: this.elapsed(), nodeId: event.nodeId });
+    this.statsFor(event.nodeId).finished = true;
+    this.changed();
+  }
+
+  recordDropped(event: INodeDroppedEvent): void {
+    this.append({
+      kind: 'dropped',
+      seq: this.nextSeq(),
+      at: this.elapsed(),
+      sourceNodeId: event.sourceNodeId,
+      sourcePortId: event.sourcePortId,
+      targetNodeId: event.targetNodeId,
+      targetPortId: event.targetPortId,
+      message: event.message,
+    });
+    this.statsFor(event.sourceNodeId);
+    this.statsFor(event.targetNodeId).dropped += 1;
+    this.changed();
+  }
+
   /** The log, oldest first. The same array is returned until something changes. */
   entries(): readonly RunLogEntry[] {
     if (this.entriesRevision !== this.revision) {
@@ -208,7 +277,17 @@ export class RunTrace {
   private statsFor(nodeId: string): MutableStats {
     let stats = this.stats.get(nodeId);
     if (stats === undefined) {
-      stats = { received: 0, sent: 0, errors: 0, totalMs: 0, maxMs: 0, lastReceived: undefined, lastSent: undefined };
+      stats = {
+        received: 0,
+        sent: 0,
+        errors: 0,
+        totalMs: 0,
+        maxMs: 0,
+        lastReceived: undefined,
+        lastSent: undefined,
+        dropped: 0,
+        finished: false,
+      };
       this.stats.set(nodeId, stats);
     }
     return stats;
@@ -232,5 +311,13 @@ export class RunTrace {
 
 /** Whether `entry` concerns `nodeId`: either end of a delivery, or the node of an error. */
 export function involves(entry: RunLogEntry, nodeId: string): boolean {
-  return entry.kind === 'error' ? entry.nodeId === nodeId : entry.sourceNodeId === nodeId || entry.targetNodeId === nodeId;
+  switch (entry.kind) {
+    case 'delivery':
+    case 'dropped':
+      return entry.sourceNodeId === nodeId || entry.targetNodeId === nodeId;
+    case 'error':
+    case 'ended':
+    case 'finished':
+      return entry.nodeId === nodeId;
+  }
 }

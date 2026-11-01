@@ -68,6 +68,9 @@ export class InterpreterGraphRunner implements IGraphRunner {
       onError: listener => handle.onError(listener),
       onActivity: listener => handle.onActivity(listener),
       onDelivery: listener => handle.onDelivery(listener),
+      onEnded: listener => handle.onEnded(listener),
+      onFinished: listener => handle.onFinished(listener),
+      onDropped: listener => handle.onDropped(listener),
       dispose: () => {
         handle.dispose();
       },

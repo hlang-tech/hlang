@@ -176,3 +176,12 @@
   background: var(--hl-silver-hi);
   transform: scale(1.2);
 }
+
+/* A node that has finished (RFC 0001): its inputs ended and its outputs
+   closed. It steps back, calmly, rather than going dark. */
+.hl-pill {
+  transition: opacity 0.4s var(--hl-ease);
+}
+.hl-pill.is-finished {
+  opacity: 0.6;
+}

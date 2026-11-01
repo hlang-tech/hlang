@@ -136,4 +136,24 @@ describe('useLiveSignals', () => {
     unmount();
     expect(deliveries.size).toBe(0);
   });
+
+  it('marks a node finished when the handle reports it', () => {
+    const { core, source } = graph();
+    const store = stillStore();
+    let finish: ((event: { readonly nodeId: string }) => void) | undefined;
+    const handle: IExecutionHandle = {
+      onActivity: () => ({ dispose: () => undefined }),
+      onError: () => ({ dispose: () => undefined }),
+      onFinished: listener => {
+        finish = listener;
+        return { dispose: () => undefined };
+      },
+      dispose: () => undefined,
+    };
+    renderHook(() => {
+      useLiveSignals(core, handle, store);
+    });
+    finish?.({ nodeId: source });
+    expect(store.getNodeState(source)).toBe('finished');
+  });
 });

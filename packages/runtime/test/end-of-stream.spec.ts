@@ -8,7 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import { DeliveryQueue } from "../src/core/delivery";
 import { portInternals } from "../src/base/port";
 import { Flow, FlowDisposedError, Port, ReadableNode, TransformNode, WriteableNode } from "../src/index";
-import type { PortAccessor } from "../src/index";
+import type { EndedEvent, FinishedEvent, PortAccessor } from "../src/index";
 
 const settle = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
@@ -412,5 +412,22 @@ describe("end of stream (RFC 0001)", () => {
     queue.close();
     queue.schedule(() => ran.push(1));
     expect(ran).toEqual([]);
+  });
+
+  it("tells the observer when each input ends and each node finishes, in order", () => {
+    const events: string[] = [];
+    const source = new Finite([1]);
+    const pass = new Pass();
+    const sink = new Record();
+    source.O("out").connect(pass.I("in"));
+    pass.O("out").connect(sink.I("in"));
+    const nameOf = (node: unknown) => (node === source ? "source" : node === pass ? "pass" : "sink");
+    new Flow({
+      observer: {
+        ended: (event: EndedEvent) => events.push(`ended ${nameOf(event.node)}.${event.port}`),
+        finished: (event: FinishedEvent) => events.push(`finished ${nameOf(event.node)}`),
+      },
+    }).run(source);
+    expect(events).toEqual(["finished source", "ended pass.in", "finished pass", "ended sink.in", "finished sink"]);
   });
 });

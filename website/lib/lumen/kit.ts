@@ -89,8 +89,15 @@ class RangeSource extends runtime.ReadableNode {
   override _read($o: PortAccess): void {
     range(numberParam(this.opts, 'start', 1), numberParam(this.opts, 'count', 5))
       .pipe(takeUntil(this.opts.signal.observable))
-      .subscribe(value => {
-        $o('Output').send(value);
+      .subscribe({
+        next: value => {
+          $o('Output').send(value);
+        },
+        // A range is finite: once it has sent its values its output closes,
+        // and the end of the stream travels through the graph (RFC 0001).
+        complete: () => {
+          $o('Output').close();
+        },
       });
   }
 }
@@ -103,6 +110,7 @@ class ConstantSource extends runtime.ReadableNode {
   }
   override _read($o: PortAccess): void {
     $o('Output').send(numberParam(this.opts, 'value', 42));
+    $o('Output').close();
   }
 }
 

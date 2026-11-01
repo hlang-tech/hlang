@@ -21,9 +21,22 @@ export function useRunTrace(trace: RunTrace, handle: IExecutionHandle | undefine
     const errors = handle.onError(event => {
       trace.recordError(event);
     });
+    // End of stream and drops (RFC 0001), from a runner that traces them.
+    const ended = handle.onEnded?.(event => {
+      trace.recordEnded(event);
+    });
+    const finished = handle.onFinished?.(event => {
+      trace.recordFinished(event);
+    });
+    const dropped = handle.onDropped?.(event => {
+      trace.recordDropped(event);
+    });
     return (): void => {
       deliveries?.dispose();
       errors.dispose();
+      ended?.dispose();
+      finished?.dispose();
+      dropped?.dispose();
     };
   }, [trace, handle]);
 }

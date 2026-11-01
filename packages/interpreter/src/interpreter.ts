@@ -25,6 +25,9 @@ import type {
   IDisposable,
   INodeActivityEvent,
   INodeDeliveryEvent,
+  INodeDroppedEvent,
+  INodeEndedEvent,
+  INodeFinishedEvent,
   IExecutionHandle,
   IInterpretOptions,
   INodeErrorEvent,
@@ -182,6 +185,9 @@ export function interpret(
   //    The flow reports a Writable's handler failure (it has no error port)
   //    through `onError`, and, when the run is traced, every delivery.
   const deliveryStream = new ReplaySubject<INodeDeliveryEvent>(DELIVERY_REPLAY);
+  const endedStream = new ReplaySubject<INodeEndedEvent>(DELIVERY_REPLAY);
+  const finishedStream = new ReplaySubject<INodeFinishedEvent>(DELIVERY_REPLAY);
+  const droppedStream = new ReplaySubject<INodeDroppedEvent>(DELIVERY_REPLAY);
   const flowOptions: IRuntimeFlowOptions = {
     onError: (error, node) => {
       const nodeId = node === null ? undefined : nodeIdOf.get(node);
@@ -214,6 +220,25 @@ export function interpret(
                 });
               }
             },
+            ended: ({ node, port }) => {
+              const nodeId = nodeIdOf.get(node);
+              if (nodeId !== undefined) {
+                endedStream.next({ nodeId, portId: port });
+              }
+            },
+            finished: ({ node }) => {
+              const nodeId = nodeIdOf.get(node);
+              if (nodeId !== undefined) {
+                finishedStream.next({ nodeId });
+              }
+            },
+            dropped: ({ source, sourcePort, target, targetPort, message }) => {
+              const sourceNodeId = nodeIdOf.get(source);
+              const targetNodeId = nodeIdOf.get(target);
+              if (sourceNodeId !== undefined && targetNodeId !== undefined) {
+                droppedStream.next({ sourceNodeId, sourcePortId: sourcePort, targetNodeId, targetPortId: targetPort, message });
+              }
+            },
           },
         }
       : {}),
@@ -223,7 +248,7 @@ export function interpret(
     flow.run(root);
   }
 
-  return createHandle(flowId, roots, instances, { errorStream, activityStream, deliveryStream }, () => {
+  return createHandle(flowId, roots, instances, { errorStream, activityStream, deliveryStream, endedStream, finishedStream, droppedStream }, () => {
     // Stop: signal nodes to cancel long-lived work, run onStop callbacks,
     // dispose the runtime flow (node teardowns, closed ports), and unsubscribe
     // the interpreter's own port observations.
@@ -271,10 +296,22 @@ function createHandle(
     readonly errorStream: ReplaySubject<INodeErrorEvent>;
     readonly activityStream: ReplaySubject<INodeActivityEvent>;
     readonly deliveryStream: ReplaySubject<INodeDeliveryEvent>;
+    readonly endedStream: ReplaySubject<INodeEndedEvent>;
+    readonly finishedStream: ReplaySubject<INodeFinishedEvent>;
+    readonly droppedStream: ReplaySubject<INodeDroppedEvent>;
   },
   teardown: () => void,
 ): IExecutionHandle {
-  const { errorStream, activityStream, deliveryStream } = streams;
+  const { errorStream, activityStream, deliveryStream, endedStream, finishedStream, droppedStream } = streams;
+  /** A listener's subscription to `stream`, as a disposable. */
+  const listen = <T,>(stream: ReplaySubject<T>, listener: (event: T) => void): IDisposable => {
+    const subscription = stream.subscribe(listener);
+    return {
+      dispose(): void {
+        subscription.unsubscribe();
+      },
+    };
+  };
   return {
     flowId,
     roots,
@@ -305,11 +342,23 @@ function createHandle(
         },
       };
     },
+    onEnded(listener: (event: INodeEndedEvent) => void): IDisposable {
+      return listen(endedStream, listener);
+    },
+    onFinished(listener: (event: INodeFinishedEvent) => void): IDisposable {
+      return listen(finishedStream, listener);
+    },
+    onDropped(listener: (event: INodeDroppedEvent) => void): IDisposable {
+      return listen(droppedStream, listener);
+    },
     dispose(): void {
       teardown();
       errorStream.complete();
       activityStream.complete();
       deliveryStream.complete();
+      endedStream.complete();
+      finishedStream.complete();
+      droppedStream.complete();
     },
   };
 }

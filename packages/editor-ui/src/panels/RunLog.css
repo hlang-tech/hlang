@@ -150,6 +150,15 @@
 .hl-runlog-row.is-error .hl-runlog-value {
   color: var(--hl-error);
 }
+/* End of stream (RFC 0001): quiet, a lifecycle note rather than data. */
+.hl-runlog-row.is-end .hl-runlog-value {
+  color: var(--hl-ink-3);
+  font-style: italic;
+}
+/* A message a drop-oldest connection let go of: lossy, in the warning hue. */
+.hl-runlog-row.is-dropped .hl-runlog-value {
+  color: var(--hl-warning);
+}
 
 @media (max-width: 720px) {
   .hl-runlog-hit {

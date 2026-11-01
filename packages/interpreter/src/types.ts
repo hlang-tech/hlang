@@ -48,6 +48,26 @@ export interface INodeDeliveryEvent {
   readonly duration: number;
 }
 
+/** An input that has ended, reported when the run is traced (RFC 0001). */
+export interface INodeEndedEvent {
+  readonly nodeId: string;
+  readonly portId: string;
+}
+
+/** A node that has finished, reported when the run is traced (RFC 0001). */
+export interface INodeFinishedEvent {
+  readonly nodeId: string;
+}
+
+/** A message a full `drop-oldest` connection dropped, reported when the run is traced (RFC 0001). */
+export interface INodeDroppedEvent {
+  readonly sourceNodeId: string;
+  readonly sourcePortId: string;
+  readonly targetNodeId: string;
+  readonly targetPortId: string;
+  readonly message: unknown;
+}
+
 /** Options controlling interpretation. */
 export interface IInterpretOptions {
   /**
@@ -110,4 +130,10 @@ export interface IExecutionHandle extends IDisposable {
    * replayed to a listener attached after `interpret` returns.
    */
   onDelivery(listener: (event: INodeDeliveryEvent) => void): IDisposable;
+  /** With `trace: true`: each input that ends (RFC 0001), replayed like deliveries. */
+  onEnded(listener: (event: INodeEndedEvent) => void): IDisposable;
+  /** With `trace: true`: each node that finishes (RFC 0001), replayed like deliveries. */
+  onFinished(listener: (event: INodeFinishedEvent) => void): IDisposable;
+  /** With `trace: true`: each message a full `drop-oldest` connection drops, replayed like deliveries. */
+  onDropped(listener: (event: INodeDroppedEvent) => void): IDisposable;
 }

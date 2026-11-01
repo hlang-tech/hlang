@@ -74,6 +74,7 @@ It throws if a node `code` is not registered.
 | `onError(listener)` | Errors sent on any `@node/error` port, and failures of a Writable node's handlers (a Writable has no error port). Errors sent while the flow starts are buffered, so a listener added after `interpret` returns still receives them. Returns a disposable. |
 | `onActivity(listener)` | Fires when data passes a connection, for both the source port and the target node. Returns a disposable. |
 | `onDelivery(listener)` | With `trace: true`, fires for every message delivered on a connection: `{ sourceNodeId, sourcePortId, targetNodeId, targetPortId, message, duration }`, where `duration` is how long the receiving node's handlers took, in milliseconds. The most recent 500 deliveries are replayed to a listener added later. Returns a disposable. |
+| `onEnded(listener)`, `onFinished(listener)`, `onDropped(listener)` | With `trace: true`: each input that ends (`{ nodeId, portId }`), each node that finishes (`{ nodeId }`), and each message a full `drop-oldest` connection drops. Replayed like deliveries. Return disposables. |
 | `dispose()` | Stops the run: emits the stop signal, calls `onStop` callbacks, and unsubscribes the interpreter's observers. |
 
 ### Stop signal

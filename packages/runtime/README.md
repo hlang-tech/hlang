@@ -167,6 +167,7 @@ await flow.done; // every node has finished
 - A Transform closes its outputs when all its inputs have ended, so the end travels through the graph. A node that keeps producing after its inputs end sets `closesWithInputs = false` and closes its outputs itself.
 - A node finishes when its inputs have ended and its outputs are closed; its error port then closes too. `flow.done` resolves when every node has finished, and rejects with `FlowDisposedError` if the flow is disposed first.
 - Sending on a closed output throws.
+- The observer's `ended` and `finished` report each input that ends and each node that finishes; `dropped` reports each message a `drop-oldest` connection drops.
 - A node in a feedback loop is one of its own senders, so its input does not end by itself: as in JavaFBP, a loop ends when one of its nodes closes its output.
 
 ### Messages are immutable values

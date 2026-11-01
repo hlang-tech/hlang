@@ -108,9 +108,23 @@ export interface IRuntimeDeliveryEvent {
   readonly duration: number;
 }
 
+/** A message a full `drop-oldest` connection dropped. Mirrors the runtime's `DroppedEvent`. */
+export interface IRuntimeDroppedEvent {
+  readonly source: IRuntimeNode;
+  readonly sourcePort: string;
+  readonly target: IRuntimeNode;
+  readonly targetPort: string;
+  readonly message: unknown;
+}
+
 /** Watches a runtime flow. Mirrors the runtime's `FlowObserver`. */
 export interface IRuntimeFlowObserver {
   readonly delivered?: (event: IRuntimeDeliveryEvent) => void;
+  /** An input ended (RFC 0001). */
+  readonly ended?: (event: { readonly node: IRuntimeNode; readonly port: string }) => void;
+  /** A node finished (RFC 0001). */
+  readonly finished?: (event: { readonly node: IRuntimeNode }) => void;
+  readonly dropped?: (event: IRuntimeDroppedEvent) => void;
 }
 
 /** How a flow shares its thread. Mirrors the runtime's `SliceOptions`. */

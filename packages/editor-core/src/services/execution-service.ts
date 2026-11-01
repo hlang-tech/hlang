@@ -6,7 +6,15 @@
  * the core's public surface.
  */
 
-import type { IGraph, INodeErrorEvent, INodeActivityEvent, INodeDeliveryEvent } from '@hlang-org/interpreter';
+import type {
+  IGraph,
+  INodeErrorEvent,
+  INodeActivityEvent,
+  INodeDeliveryEvent,
+  INodeDroppedEvent,
+  INodeEndedEvent,
+  INodeFinishedEvent,
+} from '@hlang-org/interpreter';
 import { createDecorator } from '../di';
 import type { IDisposable, IGraphModel } from './interfaces';
 import { ISerializationService } from './serialization-interface';
@@ -22,6 +30,12 @@ export interface IExecutionHandle extends IDisposable {
    * trace leaves it out.
    */
   onDelivery?(listener: (event: INodeDeliveryEvent) => void): IDisposable;
+  /** Each input that ends, when the runner traces the run (RFC 0001). */
+  onEnded?(listener: (event: INodeEndedEvent) => void): IDisposable;
+  /** Each node that finishes, when the runner traces the run (RFC 0001). */
+  onFinished?(listener: (event: INodeFinishedEvent) => void): IDisposable;
+  /** Each message a full `drop-oldest` connection drops, when the runner traces the run. */
+  onDropped?(listener: (event: INodeDroppedEvent) => void): IDisposable;
 }
 
 /**
