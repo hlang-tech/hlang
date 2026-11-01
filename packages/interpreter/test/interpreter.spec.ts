@@ -577,3 +577,63 @@ describe('freezeMessages (RFC 0001)', () => {
     expect(seen.map(options => options.freezeMessages)).toEqual([true, undefined]);
   });
 });
+
+describe('end of stream and drops, traced (RFC 0001)', () => {
+  it('reports ended inputs and finished nodes by graph id', () => {
+    class Once extends ReadableNode {
+      constructor(opts: INodeConstructionOptions) {
+        super(opts);
+        Port.O('Output').attach(this);
+      }
+      override _read(o: PortAccessor): void {
+        o('Output').send(1);
+        o('Output').close();
+      }
+    }
+    const handle = interpret(
+      { nodeList: [rNode('r1', 'once'), wNode('w1', 'sink')], connections: [edge('r1', 'w1')] },
+      makeDeps(r => {
+        r.register('once', Once);
+        r.register('sink', makeCollectorSink([]));
+      }),
+      { trace: true },
+    );
+    const log: string[] = [];
+    handle.onEnded(event => log.push(`ended ${event.nodeId}.${event.portId}`));
+    handle.onFinished(event => log.push(`finished ${event.nodeId}`));
+    expect(log).toEqual(['ended w1.Input', 'finished r1', 'finished w1']);
+    handle.dispose();
+  });
+
+  it('reports a message a full drop-oldest connection dropped', async () => {
+    class Burst extends ReadableNode {
+      constructor(opts: INodeConstructionOptions) {
+        super(opts);
+        Port.O('Output').attach(this);
+      }
+      override _read(o: PortAccessor): void {
+        for (const value of [1, 2, 3]) {
+          o('Output').send(value);
+        }
+      }
+    }
+    const stats: { inFlight: number; maxInFlight: number; seen: unknown[] } = { inFlight: 0, maxInFlight: 0, seen: [] };
+    const handle = interpret(
+      {
+        nodeList: [rNode('r1', 'burst'), wNode('w1', 'slow')],
+        connections: [{ ...edge('r1', 'w1'), capacity: 1, overflow: 'drop-oldest' }],
+      },
+      makeDeps(r => {
+        r.register('burst', Burst);
+        r.register('slow', makeAsyncSink(stats));
+      }),
+      { trace: true },
+    );
+    const dropped: unknown[] = [];
+    handle.onDropped(event => dropped.push([event.sourceNodeId, event.targetNodeId, event.message]));
+    await new Promise(resolve => setTimeout(resolve, 30));
+    expect(dropped).toEqual([['r1', 'w1', 2]]);
+    expect(stats.seen).toEqual([1, 3]);
+    handle.dispose();
+  });
+});

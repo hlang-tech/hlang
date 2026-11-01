@@ -183,3 +183,12 @@
 .hl-port.is-error .hl-handle.hl-handle:hover {
   background: var(--hl-error);
 }
+
+/* A node that has finished (RFC 0001): its inputs ended and its outputs
+   closed. It steps back, calmly, rather than going dark. */
+.hl-node {
+  transition: opacity 0.4s var(--hl-ease);
+}
+.hl-node.is-finished {
+  opacity: 0.6;
+}

@@ -24,6 +24,7 @@ export type {
   IRuntimeConnectOptions,
   IRuntimeFlowObserver,
   IRuntimeDeliveryEvent,
+  IRuntimeDroppedEvent,
   FlowFactory,
   NodeConstructor,
   INodeConstructionOptions,
@@ -50,6 +51,9 @@ export type {
   INodeErrorEvent,
   INodeActivityEvent,
   INodeDeliveryEvent,
+  INodeEndedEvent,
+  INodeFinishedEvent,
+  INodeDroppedEvent,
   IInterpretOptions,
   IExecutionHandle,
 } from './types';

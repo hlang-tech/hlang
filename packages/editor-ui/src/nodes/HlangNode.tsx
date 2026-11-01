@@ -38,6 +38,7 @@ export function NodeChrome({ node, selected, body }: NodeChromeProps): ReactElem
     selected ? 'is-selected' : '',
     live === 'active' ? 'is-active' : '',
     live === 'error' ? 'is-live-error' : '',
+    live === 'finished' ? 'is-finished' : '',
   ]
     .filter(Boolean)
     .join(' ');

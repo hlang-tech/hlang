@@ -14,7 +14,7 @@
  */
 
 /** Live state of a node during execution. */
-export type NodeLiveState = 'idle' | 'active' | 'error';
+export type NodeLiveState = 'idle' | 'active' | 'error' | 'finished';
 
 /** How long a node/edge stays "active" after its last emission (ms). */
 const ACTIVE_WINDOW_MS = 700;
@@ -80,6 +80,8 @@ export class LiveSignalStore {
   private readonly nodeActiveAt = new Map<string, number>();
   /** nodeId set that errored during this run. */
   private readonly erroredNodes = new Set<string>();
+  /** nodeId set that finished during this run (RFC 0001). */
+  private readonly finishedNodes = new Set<string>();
   /** edgeId -> last-flowing timestamp. */
   private readonly edgeFlowAt = new Map<string, number>();
   /** Per-id listeners. */
@@ -171,6 +173,12 @@ export class LiveSignalStore {
     this.ensureLoop();
   }
 
+  /** Record a node finishing (RFC 0001): shown once its last flash has faded. */
+  markFinished(nodeId: string): void {
+    this.finishedNodes.add(nodeId);
+    this.ensureLoop();
+  }
+
   /** Record a node erroring (sticky for the run). */
   markError(nodeId: string): void {
     this.erroredNodes.add(nodeId);
@@ -181,6 +189,7 @@ export class LiveSignalStore {
   reset(): void {
     this.nodeActiveAt.clear();
     this.erroredNodes.clear();
+    this.finishedNodes.clear();
     this.edgeFlowAt.clear();
     this.nodePulse.clear();
     this.edgePulse.clear();
@@ -207,7 +216,7 @@ export class LiveSignalStore {
     if (at !== undefined && this.deps.now() - at <= ACTIVE_WINDOW_MS) {
       return 'active';
     }
-    return 'idle';
+    return this.finishedNodes.has(nodeId) ? 'finished' : 'idle';
   }
 
   /** Whether an edge is currently flowing. */

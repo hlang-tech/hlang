@@ -56,8 +56,8 @@ describe('RunTrace', () => {
     trace.recordDelivery(delivery('a', 'b', 'y', 6));
     trace.recordError({ nodeId: 'b', error: 'e' });
 
-    expect(trace.statsOf('a')).toEqual({ received: 0, sent: 2, errors: 0, totalMs: 0, maxMs: 0, lastReceived: undefined, lastSent: 'y' });
-    expect(trace.statsOf('b')).toEqual({ received: 2, sent: 0, errors: 1, totalMs: 8, maxMs: 6, lastReceived: 'y', lastSent: undefined });
+    expect(trace.statsOf('a')).toEqual({ received: 0, sent: 2, errors: 0, totalMs: 0, maxMs: 0, lastReceived: undefined, lastSent: 'y', dropped: 0, finished: false });
+    expect(trace.statsOf('b')).toEqual({ received: 2, sent: 0, errors: 1, totalMs: 8, maxMs: 6, lastReceived: 'y', lastSent: undefined, dropped: 0, finished: false });
     expect(trace.statsOf('c')).toBeUndefined();
   });
 
@@ -159,5 +159,30 @@ describe('involves', () => {
     expect([sent, failed].map(entry => entry !== undefined && involves(entry, 'a'))).toEqual([true, false]);
     expect([sent, failed].map(entry => entry !== undefined && involves(entry, 'b'))).toEqual([true, false]);
     expect([sent, failed].map(entry => entry !== undefined && involves(entry, 'c'))).toEqual([false, true]);
+  });
+});
+
+describe('RunTrace end of stream and drops (RFC 0001)', () => {
+  it('logs ended inputs, finished nodes and dropped messages, and counts them per node', () => {
+    const trace = new RunTrace({ deps: fakeDeps() });
+    trace.start();
+    trace.recordDropped({ sourceNodeId: 'a', sourcePortId: 'out', targetNodeId: 'b', targetPortId: 'in', message: 7 });
+    trace.recordEnded({ nodeId: 'b', portId: 'in' });
+    trace.recordFinished({ nodeId: 'b' });
+
+    expect(trace.entries().map(entry => entry.kind)).toEqual(['dropped', 'ended', 'finished']);
+    expect(trace.statsOf('b')).toMatchObject({ dropped: 1, finished: true });
+    expect(trace.statsOf('a')).toMatchObject({ dropped: 0, finished: false });
+  });
+
+  it('matches the new entries to their nodes', () => {
+    const trace = new RunTrace({ deps: fakeDeps() });
+    trace.recordDropped({ sourceNodeId: 'a', sourcePortId: 'out', targetNodeId: 'b', targetPortId: 'in', message: 7 });
+    trace.recordEnded({ nodeId: 'c', portId: 'in' });
+    trace.recordFinished({ nodeId: 'd' });
+    const [dropped, ended, finished] = trace.entries();
+    expect([dropped, ended, finished].map(entry => entry !== undefined && involves(entry, 'a'))).toEqual([true, false, false]);
+    expect([dropped, ended, finished].map(entry => entry !== undefined && involves(entry, 'c'))).toEqual([false, true, false]);
+    expect([dropped, ended, finished].map(entry => entry !== undefined && involves(entry, 'd'))).toEqual([false, false, true]);
   });
 });

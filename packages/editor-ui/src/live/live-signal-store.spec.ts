@@ -211,3 +211,19 @@ describe('LiveSignalStore#markDelivery', () => {
     expect([store.getNodePulse('a'), store.getNodePulse('b')]).toEqual([0, 0]);
   });
 });
+
+describe('LiveSignalStore#markFinished (RFC 0001)', () => {
+  it('shows a finished node as finished once its last flash has faded, and clears on reset', () => {
+    const deps = fakeDeps();
+    const store = new LiveSignalStore(deps);
+    store.markDelivery({ sourceNodeId: 'a', sourcePortId: 'out', targetNodeId: 'b', targetPortId: 'in' });
+    store.markFinished('b');
+    expect(store.getNodeState('b')).toBe('active');
+    deps.tick(2000);
+    expect(store.getNodeState('b')).toBe('finished');
+    store.markError('b');
+    expect(store.getNodeState('b')).toBe('error');
+    store.reset();
+    expect(store.getNodeState('b')).toBe('idle');
+  });
+});

@@ -31,6 +31,18 @@ export interface DeliveryEvent {
   readonly duration: number;
 }
 
+/** An input that has ended (RFC 0001): every connection into it closed and its messages done. */
+export interface EndedEvent {
+  readonly node: AnyNode;
+  /** The input port's name. */
+  readonly port: string;
+}
+
+/** A node that has finished (RFC 0001): its inputs ended and its outputs closed. */
+export interface FinishedEvent {
+  readonly node: AnyNode;
+}
+
 /** A message a full `drop-oldest` connection let go of (RFC 0001). */
 export interface DroppedEvent {
   readonly source: AnyNode;
@@ -59,6 +71,8 @@ export interface FailureEvent {
 export interface FlowObserver {
   readonly delivered?: (event: DeliveryEvent) => void;
   readonly dropped?: (event: DroppedEvent) => void;
+  readonly ended?: (event: EndedEvent) => void;
+  readonly finished?: (event: FinishedEvent) => void;
   readonly failed?: (event: FailureEvent) => void;
 }
 
@@ -357,14 +371,16 @@ export default class Flow {
     if (this.#disposed) {
       return;
     }
+    // The sender first: a node whose last output closed has finished before
+    // anything downstream learns of it.
+    state.outputs.delete(port);
+    this.#checkFinished(state);
     for (const { key, input, dst } of this.#outgoing.get(port) ?? []) {
       this.#deliveries.schedule(() => {
         input.closed.add(key);
         this.#checkInputEnd(dst);
       });
     }
-    state.outputs.delete(port);
-    this.#checkFinished(state);
   }
 
   /** Ends an input once every connection into it has closed and its gate is idle. */
@@ -379,6 +395,12 @@ export default class Flow {
     input.ended = true;
     portInternals.end(port);
     const state = input.node;
+    const ended = this.#observer?.ended;
+    if (ended !== undefined) {
+      this.#notify(() => {
+        ended({ node: state.node, port: port.name });
+      });
+    }
     state.inputs.delete(port);
     const { node } = state;
     if (state.inputs.size === 0 && node.type === NODE_TYPE.TRANSFORM && node.closesWithInputs) {
@@ -395,6 +417,12 @@ export default class Flow {
       return;
     }
     state.finished = true;
+    const finished = this.#observer?.finished;
+    if (finished !== undefined) {
+      this.#notify(() => {
+        finished({ node: state.node });
+      });
+    }
     const error = state.node.E();
     if (error !== undefined && !portInternals.isClosed(error)) {
       error.close();

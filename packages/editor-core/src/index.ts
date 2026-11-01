@@ -106,7 +106,14 @@ export { InterpreterGraphRunner } from './services/interpreter-runner';
 export type { InterpreterGraphRunnerOptions } from './services/interpreter-runner';
 // Re-export the runtime signal event types so UI layers consume them without
 // importing @hlang-org/interpreter directly.
-export type { INodeErrorEvent, INodeActivityEvent, INodeDeliveryEvent } from '@hlang-org/interpreter';
+export type {
+  INodeErrorEvent,
+  INodeActivityEvent,
+  INodeDeliveryEvent,
+  INodeEndedEvent,
+  INodeFinishedEvent,
+  INodeDroppedEvent,
+} from '@hlang-org/interpreter';
 
 // Commands
 export {

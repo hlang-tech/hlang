@@ -88,6 +88,7 @@ export function PillNodeChrome({ node, selected }: PillNodeChromeProps): ReactEl
     selected ? 'is-selected' : '',
     live === 'active' ? 'is-active' : '',
     live === 'error' ? 'is-live-error' : '',
+    live === 'finished' ? 'is-finished' : '',
     diagnostic?.severity === 'error' ? 'has-diag-error' : '',
     diagnostic?.severity === 'warning' ? 'has-diag-warning' : '',
   ]

@@ -71,9 +71,13 @@ export function useLiveSignals(
         store.markDelivery(event);
       }) ?? handle.onActivity(e => store.markActivity(e.nodeId, e.portId));
     const errorSub = handle.onError(e => store.markError(e.nodeId));
+    const finishedSub = handle.onFinished?.(e => {
+      store.markFinished(e.nodeId);
+    });
     return (): void => {
       signalSub.dispose();
       errorSub.dispose();
+      finishedSub?.dispose();
       store.reset();
     };
   }, [store, handle]);

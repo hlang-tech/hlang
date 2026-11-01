@@ -43,6 +43,18 @@ export function NodeRunStats({ nodeId }: { readonly nodeId: string }): ReactElem
             <dt>Max</dt>
             <dd className="hl-mono">{stats.received === 0 ? '—' : formatDuration(stats.maxMs)}</dd>
           </div>
+          {stats.dropped > 0 && (
+            <div className="hl-runstats-cell is-warning">
+              <dt>Dropped</dt>
+              <dd className="hl-mono">{stats.dropped}</dd>
+            </div>
+          )}
+          {stats.finished && (
+            <div className="hl-runstats-cell is-done">
+              <dt>State</dt>
+              <dd>Finished</dd>
+            </div>
+          )}
           {stats.received > 0 && (
             <div className="hl-runstats-cell is-wide">
               <dt>Last in</dt>

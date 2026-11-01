@@ -122,35 +122,93 @@ function Row({
   readonly label: (nodeId: string) => string;
   readonly onChoose: (nodeId: string) => void;
 }): ReactElement {
-  if (entry.kind === 'error') {
-    return (
-      <li className="hl-runlog-row is-error">
-        <button type="button" className="hl-runlog-hit" onClick={() => onChoose(entry.nodeId)}>
-          <span className="hl-runlog-at">{formatElapsed(entry.at)}</span>
-          <span className="hl-runlog-route">
-            <span className="hl-runlog-node">{label(entry.nodeId)}</span>
-            <span className="hl-runlog-port">error</span>
-          </span>
+  switch (entry.kind) {
+    case 'error':
+      return (
+        <Event className="is-error" at={entry.at} onChoose={() => onChoose(entry.nodeId)} ms="">
+          <NodePort node={label(entry.nodeId)} port="error" />
           <span className="hl-runlog-value">{previewValue(entry.error)}</span>
-          <span className="hl-runlog-ms" />
-        </button>
-      </li>
-    );
+        </Event>
+      );
+    case 'ended':
+      return (
+        <Event className="is-end" at={entry.at} onChoose={() => onChoose(entry.nodeId)} ms="">
+          <NodePort node={label(entry.nodeId)} port={entry.portId} />
+          <span className="hl-runlog-value">ended</span>
+        </Event>
+      );
+    case 'finished':
+      return (
+        <Event className="is-end" at={entry.at} onChoose={() => onChoose(entry.nodeId)} ms="">
+          <NodePort node={label(entry.nodeId)} port="" />
+          <span className="hl-runlog-value">finished</span>
+        </Event>
+      );
+    case 'dropped':
+      return (
+        <Event className="is-dropped" at={entry.at} onChoose={() => onChoose(entry.targetNodeId)} ms="">
+          <Route entry={entry} label={label} />
+          <span className="hl-runlog-value">dropped {previewValue(entry.message)}</span>
+        </Event>
+      );
+    case 'delivery':
+      return (
+        <Event className="" at={entry.at} onChoose={() => onChoose(entry.targetNodeId)} ms={formatDuration(entry.duration)}>
+          <Route entry={entry} label={label} />
+          <span className="hl-runlog-value">{previewValue(entry.message)}</span>
+        </Event>
+      );
   }
+}
+
+/** One row: when, what (the children: a route or a node, and a value), and how long. */
+function Event({
+  className,
+  at,
+  ms,
+  onChoose,
+  children,
+}: {
+  readonly className: string;
+  readonly at: number;
+  readonly ms: string;
+  readonly onChoose: () => void;
+  readonly children: ReactNode;
+}): ReactElement {
   return (
-    <li className="hl-runlog-row">
-      <button type="button" className="hl-runlog-hit" onClick={() => onChoose(entry.targetNodeId)}>
-        <span className="hl-runlog-at">{formatElapsed(entry.at)}</span>
-        <span className="hl-runlog-route">
-          <span className="hl-runlog-node">{label(entry.sourceNodeId)}</span>
-          <span className="hl-runlog-port">{entry.sourcePortId}</span>
-          <span className="hl-runlog-arrow" aria-label="to">→</span>
-          <span className="hl-runlog-node">{label(entry.targetNodeId)}</span>
-          <span className="hl-runlog-port">{entry.targetPortId}</span>
-        </span>
-        <span className="hl-runlog-value">{previewValue(entry.message)}</span>
-        <span className="hl-runlog-ms">{formatDuration(entry.duration)}</span>
+    <li className={`hl-runlog-row ${className}`.trim()}>
+      <button type="button" className="hl-runlog-hit" onClick={onChoose}>
+        <span className="hl-runlog-at">{formatElapsed(at)}</span>
+        {children}
+        <span className="hl-runlog-ms">{ms}</span>
       </button>
     </li>
+  );
+}
+
+function NodePort({ node, port }: { readonly node: string; readonly port: string }): ReactElement {
+  return (
+    <span className="hl-runlog-route">
+      <span className="hl-runlog-node">{node}</span>
+      {port === '' ? null : <span className="hl-runlog-port">{port}</span>}
+    </span>
+  );
+}
+
+function Route({
+  entry,
+  label,
+}: {
+  readonly entry: { readonly sourceNodeId: string; readonly sourcePortId: string; readonly targetNodeId: string; readonly targetPortId: string };
+  readonly label: (nodeId: string) => string;
+}): ReactElement {
+  return (
+    <span className="hl-runlog-route">
+      <span className="hl-runlog-node">{label(entry.sourceNodeId)}</span>
+      <span className="hl-runlog-port">{entry.sourcePortId}</span>
+      <span className="hl-runlog-arrow" aria-label="to">→</span>
+      <span className="hl-runlog-node">{label(entry.targetNodeId)}</span>
+      <span className="hl-runlog-port">{entry.targetPortId}</span>
+    </span>
   );
 }

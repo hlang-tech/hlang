@@ -181,4 +181,28 @@ describe('InterpreterGraphRunner (integration)', () => {
 
     expect(seen.map(options => options.freezeMessages)).toEqual([true, undefined]);
   });
+
+  it('forwards end-of-stream and drop events from a traced run', () => {
+    class Once extends rt.ReadableNode {
+      constructor(opts: INodeConstructionOptions) {
+        super(opts);
+        rt.Port.O('Output').attach(this);
+      }
+      override _read(o: PortAccessor): void {
+        o('Output').close();
+      }
+    }
+    const registry = new RuntimeNodeRegistry().register('once', Once);
+    const handle = new InterpreterGraphRunner(registry, options => new rt.Flow(options)).run({
+      nodeList: [{ code: 'once', name: 'once', type: 'R' as const, nodeId: 'once', bizData: { params: {} } }],
+      connections: [],
+    });
+    const finished: string[] = [];
+    handle.onFinished?.(event => finished.push(event.nodeId));
+    const ended = handle.onEnded?.(() => undefined);
+    const dropped = handle.onDropped?.(() => undefined);
+    expect(finished).toEqual(['once']);
+    expect([ended, dropped].every(disposable => disposable !== undefined)).toBe(true);
+    handle.dispose();
+  });
 });

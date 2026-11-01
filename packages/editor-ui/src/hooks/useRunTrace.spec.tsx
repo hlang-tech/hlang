@@ -3,7 +3,7 @@
  */
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, renderHook } from '@testing-library/react';
-import type { IDisposable, IExecutionHandle, INodeDeliveryEvent, INodeErrorEvent } from '@hlang-org/editor-core';
+import type { IDisposable, IExecutionHandle, INodeDeliveryEvent, INodeDroppedEvent, INodeEndedEvent, INodeErrorEvent, INodeFinishedEvent } from '@hlang-org/editor-core';
 import { RunTrace } from '../live/run-trace';
 import { useRunTrace } from './useRunTrace';
 
@@ -86,5 +86,34 @@ describe('useRunTrace', () => {
     handle.error({ nodeId: 'b', error: 'x' });
 
     expect(trace.entries()).toEqual([{ kind: 'error', seq: 1, at: 0, nodeId: 'b', error: 'x' }]);
+  });
+
+  it('records end of stream and drops from a handle that reports them', () => {
+    const trace = stillTrace();
+    const listeners: { ended?: (e: INodeEndedEvent) => void; finished?: (e: INodeFinishedEvent) => void; dropped?: (e: INodeDroppedEvent) => void } = {};
+    const handle: IExecutionHandle = {
+      onActivity: () => ({ dispose: () => undefined }),
+      onError: () => ({ dispose: () => undefined }),
+      onEnded: listener => {
+        listeners.ended = listener;
+        return { dispose: () => undefined };
+      },
+      onFinished: listener => {
+        listeners.finished = listener;
+        return { dispose: () => undefined };
+      },
+      onDropped: listener => {
+        listeners.dropped = listener;
+        return { dispose: () => undefined };
+      },
+      dispose: () => undefined,
+    };
+    renderHook(() => {
+      useRunTrace(trace, handle);
+    });
+    listeners.dropped?.({ sourceNodeId: 'a', sourcePortId: 'out', targetNodeId: 'b', targetPortId: 'in', message: 1 });
+    listeners.ended?.({ nodeId: 'b', portId: 'in' });
+    listeners.finished?.({ nodeId: 'b' });
+    expect(trace.entries().map(entry => entry.kind)).toEqual(['dropped', 'ended', 'finished']);
   });
 });
