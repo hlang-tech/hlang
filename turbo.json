@@ -1,7 +1,8 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "globalPassThroughEnv": [
-    "ENABLE_EXPERIMENTAL_COREPACK"
+    "ENABLE_EXPERIMENTAL_COREPACK",
+    "SITE_URL"
   ],
   "tasks": {
     "build": {
