@@ -10,6 +10,14 @@ export default class TransformNode<TOptions extends object = NodeOptions> extend
   /** The error output, `@node/error`. */
   readonly #errorPort = Port.O(ERROR_PORT_NAME);
 
+  /**
+   * Whether the node closes its outputs once all its inputs have ended
+   * (RFC 0001), so the end of a stream travels on. A node that keeps
+   * producing after its inputs end (a timer) overrides it with `false` and
+   * closes its outputs itself.
+   */
+  readonly closesWithInputs: boolean = true;
+
   constructor(opts: TOptions) {
     super(opts);
     this.#errorPort.attach(this);

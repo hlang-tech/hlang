@@ -20,6 +20,11 @@ export interface ReceiveOptions {
    * a bounded connection takes one at a time and any other port takes all.
    */
   readonly concurrency?: number;
+  /**
+   * Called once when the input ends: every connection into it has closed and
+   * its messages are done, including asynchronous work (RFC 0001).
+   */
+  readonly end?: () => void;
 }
 
 /** What a full bounded connection does with a new message. */
@@ -118,6 +123,12 @@ export let portInternals: {
   readonly whenGated: (port: Port, listener: () => void) => () => void;
   /** Lets a flow report room in this output's bounded connections. */
   readonly setSenderState: (port: Port, state: SenderState | undefined) => void;
+  /** Lets a flow learn when this output closes. */
+  readonly setCloseHandler: (port: Port, handler: (() => void) | undefined) => void;
+  /** Whether this output has been closed. */
+  readonly isClosed: (port: Port) => boolean;
+  /** Ends this input: calls its receivers' `end` handlers, once. */
+  readonly end: (port: Port) => void;
 };
 
 /**
@@ -170,6 +181,23 @@ class Port {
       setSenderState: (port, state) => {
         port.#sender = state;
       },
+      setCloseHandler: (port, handler) => {
+        port.#onClose = handler;
+      },
+      isClosed: (port) => port.#closed,
+      end: (port) => {
+        if (port.#ended) {
+          return;
+        }
+        port.#ended = true;
+        for (const handler of port.#endHandlers) {
+          try {
+            handler();
+          } catch (error: unknown) {
+            port.#fail(error);
+          }
+        }
+      },
     };
   }
 
@@ -191,6 +219,10 @@ class Port {
   #boundedInput = false;
   #sender: SenderState | undefined = undefined;
   readonly #gatedListeners = new Set<() => void>();
+  readonly #endHandlers: (() => void)[] = [];
+  #ended = false;
+  #closed = false;
+  #onClose: (() => void) | undefined = undefined;
 
   /** A new input port. */
   static I(name: string): Port {
@@ -229,6 +261,9 @@ class Port {
    * waits for `ready()` before sending more.
    */
   send(message: unknown): boolean {
+    if (this.#closed) {
+      throw new Error(`Port "${this.name}" is closed.`);
+    }
     this.#stream.next(message);
     return this.#sender?.hasRoom() ?? true;
   }
@@ -240,6 +275,22 @@ class Port {
    */
   ready(): Promise<void> {
     return this.#sender?.ready() ?? Promise.resolve();
+  }
+
+  /**
+   * Closes this output: it has nothing more to send (RFC 0001). Each input
+   * it feeds ends once every sender to it has closed and its messages are
+   * done. Sending on a closed output throws. Closing again does nothing.
+   */
+  close(): void {
+    if (this.type !== STREAM_TYPE.O) {
+      throw new Error('Only an output port can be closed.');
+    }
+    if (this.#closed) {
+      return;
+    }
+    this.#closed = true;
+    this.#onClose?.();
   }
 
   /**
@@ -271,6 +322,9 @@ class Port {
    * has none, so it is never lost.
    */
   receive(next: MessageHandler, options: ReceiveOptions = {}): Subscription {
+    if (options.end !== undefined) {
+      this.#endHandlers.push(options.end);
+    }
     if (options.concurrency !== undefined) {
       if (!positiveInteger(options.concurrency) && options.concurrency !== Number.POSITIVE_INFINITY) {
         throw new RangeError('Port concurrency must be a positive integer or Infinity.');

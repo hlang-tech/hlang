@@ -1,12 +1,12 @@
 import type { Subscription } from 'rxjs';
 import build from '../core/build';
-import { ConnectionState, InputGate, OutputRoom } from '../core/backpressure';
+import { ConnectionState, FlowDisposedError, InputGate, OutputRoom } from '../core/backpressure';
 import type { Waiting } from '../core/backpressure';
 import { DeliveryQueue } from '../core/delivery';
 import type { DeliveryTimer, SliceOptions } from '../core/delivery';
 import type { AnyNode, Teardown } from '../node';
 import { nodeInternals } from '../node/node';
-import { NODE_TYPE, STREAM_TYPE } from '../type';
+import { ERROR_PORT_NAME, NODE_TYPE, STREAM_TYPE } from '../type';
 import type { IPortDesc } from '../type';
 import type Port from './port';
 import { portInternals, reportFailure } from './port';
@@ -88,6 +88,29 @@ export interface FlowOptions {
   readonly slice?: SliceOptions;
 }
 
+/** An input of this flow: its connections still open, and whether it has ended (RFC 0001). */
+interface InputEnd {
+  readonly node: NodeEnd;
+  /** The connections into it, by output and input port id, and which have closed. */
+  readonly connections: Set<string>;
+  readonly closed: Set<string>;
+  ended: boolean;
+}
+
+/** A node this flow runs: its connected inputs not yet ended and its outputs not yet closed. */
+interface NodeEnd {
+  readonly node: AnyNode;
+  readonly inputs: Set<Port>;
+  readonly outputs: Set<Port>;
+  finished: boolean;
+}
+
+/** Someone waiting for the flow to be done. */
+interface DoneWaiter {
+  readonly resolve: () => void;
+  readonly reject: (error: unknown) => void;
+}
+
 /** A node this flow started, and the teardown its start returned, if any. */
 interface Started {
   readonly node: AnyNode;
@@ -118,6 +141,13 @@ export default class Flow {
   readonly #rooms = new Map<Port, OutputRoom>();
   /** Stops the fast routes from listening for their input becoming gated. */
   readonly #stopListening: (() => void)[] = [];
+  /** End of stream (RFC 0001): each input, each node, and the connections from each output. */
+  readonly #inputs = new Map<Port, InputEnd>();
+  readonly #nodes = new Map<AnyNode, NodeEnd>();
+  /** The connections from each output, with the input each one feeds. */
+  readonly #outgoing = new Map<Port, { readonly key: string; readonly input: InputEnd; readonly dst: Port }[]>();
+  /** Those waiting on `done`; a flow nobody asks about holds no promise that could go unhandled. */
+  #doneWaiters: DoneWaiter[] = [];
   #disposed = false;
 
   constructor(options: FlowOptions = {}) {
@@ -129,6 +159,24 @@ export default class Flow {
   /** Whether `dispose` has been called. */
   get disposed(): boolean {
     return this.#disposed;
+  }
+
+  /**
+   * Resolves once every node this flow runs has finished (RFC 0001): its
+   * inputs have ended and its outputs are closed. A source that never closes
+   * keeps it pending, as does a feedback loop no node of which closes.
+   * Rejects with `FlowDisposedError` if the flow is disposed first.
+   */
+  get done(): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (this.#disposed) {
+        reject(new FlowDisposedError());
+      } else if (this.#allFinished()) {
+        resolve();
+      } else {
+        this.#doneWaiters.push({ resolve, reject });
+      }
+    });
   }
 
   /**
@@ -144,6 +192,7 @@ export default class Flow {
       throw new Error('Flow must run with a READABLE node.');
     }
     const graph = build(root);
+    this.#trackEnds(graph.connections, [...graph.writable, ...graph.transform, ...graph.readable]);
     // An input fed by a bounded connection takes one message at a time
     // unless it asks otherwise; mark it before any message moves.
     for (const outgoing of graph.connections.values()) {
@@ -199,6 +248,9 @@ export default class Flow {
     }
     this.#disposed = true;
     this.#deliveries.close();
+    for (const waiter of this.#doneWaiters.splice(0)) {
+      waiter.reject(new FlowDisposedError());
+    }
     for (const stop of this.#stopListening.splice(0)) {
       stop();
     }
@@ -238,6 +290,116 @@ export default class Flow {
     if (ran) {
       this.#started.push({ node, teardown });
     }
+  }
+
+  /**
+   * Records, before any message moves, which connections feed each input and
+   * which inputs and outputs each node has, and listens for outputs closing.
+   */
+  #trackEnds(connections: ReadonlyMap<string, readonly IPortDesc[]>, nodes: readonly AnyNode[]): void {
+    for (const node of nodes) {
+      this.#nodeEnd(node);
+    }
+    for (const outgoing of connections.values()) {
+      for (const { src, dst, target } of outgoing) {
+        const key = `${src.id}@${dst.id}`;
+        let input = this.#inputs.get(dst);
+        if (input === undefined) {
+          const node = this.#nodeEnd(target);
+          input = { node, connections: new Set(), closed: new Set(), ended: false };
+          this.#inputs.set(dst, input);
+          node.inputs.add(dst);
+        }
+        if (!input.connections.has(key)) {
+          input.connections.add(key);
+          const from = this.#outgoing.get(src) ?? [];
+          from.push({ key, input, dst });
+          this.#outgoing.set(src, from);
+        }
+      }
+    }
+  }
+
+  /** A node's end-of-stream state, made the first time this flow meets the node. */
+  #nodeEnd(node: AnyNode): NodeEnd {
+    let state = this.#nodes.get(node);
+    if (state === undefined) {
+      const outputs = nodeInternals
+        .portsOf(node, STREAM_TYPE.O)
+        .filter((port) => port.name !== ERROR_PORT_NAME && !portInternals.isClosed(port));
+      state = { node, inputs: new Set(), outputs: new Set(outputs), finished: false };
+      this.#nodes.set(node, state);
+      const owner = state;
+      for (const port of nodeInternals.portsOf(node, STREAM_TYPE.O)) {
+        portInternals.setCloseHandler(port, () => {
+          this.#outputClosed(owner, port);
+        });
+      }
+    }
+    return state;
+  }
+
+  /** An output has closed: its connections close after what was sent on them, in turn. */
+  #outputClosed(state: NodeEnd, port: Port): void {
+    if (this.#disposed) {
+      return;
+    }
+    for (const { key, input, dst } of this.#outgoing.get(port) ?? []) {
+      this.#deliveries.schedule(() => {
+        input.closed.add(key);
+        this.#checkInputEnd(dst);
+      });
+    }
+    state.outputs.delete(port);
+    this.#checkFinished(state);
+  }
+
+  /** Ends an input once every connection into it has closed and its gate is idle. */
+  #checkInputEnd(port: Port): void {
+    const input = this.#inputs.get(port);
+    if (input === undefined || input.ended || input.closed.size < input.connections.size) {
+      return;
+    }
+    if (this.#gates.get(port)?.idle === false) {
+      return;
+    }
+    input.ended = true;
+    portInternals.end(port);
+    const state = input.node;
+    state.inputs.delete(port);
+    const { node } = state;
+    if (state.inputs.size === 0 && node.type === NODE_TYPE.TRANSFORM && node.closesWithInputs) {
+      for (const output of [...state.outputs]) {
+        output.close();
+      }
+    }
+    this.#checkFinished(state);
+  }
+
+  /** A node whose inputs have ended and outputs closed has finished: its error port closes too. */
+  #checkFinished(state: NodeEnd): void {
+    if (state.finished || state.inputs.size > 0 || state.outputs.size > 0) {
+      return;
+    }
+    state.finished = true;
+    const error = state.node.E();
+    if (error !== undefined && !portInternals.isClosed(error)) {
+      error.close();
+    }
+    if (this.#allFinished()) {
+      for (const waiter of this.#doneWaiters.splice(0)) {
+        waiter.resolve();
+      }
+    }
+  }
+
+  #allFinished(): boolean {
+    for (const state of this.#nodes.values()) {
+      if (!state.finished) {
+        return false;
+      }
+    }
+    return true;
   }
 
   #portsOf(node: AnyNode): readonly Port[] {
@@ -371,6 +533,7 @@ export default class Flow {
       this.#rooms.get(connection.desc.src)?.check();
     }
     this.#pump(gate, port);
+    this.#checkInputEnd(port);
   }
 
   /** Times a delivery for the observer, if there is one. */
