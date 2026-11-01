@@ -154,6 +154,7 @@ Run from the repository root (Turborepo builds dependencies first):
 - `pnpm lint:docs` — markdownlint for the documentation; must be 0/0.
 - `pnpm changeset` — record a release note for a published package change.
 - `pnpm dev:playground` — the maintainer's dev server (builds dependencies first).
+- `pnpm dev:website` — the website's dev server (builds dependencies and runs `generate` first).
 
 Scope any task to one package with `--filter`, e.g.
 `pnpm --filter @hlang-org/editor-core test`.

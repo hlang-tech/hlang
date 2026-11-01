@@ -7,13 +7,12 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
-    "prebuild": "node scripts/generate.mjs",
+    "generate": "node scripts/generate.mjs",
     "build": "next build",
     "start": "next start",
-    "generate": "node scripts/generate.mjs",
     "test": "node scripts/run-examples.mjs",
     "lint": "eslint . --max-warnings=0",
-    "typecheck": "node scripts/generate.mjs && tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "clean": "rm -rf .next .generated",
     "test:e2e": "playwright test"
   },

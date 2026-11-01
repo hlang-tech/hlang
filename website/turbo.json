@@ -1,17 +1,53 @@
 {
   "$schema": "https://turborepo.com/schema.json",
-  "extends": ["//"],
+  "extends": [
+    "//"
+  ],
   "tasks": {
-    "build": {
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/media/**"],
-      "outputs": [".next/**", "!.next/cache/**", ".generated/**", "public/media/**"],
-      "env": ["SITE_URL", "VERCEL_PROJECT_PRODUCTION_URL"]
+    "generate": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "scripts/generate.mjs",
+        "$TURBO_ROOT$/media/**",
+        "$TURBO_ROOT$/packages/*/src/**",
+        "$TURBO_ROOT$/packages/*/package.json",
+        "$TURBO_ROOT$/packages/*/tsconfig.json"
+      ],
+      "outputs": [
+        ".generated/**",
+        "public/media/**"
+      ]
     },
-    "typecheck": {
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/media/**"]
+    "build": {
+      "dependsOn": [
+        "^build",
+        "generate"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/media/**"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**"
+      ],
+      "env": [
+        "SITE_URL",
+        "VERCEL_PROJECT_PRODUCTION_URL"
+      ]
     },
     "test": {
       "outputs": []
+    },
+    "dev": {
+      "dependsOn": [
+        "^build",
+        "generate"
+      ],
+      "cache": false,
+      "persistent": true
     }
   }
 }
