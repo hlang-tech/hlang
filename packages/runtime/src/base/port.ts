@@ -2,7 +2,10 @@ import { Subject } from "rxjs";
 import Node from "../node";
 import { STREAM_TYPE, IDENTITY } from "../type";
 import { uuid } from "../utils";
-import { catchError } from "rxjs/operators";
+// rxjs 6 has no `exports` map and Node's ES module resolution does not import
+// a directory, so the operators entry is named by its file; CommonJS and
+// bundlers resolve it the same way.
+import { catchError } from "rxjs/operators/index.js";
 
 class Port {
   id: string;

@@ -15,7 +15,7 @@ The hlang runtime: flow-based programming on RxJS streams. Build programs from R
 npm install @hlang-org/runtime
 ```
 
-The same build is published as `@hlang-tech/runtime`. The package is CommonJS with type declarations. ES modules can import its named exports.
+The same build is published as `@hlang-tech/runtime`. It ships an ES module and a CommonJS build with type declarations; `import` and `require` both work.
 
 ## Example
 
