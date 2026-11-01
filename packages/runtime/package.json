@@ -1,6 +1,6 @@
 {
   "name": "@hlang-org/runtime",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A FBP-Inspired language for universal applications.",
   "keywords": [
     "fbp",
