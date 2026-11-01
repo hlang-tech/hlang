@@ -78,16 +78,17 @@ The handle reports node errors (`onError`), data passing a connection (`onActivi
 | `model` | The graph being edited: nodes, edges, positions, parameters. |
 | `commands` | The only way to change the model. `execute(command)` validates, applies, and records the command. |
 | `history` | `undo()`, `redo()`, `canUndo()`, `canRedo()`, and `transact(label, fn)` to group commands into one step. |
+| `mode` | Read-only mode: `readOnly` and `setReadOnly(value)`. While read-only, `commands` refuses every command (reason `'read-only'`) and `history` neither undoes nor redoes. Selection, view state and running still work. |
 | `selection` | Selected nodes and edges. Not serialized. |
 | `viewState` | Hidden and locked flags per node. Not serialized. |
 | `registry` | Node descriptors (`code`, kind, ports, default parameters) and `createNode`. |
 | `validator` | Connection rules: output to input, no duplicates, compatible port types. Transform cycles are allowed, including a Transform connected to itself. |
 | `diagnostics` | Edit-time problems, recomputed on change. |
 | `serialization` | `toIGraph(model)` and `fromIGraph(graph)`. |
-| `events` | A typed event bus: `nodeAdded`, `nodeRemoved`, `nodeChanged`, `edgeAdded`, `edgeRemoved`, `selectionChanged`, `viewStateChanged`, `historyChanged`. |
+| `events` | A typed event bus: `nodeAdded`, `nodeRemoved`, `nodeChanged`, `edgeAdded`, `edgeRemoved`, `selectionChanged`, `viewStateChanged`, `historyChanged`, `modeChanged`. |
 | `execution` | Present when a `graphRunner` is supplied. |
 
-Options: `idGenerator` (deterministic ids, for tests) and `graphRunner`.
+Options: `idGenerator` (deterministic ids, for tests), `graphRunner`, and `readOnly` (start read-only).
 
 ### Commands
 

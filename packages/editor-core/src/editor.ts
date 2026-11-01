@@ -35,7 +35,10 @@ import {
   ISelectionService,
   IViewStateService,
   IDiagnosticsService,
+  IEditorModeService,
 } from './services/interfaces';
+import type { IEditorModeService as IEditorModeServiceType } from './services/interfaces';
+import { EditorModeService } from './services/editor-mode-service';
 import { ISerializationService } from './services/serialization-interface';
 import { ExecutionService, IExecutionService, IGraphRunner } from './services/execution-service';
 import type {
@@ -64,6 +67,8 @@ export interface EditorCore {
   readonly idGenerator: IIdGeneratorType;
   /** Present only when a graph runner was supplied. */
   readonly execution?: IExecutionServiceType;
+  /** Whether the editor may change the graph; read-only refuses every command. */
+  readonly mode: IEditorModeServiceType;
 }
 
 /** Options for assembling an editor core. */
@@ -75,6 +80,8 @@ export interface CreateEditorCoreOptions {
    * execution service. Omitted when the editor is used purely for authoring.
    */
   readonly graphRunner?: IGraphRunnerType;
+  /** Start read-only: the graph can be shown, run and inspected, not changed. */
+  readonly readOnly?: boolean;
 }
 
 /** Assemble a fully wired editor core. */
@@ -112,6 +119,10 @@ export function createEditorCore(options: CreateEditorCoreOptions = {}): EditorC
   const diagnostics = instantiation.createInstance(DiagnosticsService);
   services.set(IDiagnosticsService, diagnostics);
 
+  const mode = instantiation.createInstance(EditorModeService);
+  services.set(IEditorModeService, mode);
+  mode.setReadOnly(options.readOnly ?? false);
+
   const contextProvider = instantiation.createInstance(CommandContextProvider);
   services.set(ICommandContextProvider, contextProvider);
 
@@ -143,6 +154,7 @@ export function createEditorCore(options: CreateEditorCoreOptions = {}): EditorC
     validator,
     events,
     idGenerator,
+    mode,
     ...(execution !== undefined ? { execution } : {}),
   };
 }

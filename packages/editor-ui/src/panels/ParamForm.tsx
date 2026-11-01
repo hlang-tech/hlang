@@ -15,15 +15,18 @@ export interface ParamFormProps {
   readonly fields: readonly ParamField[];
   /** Commit a single field's new value (undoable, handled by the caller). */
   readonly onCommit: (key: string, value: ParamValue) => void;
+  /** Disables every field, e.g. in a read-only editor. */
+  readonly disabled?: boolean;
 }
 
-export function ParamForm({ fields, onCommit }: ParamFormProps): ReactElement {
+export function ParamForm({ fields, onCommit, disabled = false }: ParamFormProps): ReactElement {
+  // A disabled fieldset disables every control inside it (HTML's own rule).
   return (
-    <div className="hl-form">
+    <fieldset className="hl-form" disabled={disabled}>
       {fields.map(field => (
         <FieldRow key={field.key} field={field} onCommit={onCommit} />
       ))}
-    </div>
+    </fieldset>
   );
 }
 

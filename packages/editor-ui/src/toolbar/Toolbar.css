@@ -1,10 +1,13 @@
 /** Frosted-glass toolbar with a wordmark and a right-aligned action cluster. */
 
 .hl-toolbar {
+  /* Its children respond to the toolbar's width (e.g. ReadOnlyBadge). */
+  container: hl-toolbar / inline-size;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   height: 54px;
   padding: 0 16px;
   border-bottom: 1px solid var(--hl-line);
@@ -27,6 +30,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  /* The brand gives way first: the actions are what the toolbar is for. */
+  min-width: 0;
+  overflow: hidden;
 }
 .hl-toolbar-glyph {
   width: 14px;
@@ -35,6 +41,10 @@
   /* A brushed-silver bead with a faint kind shimmer — subtle, not rainbow. */
   background: radial-gradient(circle at 30% 25%, var(--hl-silver-hi), var(--hl-silver-lo) 70%);
   box-shadow: 0 0 10px -3px var(--hl-silver), var(--hl-glass-edge-hi);
+}
+.hl-toolbar-glyph,
+.hl-toolbar-wordmark {
+  flex: none;
 }
 .hl-toolbar-wordmark {
   font-size: 15px;
@@ -47,6 +57,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: none;
 }
 
 /* Read-only stat pill (node/vertex count). */

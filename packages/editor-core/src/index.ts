@@ -51,6 +51,7 @@ export {
   INodeRegistry,
   ISelectionService,
   IViewStateService,
+  IEditorModeService,
   IDiagnosticsService,
   ICommandService,
   IHistoryService,
@@ -83,6 +84,7 @@ export { ConnectionValidator } from './services/connection-validator';
 export { NodeRegistry } from './services/node-registry';
 export { SelectionService } from './services/selection-service';
 export { ViewStateService } from './services/view-state-service';
+export { EditorModeService } from './services/editor-mode-service';
 export { DiagnosticsService } from './services/diagnostics-service';
 export { cloneNodesWithEdges } from './services/clone-nodes';
 export type { CloneOffset, CloneResult } from './services/clone-nodes';

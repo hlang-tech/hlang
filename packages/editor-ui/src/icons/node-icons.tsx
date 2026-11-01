@@ -150,3 +150,23 @@ export function ErrorIcon({ size = 13 }: IconProps): ReactElement {
     <path key="d" d="M12 16v.5" />,
   ]);
 }
+
+// ---------------------------------------------------------------------------
+// Panel actions — the console's filter, follow and clear, drawn in the same
+// stroke language so a header that has room only for icons still reads.
+// ---------------------------------------------------------------------------
+
+/** Funnel — show only what involves the selection. */
+export function FilterIcon({ size = 14 }: IconProps): ReactElement {
+  return svg(size, [<path key="f" d="M4 5h16l-6 7.5V19l-4-2v-4.5z" />]);
+}
+
+/** Arrow onto a line — keep the newest entry in view. */
+export function FollowIcon({ size = 14 }: IconProps): ReactElement {
+  return svg(size, [<path key="a" d="M12 4v11M7 10.5l5 5 5-5" />, <path key="l" d="M5 20h14" />]);
+}
+
+/** Circle with a stroke through it — clear the log (DevTools' glyph). */
+export function ClearIcon({ size = 14 }: IconProps): ReactElement {
+  return svg(size, [<circle key="c" cx="12" cy="12" r="8" />, <path key="s" d="M6.5 17.5l11-11" />]);
+}

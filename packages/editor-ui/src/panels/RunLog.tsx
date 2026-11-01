@@ -12,11 +12,13 @@ import type { ReactElement, ReactNode } from 'react';
 import type { EditorCore } from '@hlang-org/editor-core';
 import { useSelection } from '@hlang-org/editor-react';
 import { useFollowScroll } from '../hooks/useFollowScroll';
+import { ClearIcon, FilterIcon, FollowIcon } from '../icons/node-icons';
 import { formatDuration, formatElapsed } from '../live/format';
 import { previewValue } from '../live/preview';
 import { involves } from '../live/run-trace';
 import type { RunLogEntry } from '../live/run-trace';
 import { useRunTraceStore, useRunTraceVersion } from '../live/RunTraceContext';
+import { PanelAction, PanelHead } from './PanelHead';
 import './RunLog.css';
 
 export interface RunLogProps {
@@ -53,49 +55,44 @@ export function RunLog({ core, onSelectNode, title = 'Run log', leading }: RunLo
 
   return (
     <section className="hl-runlog" aria-label={title}>
-      <header className="hl-runlog-head">
-        {leading ?? <span className="hl-runlog-title">{title}</span>}
-        <span className="hl-runlog-count hl-mono">
-          {entries.length === all.length
+      <PanelHead
+        leading={leading ?? <span className="hl-panel-title">{title}</span>}
+        meta={
+          (entries.length === all.length
             ? `${String(all.length)} events`
-            : `${String(entries.length)} of ${String(all.length)} events`}
-          {trace.dropped > 0 ? ` · ${String(trace.dropped)} earlier not kept` : ''}
-        </span>
-        <span className="hl-runlog-actions">
-          <button
-            type="button"
-            className={`hl-runlog-toggle${onlySelected ? ' is-on' : ''}`}
-            aria-pressed={onlySelected}
-            disabled={selectedId === undefined && !onlySelected}
-            title={selectedId === undefined ? 'Select a node to filter by it' : `Only ${label(selectedId)}`}
-            onClick={() => {
-              setOnlySelected(value => !value);
-            }}
-          >
-            {onlySelected && selectedId !== undefined ? `Only ${label(selectedId)}` : 'Selected node'}
-          </button>
-          <button
-            type="button"
-            className={`hl-runlog-toggle${follow ? ' is-on' : ''}`}
-            aria-pressed={follow}
-            onClick={() => {
-              setFollow(!follow);
-            }}
-          >
-            Follow
-          </button>
-          <button
-            type="button"
-            className="hl-runlog-toggle"
-            disabled={all.length === 0}
-            onClick={() => {
-              trace.clear();
-            }}
-          >
-            Clear
-          </button>
-        </span>
-      </header>
+            : `${String(entries.length)} of ${String(all.length)} events`) +
+          (trace.dropped > 0 ? ` · ${String(trace.dropped)} earlier not kept` : '')
+        }
+      >
+        <PanelAction
+          icon={<FilterIcon />}
+          label={onlySelected && selectedId !== undefined ? `Only ${label(selectedId)}` : 'Selected node'}
+          title={selectedId === undefined ? 'Select a node to filter by it' : `Only ${label(selectedId)}`}
+          pressed={onlySelected}
+          disabled={selectedId === undefined && !onlySelected}
+          onClick={() => {
+            setOnlySelected(value => !value);
+          }}
+        />
+        <PanelAction
+          icon={<FollowIcon />}
+          label="Follow"
+          title="Follow the newest event"
+          pressed={follow}
+          onClick={() => {
+            setFollow(!follow);
+          }}
+        />
+        <PanelAction
+          icon={<ClearIcon />}
+          label="Clear"
+          title="Clear the log"
+          disabled={all.length === 0}
+          onClick={() => {
+            trace.clear();
+          }}
+        />
+      </PanelHead>
       {entries.length === 0 ? (
         <p className="hl-runlog-empty">
           {all.length === 0

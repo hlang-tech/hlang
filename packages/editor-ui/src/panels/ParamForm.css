@@ -2,6 +2,11 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* A fieldset, for its disabled state; without the browser's frame. */
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 .hl-field {
