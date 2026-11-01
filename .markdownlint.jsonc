@@ -8,7 +8,7 @@
   // Inline HTML only for layout that Markdown cannot express on GitHub:
   // centered banners and badge rows, and the all-contributors table.
   "MD033": {
-    "allowed_elements": ["p", "a", "img", "b", "br", "table", "tbody", "tr", "td", "sub"]
+    "allowed_elements": ["p", "a", "img", "b", "em", "br", "table", "tbody", "tr", "td", "sub"]
   },
   // Repeated headings are allowed in different sections (for example "Usage").
   "MD024": { "siblings_only": true }

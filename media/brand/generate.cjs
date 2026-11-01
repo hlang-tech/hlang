@@ -51,27 +51,85 @@ const grid = (w, h) =>
   `<radialGradient id="glow" cx=".26" cy=".5" r=".5"><stop stop-color="${C.silver}" stop-opacity=".10"/><stop offset="1" stop-color="${C.silver}" stop-opacity="0"/></radialGradient></defs>` +
   `<rect width="${w}" height="${h}" fill="${C.void}"/><rect width="${w}" height="${h}" fill="url(#grid)"/><rect width="${w}" height="${h}" fill="url(#glow)"/>`;
 
-/** A wide banner: mark, wordmark, statement, and the three node kinds. */
-function banner(w, h, label) {
+/**
+ * A wide banner: the mark, a wordmark (optionally followed by a package name),
+ * a headline, two lines of detail, and a monospace footer.
+ */
+function banner(w, h, label, content) {
   const mark = Math.round(h * 0.62);
   const mx = Math.round(w * 0.06);
   const my = Math.round((h - mark) / 2);
   const tx = mx + mark + Math.round(w * 0.035);
   const cy = Math.round(h / 2);
+  const suffix =
+    content.suffix === undefined
+      ? ''
+      : `<tspan fill="${C.silverLo}" font-weight="300" dx="18">${content.suffix}</tspan>`;
   return svg(
     w,
     h,
     grid(w, h) +
       `<path d="M0 ${h - 1}H${w}" stroke="${C.silver}" stroke-opacity=".22"/>` +
       logo(mx, my, mark) +
-      `<text x="${tx}" y="${cy - 58}" fill="${C.text}" font-family="${SANS}" font-weight="600" font-size="56" letter-spacing="-2">hlang</text>` +
-      `<text x="${tx}" y="${cy + 6}" fill="${C.text}" font-family="${SANS}" font-size="34" letter-spacing="-1">Flow-based programming on live streams.</text>` +
-      `<text x="${tx}" y="${cy + 46}" fill="${C.silverLo}" font-family="${SANS}" font-size="19">Nodes connect through ports. Ports are RxJS streams.</text>` +
-      `<text x="${tx}" y="${cy + 74}" fill="${C.silverLo}" font-family="${SANS}" font-size="19">Interpret a graph, compile it, or edit it visually.</text>` +
-      `<text x="${tx}" y="${h - 54}" fill="${C.silver}" font-family="${MONO}" font-size="14" letter-spacing="1">READABLE  →  TRANSFORM  →  WRITABLE</text>`,
+      `<text x="${tx}" y="${cy - 58}" fill="${C.text}" font-family="${SANS}" font-weight="600" font-size="56" letter-spacing="-2">hlang${suffix}</text>` +
+      `<text x="${tx}" y="${cy + 6}" fill="${C.text}" font-family="${SANS}" font-size="${content.headlineSize ?? 34}" letter-spacing="-1">${content.headline}</text>` +
+      `<text x="${tx}" y="${cy + 46}" fill="${C.silverLo}" font-family="${SANS}" font-size="19">${content.lines[0]}</text>` +
+      `<text x="${tx}" y="${cy + 74}" fill="${C.silverLo}" font-family="${SANS}" font-size="19">${content.lines[1]}</text>` +
+      `<text x="${tx}" y="${h - 54}" fill="${C.silver}" font-family="${MONO}" font-size="14" letter-spacing="1">${content.footer}</text>`,
     label,
   );
 }
+
+/** The owner's tagline, verbatim. Do not reword it. */
+const HLANG = {
+  headline: 'A FBP-Inspired language for building universal applications.',
+  // Sized so the full tagline keeps the left margin on the right (measured).
+  headlineSize: 29,
+  lines: ['Hlang aims to make programming easier, faster and more comfortable.', 'It avoids coding, repetition and frustration.'],
+  footer: 'READABLE  →  TRANSFORM  →  WRITABLE',
+};
+
+/**
+ * One banner per published package. Banners never show an npm scope, because
+ * the same image appears on both the @hlang-org and the @hlang-tech pages.
+ */
+const PACKAGES = {
+  runtime: {
+    headline: 'Nodes, ports, and flows on RxJS.',
+    lines: ['Readable, Transform, and Writable nodes.', 'Every port is a live RxJS stream.'],
+    footer: 'OUTPUT.CONNECT(INPUT)  →  FLOW.RUN(READABLE)',
+  },
+  ir: {
+    headline: 'One program format. One set of rules.',
+    lines: ['IGraph types and planGraph, the front end', 'shared by the interpreter and the compiler.'],
+    footer: 'IGRAPH  →  PLANGRAPH  →  EXECUTION PLAN',
+  },
+  interpreter: {
+    headline: 'Run a graph in process.',
+    lines: ['Construct, connect, and run an IGraph', 'in Node.js or a browser. No code generation.'],
+    footer: 'PLAN  →  CONSTRUCT  →  CONNECT  →  RUN',
+  },
+  compiler: {
+    headline: 'Compile a graph to an ES module.',
+    lines: ['The same behavior as the interpreter,', 'printed from an ESTree program.'],
+    footer: 'PLAN  →  ESTREE  →  ES MODULE',
+  },
+  'editor-core': {
+    headline: 'The headless core of Lumen.',
+    lines: ['Commands with undo and redo, validation,', 'diagnostics, and IGraph serialization.'],
+    footer: 'NO REACT  ·  NO DOM  ·  EVERY EDIT IS A COMMAND',
+  },
+  'editor-react': {
+    headline: 'Lumen, bound to React Flow.',
+    lines: ['Hooks that connect the headless core', 'to a React Flow canvas.'],
+    footer: 'CORE  →  HOOKS  →  REACT FLOW',
+  },
+  'editor-ui': {
+    headline: 'The Lumen design system.',
+    lines: ['Image and intent nodes, live edges,', 'panels, and the editor shell.'],
+    footer: 'NODES  ·  EDGES  ·  PANELS  ·  SHELL',
+  },
+};
 
 /**
  * Construction sheet. Callout anchors are measured on the 400 × 400 source:
@@ -122,12 +180,20 @@ function avatar() {
 }
 
 const outputs = {
-  'readme-banner.svg': banner(1280, 480, 'hlang — flow-based programming on live streams'),
-  'social-card.svg': banner(1280, 640, 'hlang — flow-based programming on live streams'),
+  'readme-banner.svg': banner(1280, 480, 'hlang — A FBP-Inspired language for building universal applications.', HLANG),
+  // The social card's larger mark moves the text right, so the tagline is smaller.
+  'social-card.svg': banner(1280, 640, 'hlang — A FBP-Inspired language for building universal applications.', { ...HLANG, headlineSize: 26 }),
+  ...Object.fromEntries(
+    Object.entries(PACKAGES).map(([name, content]) => [
+      `packages/${name}.svg`,
+      banner(1280, 480, `hlang ${name} — ${content.headline}`, { ...content, suffix: name }),
+    ]),
+  ),
   'logo-construction.svg': construction(),
   'avatar.svg': avatar(),
 };
 
+fs.mkdirSync(out('packages'), { recursive: true });
 for (const [name, data] of Object.entries(outputs)) {
   fs.writeFileSync(out(name), data);
   console.log(`wrote media/brand/${name}`);

@@ -1,17 +1,23 @@
 {
   "name": "@hlang-org/runtime",
   "version": "1.0.6",
-  "description": "The hlang runtime: flow-based programming on RxJS streams. Readable, Transform, and Writable nodes connected through typed ports.",
+  "description": "A FBP-Inspired language for universal applications.",
   "keywords": [
-    "hlang",
-    "flow-based-programming",
     "fbp",
     "fbp-runtime",
+    "javascript",
+    "flow",
+    "creative-coding",
+    "fbp-protocol",
+    "flow-based-programming",
+    "visual-programming-language",
+    "flow-based",
+    "internal-dsl",
+    "hlang",
     "dataflow",
     "reactive",
     "rxjs",
-    "streams",
-    "visual-programming-language"
+    "streams"
   ],
   "homepage": "https://github.com/hlang-tech/hlang/tree/main/packages/runtime#readme",
   "bugs": {
