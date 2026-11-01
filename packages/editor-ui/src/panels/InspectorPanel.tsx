@@ -2,6 +2,7 @@
  * `InspectorPanel` — the right-hand property inspector. It follows selection:
  * with exactly one node selected it shows that node's identity plus a
  * schema-driven parameter form (edits commit undoable UpdateParamsCommands);
+ * with exactly one connection selected, the connection and its back-pressure;
  * otherwise it shows an empty/summary state. This is the unified control center
  * (nover.studio's model) over hlang's headless core.
  */
@@ -12,6 +13,7 @@ import { useSelection } from '@hlang-org/editor-react';
 import { KIND_ROLE } from '../tokens/tokens';
 import { deriveParamSchema } from '../schema/param-field';
 import { useNodeParams } from '../hooks/useNodeParams';
+import { ConnectionInspector } from './ConnectionInspector';
 import { NodeRunStats } from './NodeRunStats';
 import { ParamForm } from './ParamForm';
 import './InspectorPanel.css';
@@ -29,6 +31,12 @@ export function InspectorPanel({ core, emptyState }: InspectorPanelProps): React
   const params = useNodeParams(core, singleId);
   const node = params.node;
 
+  const singleEdgeId =
+    selectedNodes.length === 0 && selection.selectedEdges.length === 1 ? selection.selectedEdges[0] : undefined;
+  if (node === undefined && singleEdgeId !== undefined) {
+    return <ConnectionInspector core={core} edgeId={singleEdgeId} />;
+  }
+
   if (node === undefined) {
     return (
       <div className="hl-inspector hl-inspector-empty">
@@ -41,7 +49,7 @@ export function InspectorPanel({ core, emptyState }: InspectorPanelProps): React
             <p className="hl-inspector-hint">
               {selectedNodes.length > 1
                 ? 'Select a single node to edit its parameters.'
-                : 'Pick a node on the canvas or in the outline to inspect and tune it.'}
+                : 'Pick a node or a connection on the canvas to inspect and tune it.'}
             </p>
           </div>
         )}

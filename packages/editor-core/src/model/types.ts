@@ -14,7 +14,7 @@ export type EdgeId = string;
 export type PortId = string;
 
 /** The three hlang node kinds, defined once in the IR. */
-import type { NodeKind } from '@hlang-org/ir';
+import type { ConnectionOverflow, NodeKind } from '@hlang-org/ir';
 export type { NodeKind };
 
 /** Stream direction of a port, matching the runtime's `STREAM_TYPE`. */
@@ -136,10 +136,20 @@ export interface Endpoint {
  * maps to IGraph's `{ Output: source, Input: target }` and the runtime's
  * `source.O(id).connect(target.I(id))`.
  */
-export interface EditorEdge {
+export interface EditorEdge extends EdgeBounds {
   readonly id: EdgeId;
   readonly source: Endpoint;
   readonly target: Endpoint;
+}
+
+/**
+ * How a connection is bounded (RFC 0001): `capacity` messages, counting the
+ * ones its input is working on; `'drop-oldest'` drops its oldest waiting
+ * message when full. Both absent: unbounded.
+ */
+export interface EdgeBounds {
+  readonly capacity?: number;
+  readonly overflow?: ConnectionOverflow;
 }
 
 /** An immutable snapshot of the whole graph, for history and import/reset. */

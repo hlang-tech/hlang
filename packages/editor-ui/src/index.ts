@@ -153,6 +153,10 @@ export type { FollowScroll } from './hooks/useFollowScroll';
 export { RunLog } from './panels/RunLog';
 export type { RunLogProps } from './panels/RunLog';
 export { NodeRunStats } from './panels/NodeRunStats';
+export { ConnectionInspector } from './panels/ConnectionInspector';
+export { useEdgeBounds } from './hooks/useEdgeBounds';
+export type { EdgeBoundsHandle } from './hooks/useEdgeBounds';
+export { boundsFields, nextBounds, capacityLabel, DEFAULT_EDGE_CAPACITY } from './edges/edge-bounds';
 export { previewValue, PREVIEW_LENGTH } from './live/preview';
 export { formatDuration, formatElapsed } from './live/format';
 export type {

@@ -5,6 +5,7 @@
  */
 
 import type {
+  EdgeBounds,
   DataType,
   EditorEdge,
   EditorNode,
@@ -135,13 +136,29 @@ function parseEndpoint(value: unknown): Endpoint | null {
     : null;
 }
 
+/** An edge's bounds (RFC 0001), or `null` if they are not ones a graph accepts. */
+function parseBounds(value: Readonly<Record<string, unknown>>): EdgeBounds | null {
+  const { capacity, overflow } = value;
+  if (capacity === undefined) {
+    return overflow === undefined ? {} : null;
+  }
+  if (typeof capacity !== 'number' || !Number.isInteger(capacity) || capacity < 1) {
+    return null;
+  }
+  if (overflow === undefined) {
+    return { capacity };
+  }
+  return overflow === 'drop-oldest' ? { capacity, overflow } : null;
+}
+
 function parseEdge(value: unknown): EditorEdge | null {
   if (!isFields(value) || !isString(value.id)) {
     return null;
   }
   const source = parseEndpoint(value.source);
   const target = parseEndpoint(value.target);
-  return source === null || target === null ? null : { id: value.id, source, target };
+  const bounds = parseBounds(value);
+  return source === null || target === null || bounds === null ? null : { id: value.id, source, target, ...bounds };
 }
 
 /** The snapshot in `value`, or `null` if any part of it is not a valid snapshot. */

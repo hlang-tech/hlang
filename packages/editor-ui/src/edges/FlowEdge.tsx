@@ -15,6 +15,7 @@ import type { EdgeProps } from '@xyflow/react';
 import type { HlangRFEdge, HlangRFNode } from '@hlang-org/editor-react';
 import { useEdgeFlowing, useEdgePulse } from '../live/LiveSignalContext';
 import { selfLoopPath } from './self-loop';
+import { capacityLabel } from './edge-bounds';
 import './FlowEdge.css';
 
 /** A string `role` param on the source node, if any. */
@@ -24,7 +25,7 @@ function roleOf(node: HlangRFNode | undefined): string | undefined {
 }
 
 export function FlowEdge(props: EdgeProps<HlangRFEdge>): ReactElement {
-  const { id, source, target, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data } =
+  const { id, source, target, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data, selected } =
     props;
   const sourceNode = useInternalNode<HlangRFNode>(source);
   const role = roleOf(sourceNode);
@@ -57,6 +58,11 @@ export function FlowEdge(props: EdgeProps<HlangRFEdge>): ReactElement {
   const t = 0.62;
   const labelX = loop?.labelX ?? sourceX + (targetX - sourceX) * t;
   const labelY = loop?.labelY ?? sourceY + (targetY - sourceY) * t;
+  // A bounded connection carries its capacity in FBP notation, nearer its
+  // source than the role label (or, on a loop, at the loop's label point).
+  const capacity = capacityLabel(data ?? {});
+  const capacityX = loop?.labelX ?? sourceX + (targetX - sourceX) * 0.38;
+  const capacityY = loop?.labelY ?? sourceY + (targetY - sourceY) * 0.38;
 
   const isError = data?.isError ?? false;
   const isValue = data?.stream === 'value';
@@ -68,6 +74,7 @@ export function FlowEdge(props: EdgeProps<HlangRFEdge>): ReactElement {
     isError ? 'is-error' : '',
     isValue ? 'is-value' : 'is-live',
     flowing ? 'is-flowing' : '',
+    selected === true ? 'is-selected' : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -79,6 +86,16 @@ export function FlowEdge(props: EdgeProps<HlangRFEdge>): ReactElement {
         <path d={path} className="hl-edge-flow" />
         {pulse > 0 && <path key={pulse} d={path} className="hl-edge-pulse" />}
       </g>
+      {capacity !== undefined && (
+        <EdgeLabelRenderer>
+          <div
+            className={`hl-edge-capacity hl-mono${data?.overflow === 'drop-oldest' ? ' is-lossy' : ''}`}
+            style={{ transform: `translate(-50%, -50%) translate(${String(capacityX)}px, ${String(capacityY)}px)` }}
+          >
+            {capacity}
+          </div>
+        </EdgeLabelRenderer>
+      )}
       {role !== undefined && (
         <EdgeLabelRenderer>
           <div

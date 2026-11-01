@@ -7,6 +7,7 @@
  */
 
 import type {
+  EdgeBounds,
   EditorEdge,
   EditorNode,
   EdgeId,
@@ -68,6 +69,14 @@ export class GraphModel implements IGraphModel {
   updateNodeName(id: NodeId, name: string): void {
     const node = this.requireNode(id);
     this.nodes.set(id, { ...node, name });
+  }
+
+  updateEdgeBounds(id: EdgeId, bounds: EdgeBounds): void {
+    const edge = this.edges.get(id);
+    if (edge === undefined) {
+      throw new Error(`GraphModel: edge "${id}" does not exist.`);
+    }
+    this.edges.set(id, { id: edge.id, source: edge.source, target: edge.target, ...bounds });
   }
 
   addEdge(edge: EditorEdge): void {
