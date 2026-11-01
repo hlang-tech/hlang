@@ -7,7 +7,7 @@ import { MagicCard } from '@/components/magicui/magic-card';
 import { SectionHeader } from '@/components/SectionHeader';
 import { enter } from '@/lib/enter';
 import { orthogonalPath } from '@/lib/route';
-import type { Point } from '@/lib/route';
+import type { Point, RoutePoint } from '@/lib/route';
 import { useMounted } from '@/lib/use-mounted';
 
 export interface BackendField {
@@ -38,8 +38,8 @@ interface Routes {
   readonly interpret: Wire;
   /** planGraph to the compiler, through the fork. */
   readonly compile: Wire;
-  /** Where the plan splits into the two backends. */
-  readonly fork: Point;
+  /** Where the plan splits into the two backends: a square junction under a dot. */
+  readonly fork: RoutePoint;
 }
 
 interface Box {
@@ -51,7 +51,7 @@ interface Box {
   readonly cy: number;
 }
 
-function wire(points: readonly Point[]): Wire {
+function wire(points: readonly RoutePoint[]): Wire {
   const from = points[0] ?? { x: 0, y: 0 };
   const to = points[points.length - 1] ?? from;
   return { d: orthogonalPath(points), from, to };
@@ -77,7 +77,7 @@ function route(graph: Box, plan: Box, interpreter: Box, compiler: Box): Routes {
 
   if (oneRow) {
     const gutterA = (graph.right + plan.left) / 2;
-    const fork = { x: (plan.right + interpreter.left) / 2, y: plan.cy };
+    const fork: RoutePoint = { x: (plan.right + interpreter.left) / 2, y: plan.cy, junction: true };
     const gutterB = (interpreter.right + compiler.left) / 2;
     const lane = Math.max(plan.bottom, interpreter.bottom, compiler.bottom) + 44;
     return {
@@ -104,7 +104,7 @@ function route(graph: Box, plan: Box, interpreter: Box, compiler: Box): Routes {
   const planOut = leftOut(plan);
   const interpreterIn = leftIn(interpreter);
   const compilerIn = leftIn(compiler);
-  const fork = { x: rail, y: interpreterIn.y };
+  const fork: RoutePoint = { x: rail, y: interpreterIn.y, junction: true };
   return {
     front: wire([graphOut, { x: rail, y: graphOut.y }, { x: rail, y: planIn.y }, planIn]),
     interpret: wire([planOut, { x: rail, y: planOut.y }, fork, interpreterIn]),
