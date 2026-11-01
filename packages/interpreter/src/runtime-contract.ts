@@ -93,8 +93,6 @@ export interface IRuntimeFlow {
 /** Factory that produces a fresh `Flow` instance. */
 export type FlowFactory = () => IRuntimeFlow;
 
-/** The three hlang node kinds, as serialized in `IGraph` (`type` field). */
-export type NodeKind = 'R' | 'T' | 'W';
-
-/** Canonical name of the error port dug on every R and T node. */
-export const ERROR_PORT_NAME = '@node/error';
+// Node kinds and the error port name are defined once, in the IR.
+export { ERROR_PORT_NAME } from '@hlang-org/ir';
+export type { NodeKind } from '@hlang-org/ir';

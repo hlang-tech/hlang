@@ -1,7 +1,31 @@
 {
   "name": "@hlang-org/editor-react",
-  "version": "1.0.0",
-  "description": "React bindings for the hlang visual editor: hooks and context over @hlang-org/editor-core, rendered with React Flow. No design styling — that lives in @hlang-org/editor-ui.",
+  "version": "0.1.0",
+  "description": "React bindings of the Lumen editor for hlang: hooks that connect @hlang-org/editor-core to React Flow.",
+  "keywords": [
+    "hlang",
+    "lumen",
+    "node-editor",
+    "react",
+    "react-flow",
+    "xyflow",
+    "hooks"
+  ],
+  "homepage": "https://github.com/hlang-tech/hlang/tree/main/packages/editor-react#readme",
+  "bugs": {
+    "url": "https://github.com/hlang-tech/hlang/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hlang-tech/hlang.git",
+    "directory": "packages/editor-react"
+  },
+  "license": "MIT",
+  "author": "hlang-tech",
+  "contributors": [
+    "Archer <qddegtya@gmail.com>",
+    "archersado <archersado@hotmail.com>"
+  ],
   "type": "commonjs",
   "sideEffects": false,
   "engines": {
@@ -23,22 +47,13 @@
     }
   },
   "files": [
-    "lib"
+    "lib",
+    "README.md",
+    "LICENSE"
   ],
-  "keywords": [
-    "hlang",
-    "visual-programming-language",
-    "node-editor",
-    "react",
-    "react-flow",
-    "xyflow"
-  ],
-  "homepage": "https://github.com/hlang-tech/hlang#readme",
-  "contributors": [
-    "archer <qddegtya@gmail.com>",
-    "archersado <archersado@hotmail.com>"
-  ],
-  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "test": "jest --coverage",

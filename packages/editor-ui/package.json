@@ -1,7 +1,31 @@
 {
   "name": "@hlang-org/editor-ui",
-  "version": "1.0.0",
-  "description": "Design-system component layer for the hlang visual editor: futuristic deep-space nodes, flowing-stream edges, a schema-driven inspector, and a node-customization extension point. Built on @hlang-org/editor-react.",
+  "version": "0.1.0",
+  "description": "Lumen design system for hlang: node, edge, panel, and shell components for a React Flow node editor, built on @hlang-org/editor-react.",
+  "keywords": [
+    "hlang",
+    "lumen",
+    "node-editor",
+    "design-system",
+    "react",
+    "react-flow",
+    "xyflow"
+  ],
+  "homepage": "https://github.com/hlang-tech/hlang/tree/main/packages/editor-ui#readme",
+  "bugs": {
+    "url": "https://github.com/hlang-tech/hlang/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hlang-tech/hlang.git",
+    "directory": "packages/editor-ui"
+  },
+  "license": "MIT",
+  "author": "hlang-tech",
+  "contributors": [
+    "Archer <qddegtya@gmail.com>",
+    "archersado <archersado@hotmail.com>"
+  ],
   "type": "commonjs",
   "sideEffects": [
     "**/*.css"
@@ -12,9 +36,6 @@
   "main": "lib/index.js",
   "module": "lib/index.mjs",
   "types": "lib/index.d.ts",
-  "files": [
-    "lib"
-  ],
   "exports": {
     ".": {
       "import": {
@@ -29,20 +50,14 @@
     "./styles.css": "./lib/styles.css",
     "./tokens.css": "./lib/tokens/tokens.css"
   },
-  "keywords": [
-    "hlang",
-    "visual-programming-language",
-    "node-editor",
-    "design-system",
-    "react",
-    "react-flow"
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE"
   ],
-  "homepage": "https://github.com/hlang-tech/hlang#readme",
-  "contributors": [
-    "archer <qddegtya@gmail.com>",
-    "archersado <archersado@hotmail.com>"
-  ],
-  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup && copyfiles -u 1 \"src/**/*.css\" lib",
     "test": "jest --coverage",

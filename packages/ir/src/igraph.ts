@@ -1,17 +1,18 @@
 /**
  * The `IGraph` intermediate representation — hlang's serialized graph format.
  *
- * This is hlang's IR: the "source text" of the visual language, today encoded
- * as JSON (DSL-able in the future). The shape is aligned with the community
- * compiler (`packages/compiler/src/complier/index.ts`) and the real fixture at
- * `packages/compiler/test/fixtures/graph.ts`, so a single `IGraph` can be
- * either interpreted in-process (this package) or compiled to a standalone
- * program (the compiler) without divergence.
+ * `IGraph` is the program text of hlang, encoded as JSON. The same `IGraph`
+ * is executed in-process by `@hlang-org/interpreter` or compiled to an ES
+ * module by `@hlang-org/compiler`; both consume it through `planGraph`.
  *
  * Strictly typed with zero `any`: opaque, node-defined data is `unknown`.
  */
 
-import type { NodeKind } from './runtime-contract';
+/** The three hlang node kinds: Readable (source), Transform, Writable (sink). */
+export type NodeKind = 'R' | 'T' | 'W';
+
+/** The output port every Readable and Transform node exposes for errors. */
+export const ERROR_PORT_NAME = '@node/error';
 
 /** Serialized parameter values carried in `bizData.params`. */
 export type ParamValue =
@@ -73,7 +74,7 @@ export interface IPortInfo {
 
 /** A node entry in the graph's node list. */
 export interface INodeInfo {
-  /** Registry key. Resolved (after camelization) to a runtime node class. */
+  /** Node type key. A backend resolves it to a runtime node class. */
   readonly code: string;
   readonly name: string;
   readonly type: NodeKind;
