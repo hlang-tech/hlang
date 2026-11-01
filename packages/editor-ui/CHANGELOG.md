@@ -1,5 +1,11 @@
 # @hlang-org/editor-ui
 
+## 0.2.2
+
+### Patch Changes
+
+- 5715ba8: The editor shell isolates its stacking context, so the editor's own layers (panels, dock, cheatsheet) never paint above the host page's layers, such as a sticky header the editor scrolls under.
+
 ## 0.2.1
 
 ### Patch Changes
