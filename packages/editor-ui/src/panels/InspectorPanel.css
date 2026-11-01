@@ -159,3 +159,42 @@
   font-weight: 600;
   color: var(--hl-ink-2);
 }
+
+/* Run statistics of the selected node (NodeRunStats). */
+.hl-runstats-hint {
+  text-align: left;
+}
+.hl-runstats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+.hl-runstats-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 7px 9px;
+  border-radius: var(--hl-r-sm);
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: var(--hl-glass-edge);
+}
+.hl-runstats-cell.is-wide {
+  grid-column: 1 / -1;
+}
+.hl-runstats-cell dt {
+  font-size: 10px;
+  color: var(--hl-ink-3);
+}
+.hl-runstats-cell dd {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--hl-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hl-runstats-cell.is-error dd {
+  color: var(--hl-error);
+}

@@ -41,7 +41,8 @@ export interface LiveSignalStoreDeps {
   cancel(handle: number): void;
 }
 
-const defaultDeps: LiveSignalStoreDeps = {
+/** The browser's clock and frame scheduler, with fallbacks outside a browser. */
+export const defaultLiveDeps: LiveSignalStoreDeps = {
   now: () => (typeof performance !== 'undefined' ? performance.now() : Date.now()),
   schedule: cb =>
     typeof requestAnimationFrame !== 'undefined'
@@ -75,7 +76,7 @@ export class LiveSignalStore {
   private rafHandle: number | null = null;
   private running = false;
 
-  constructor(deps: LiveSignalStoreDeps = defaultDeps) {
+  constructor(deps: LiveSignalStoreDeps = defaultLiveDeps) {
     this.deps = deps;
   }
 

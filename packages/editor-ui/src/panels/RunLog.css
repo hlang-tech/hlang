@@ -1,0 +1,165 @@
+/** RunLog — the live console of a running graph, docked under the canvas. */
+
+.hl-runlog {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  background: var(--hl-void-2);
+  border-top: 1px solid var(--hl-line);
+}
+
+.hl-runlog-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 12px 7px 16px;
+  border-bottom: 1px solid var(--hl-line);
+  flex: none;
+}
+.hl-runlog-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--hl-silver);
+}
+.hl-runlog-count {
+  font-size: 11px;
+  color: var(--hl-ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.hl-runlog-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  flex: none;
+}
+.hl-runlog-toggle {
+  padding: 3px 9px;
+  border: 1px solid var(--hl-line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--hl-ink-3);
+  font-family: var(--hl-font-ui);
+  font-size: 11px;
+  font-weight: 550;
+  cursor: pointer;
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.14s var(--hl-ease), color 0.14s var(--hl-ease);
+}
+.hl-runlog-toggle:hover:not(:disabled) {
+  color: var(--hl-ink-2);
+}
+.hl-runlog-toggle.is-on {
+  color: var(--hl-ink);
+  background: color-mix(in oklab, var(--hl-silver) 16%, transparent);
+  border-color: color-mix(in oklab, var(--hl-silver) 28%, transparent);
+}
+.hl-runlog-toggle:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.hl-runlog-toggle:focus-visible,
+.hl-runlog-hit:focus-visible {
+  outline: 1px solid var(--hl-silver);
+  outline-offset: -1px;
+}
+
+.hl-runlog-empty {
+  margin: 0;
+  padding: 14px 16px;
+  font-size: 12px;
+  color: var(--hl-ink-3);
+}
+
+.hl-runlog-body {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  overflow: auto;
+  min-height: 0;
+  flex: 1;
+  font-size: 11.5px;
+}
+
+.hl-runlog-hit {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 0.9fr) minmax(0, 1.1fr) 64px;
+  align-items: baseline;
+  gap: 12px;
+  width: 100%;
+  padding: 2px 12px 2px 16px;
+  border: none;
+  background: transparent;
+  color: var(--hl-ink-2);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.hl-runlog-hit:hover {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.hl-runlog-at {
+  color: var(--hl-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.hl-runlog-route {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.hl-runlog-node {
+  color: var(--hl-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hl-runlog-port {
+  color: var(--hl-ink-3);
+  flex: none;
+}
+.hl-runlog-arrow {
+  color: var(--hl-silver-lo);
+  flex: none;
+}
+.hl-runlog-value {
+  color: var(--hl-silver-hi);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hl-runlog-ms {
+  color: var(--hl-ink-3);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hl-runlog-row.is-error .hl-runlog-port,
+.hl-runlog-row.is-error .hl-runlog-value {
+  color: var(--hl-error);
+}
+
+@media (max-width: 720px) {
+  .hl-runlog-hit {
+    grid-template-columns: 56px minmax(0, 1fr) 56px;
+  }
+  .hl-runlog-ms {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .hl-runlog-value {
+    grid-column: 2 / 4;
+    grid-row: 2;
+  }
+}

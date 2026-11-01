@@ -130,7 +130,19 @@ export {
   useEdgeFlowing,
 } from './live/LiveSignalContext';
 export type { LiveSignalProviderProps } from './live/LiveSignalContext';
-export { LiveSignalStore } from './live/live-signal-store';
+export { LiveSignalStore, defaultLiveDeps } from './live/live-signal-store';
+
+// Run trace: the live log and per-node statistics of a running graph
+export { RunTrace, RUN_LOG_CAPACITY, involves } from './live/run-trace';
+export type { RunTraceOptions, RunLogEntry, RunDeliveryEntry, RunErrorEntry, NodeRunSummary } from './live/run-trace';
+export { RunTraceProvider, useRunTraceStore, useRunTraceVersion } from './live/RunTraceContext';
+export type { RunTraceProviderProps } from './live/RunTraceContext';
+export { useRunTrace } from './hooks/useRunTrace';
+export { RunLog } from './panels/RunLog';
+export type { RunLogProps } from './panels/RunLog';
+export { NodeRunStats } from './panels/NodeRunStats';
+export { previewValue, PREVIEW_LENGTH } from './live/preview';
+export { formatDuration, formatElapsed } from './live/format';
 export type {
   NodeLiveState,
   EdgeIndexEntry,
