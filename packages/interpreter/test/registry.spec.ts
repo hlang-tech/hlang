@@ -2,6 +2,7 @@
  * NodeRegistry behavior and interpreter edge cases.
  */
 
+import { describe, it, expect } from 'vitest';
 import { interpret, NodeRegistry } from '../src';
 import type { IGraph, IInterpreterDeps, IRuntimeFlow } from '../src';
 import { Flow, asNodeConstructor, ValueSourceNode, makeCollectorSink } from './fixtures/nodes';

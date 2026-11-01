@@ -2,6 +2,7 @@
  * Connection validation: encodes hlang's O->I wiring semantics.
  */
 
+import { describe, it, expect } from 'vitest';
 import { createEditorCore } from '../src';
 import type { Endpoint } from '../src';
 import {

@@ -5,6 +5,10 @@ export default class Graph<T, K> {
   vertices: Map<string, Vertex<K>>;
   adjList: Matrix<T>;
   connectedMatrix: Matrix<boolean>;
+  // Every edge leaving each vertex. `adjList` keeps one entry per pair of
+  // vertices, which is enough for reachability, but two vertices can be joined
+  // by several edges (one per pair of ports), and each must be wired.
+  outEdges: Map<string, T[]>;
 
   constructor(directed: boolean) {
     // digraph or undigraph
@@ -15,6 +19,7 @@ export default class Graph<T, K> {
     this.adjList = new Matrix();
     // Matrix<boolean> Join matrix cache
     this.connectedMatrix = new Matrix();
+    this.outEdges = new Map();
   }
 
   addVertex(v: Vertex<K>) {
@@ -37,9 +42,25 @@ export default class Graph<T, K> {
     if (!this.vertices.has(v2k)) this.vertices.set(v2k, v2);
 
     this.adjList.set(v1k, v2k, data);
+    this.addOutEdge(v1k, data);
 
     if (!this.directed) {
       this.adjList.set(v2k, v1k, data);
+      this.addOutEdge(v2k, data);
+    }
+  }
+
+  /** Every edge leaving the vertex `key`, in the order they were added. */
+  edgesFrom(key: string): T[] {
+    return this.outEdges.get(key) || [];
+  }
+
+  private addOutEdge(key: string, data: T) {
+    const edges = this.outEdges.get(key);
+    if (edges) {
+      edges.push(data);
+    } else {
+      this.outEdges.set(key, [data]);
     }
   }
 

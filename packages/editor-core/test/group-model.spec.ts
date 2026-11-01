@@ -6,6 +6,7 @@
  * group), which is how the subgraph<->node isomorphism recurses.
  */
 
+import { describe, it, expect } from 'vitest';
 import { GroupModel } from '../src/services/group-model';
 
 describe('GroupModel — explicit membership', () => {

@@ -148,7 +148,7 @@ Run from the repository root (Turborepo builds dependencies first):
 - `pnpm build` — build every package (tsup: dual ESM+CJS + dts).
 - `pnpm typecheck` — `tsc --noEmit`; must be clean (proves zero-`any`).
 - `pnpm lint` — ESLint; must be 0/0.
-- `pnpm test` — jest (ts-jest).
+- `pnpm test` — Vitest, with V8 coverage.
 - `pnpm check` — build + typecheck + lint + test; the CI gate.
 - `pnpm lint:pkg` — publint + attw (package-publish validation).
 - `pnpm lint:docs` — markdownlint for the documentation; must be 0/0.

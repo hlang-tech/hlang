@@ -9,6 +9,7 @@
  * resolution still works. This test reproduces that duplication explicitly.
  */
 
+import { describe, it, expect } from 'vitest';
 import { ServiceCollection, IIdGenerator, CountingIdGenerator } from '../src';
 import type { ServiceIdentifier } from '../src';
 

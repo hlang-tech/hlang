@@ -2,6 +2,7 @@
  * Coverage for the remaining commands and their error/undo paths.
  */
 
+import { describe, it, expect } from 'vitest';
 import {
   createEditorCore,
   AddNodeCommand,

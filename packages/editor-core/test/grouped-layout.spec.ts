@@ -7,6 +7,7 @@
  * Ungrouped nodes are collected into one implicit trailing block.
  */
 
+import { describe, it, expect } from 'vitest';
 import { layoutGrouped } from '../src/services/grouped-layout';
 import type { LayoutEdge } from '../src/services/layered-layout';
 

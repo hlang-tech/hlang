@@ -8,6 +8,7 @@
  * backed, and edge add/remove update incrementally rather than by full rescan.
  */
 
+import { describe, it, expect } from 'vitest';
 import { GraphTopology, classifyInterface } from '../src/services/graph-topology';
 import type { EditorEdge, EditorNode, PortDescriptor } from '../src';
 

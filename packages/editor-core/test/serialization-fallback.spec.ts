@@ -2,6 +2,7 @@
  * Serialization fallback paths and validator defensive branches.
  */
 
+import { describe, it, expect } from 'vitest';
 import { createEditorCore, ConnectionValidator, GraphModel } from '../src';
 import type { EditorNode, Endpoint } from '../src';
 import type { IGraph } from '@hlang-org/interpreter';

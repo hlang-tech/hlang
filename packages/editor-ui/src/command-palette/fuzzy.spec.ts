@@ -4,6 +4,7 @@
  * empty-query pass-through.
  */
 
+import { describe, it, expect } from 'vitest';
 import { fuzzyScore, fuzzyRank } from './fuzzy';
 
 describe('fuzzyScore', () => {

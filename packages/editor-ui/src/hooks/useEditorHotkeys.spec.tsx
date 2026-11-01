@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  *
  * Behavior test for the editor's keyboard shortcuts against a REAL editor core.
  * The key concern is embedding: when the editor is one part of a larger page, a
@@ -8,10 +8,15 @@
  * optional `scope` restricts the shortcuts to keystrokes from inside the editor.
  */
 
-import { renderHook } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { renderHook, cleanup } from '@testing-library/react';
 import { createEditorCore, AddNodeCommand } from '@hlang-org/editor-core';
 import type { EditorCore, NodeDescriptor, PortDescriptor } from '@hlang-org/editor-core';
 import { useEditorHotkeys } from './useEditorHotkeys';
+
+// Testing Library unmounts after each test only through an explicit cleanup
+// when the test API is imported rather than global.
+afterEach(cleanup);
 
 const dto = { name: 'DTO', kind: 'interface' as const };
 const outPort = (): PortDescriptor => ({ id: 'Output', direction: 'O', name: 'Output', dataType: dto, isError: false });

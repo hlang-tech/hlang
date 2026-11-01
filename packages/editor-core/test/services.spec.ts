@@ -3,6 +3,7 @@
  * graph model edge cases, id generator, and history edge cases.
  */
 
+import { describe, it, expect } from 'vitest';
 import {
   createEditorCore,
   EventBus,

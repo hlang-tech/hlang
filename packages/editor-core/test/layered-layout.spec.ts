@@ -5,6 +5,7 @@
  * breaking back-edges before layering.
  */
 
+import { describe, it, expect } from 'vitest';
 import { layoutLayered } from '../src/services/layered-layout';
 import type { LayoutEdge } from '../src/services/layered-layout';
 
