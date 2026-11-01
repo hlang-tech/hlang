@@ -23,3 +23,12 @@ packages/*/.editorconfig
 
 # Compiler test output
 packages/compiler/test/.generated/
+
+# Website
+website/.next/
+website/.generated/
+website/.taste-skill/
+website/next-env.d.ts
+website/.vercel/
+website/public/media/
+website/*.tsbuildinfo

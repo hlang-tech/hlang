@@ -1,8 +1,10 @@
-# Lumen playground
+# Prism playground
 
-A Vite app that assembles the Lumen editor packages (`editor-core`, `editor-react`, `editor-ui`) on top of the interpreter and runtime. It is the place to try and verify editor features. It is not a product.
+Prism is a node-based tool for image and video creators, in development. It is built on the Lumen editor packages (`editor-core`, `editor-react`, `editor-ui`), the interpreter, and the runtime. This Vite app is where Prism's scene is assembled and where editor features are tried and verified.
 
-![The Lumen playground](../../media/lumen-editor.png)
+Lumen stays generic: it knows nodes, ports, and `IGraph`, nothing about images or video. Everything specific to creators (image sources, intent nodes, the render preview, assets) lives here.
+
+![The Prism playground](../../media/showcase/prism.png)
 
 ## Run
 
