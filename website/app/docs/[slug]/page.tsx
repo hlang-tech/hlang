@@ -18,7 +18,9 @@ interface Params {
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const guide = getGuide((await params).slug);
-  return guide === undefined ? {} : { title: guide.title, description: guide.description };
+  return guide === undefined
+    ? {}
+    : { title: guide.title, description: guide.description, alternates: { canonical: `/docs/${guide.slug}` } };
 }
 
 export default async function GuidePage({ params }: Params) {
