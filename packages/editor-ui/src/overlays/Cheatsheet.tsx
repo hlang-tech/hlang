@@ -105,7 +105,9 @@ export function Cheatsheet({ open, onClose, groups = DEFAULT_GROUPS }: Cheatshee
               <h3 className="hl-cheat-group-title hl-mono">{group.title}</h3>
               <ul className="hl-cheat-rows">
                 {group.rows.map(row => (
-                  <li key={row.label} className="hl-cheat-row">
+                  // A row is a binding: one action can have several (two ways to pan),
+                  // so neither the label nor the keys alone identify it.
+                  <li key={`${row.keys}\u0000${row.label}`} className="hl-cheat-row">
                     <span className="hl-cheat-label">{row.label}</span>
                     <kbd className="hl-cheat-keys hl-mono">{row.keys}</kbd>
                   </li>

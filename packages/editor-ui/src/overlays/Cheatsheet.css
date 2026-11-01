@@ -1,7 +1,12 @@
-/** Cheatsheet — a centered black/silver glass reference card. */
+/**
+ * Cheatsheet — a centered black/silver glass reference card. It belongs to the
+ * editor, not the page: scrim and card are positioned against the canvas
+ * region (`.hl-region-canvas`, the nearest positioned ancestor), so an editor
+ * embedded in a larger page covers only itself.
+ */
 
 .hl-cheat-scrim {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 60;
   background: rgba(6, 7, 9, 0.5);
@@ -10,16 +15,18 @@
 }
 
 .hl-cheat {
-  position: fixed;
+  position: absolute;
   z-index: 61;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: min(680px, calc(100vw - 48px));
-  max-height: calc(100vh - 96px);
+  width: min(680px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
   overflow: auto;
   padding: 20px 22px 24px;
-  background: var(--hl-glass-2);
+  /* Nearly opaque, like the node search panel: the card sits over nodes and
+     wires, and rows of text over a busy graph would not read. */
+  background: color-mix(in oklab, var(--hl-surface) 98%, transparent);
   backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
   -webkit-backdrop-filter: blur(var(--hl-glass-blur)) saturate(var(--hl-glass-sat));
   border: 1px solid var(--hl-line-strong);
