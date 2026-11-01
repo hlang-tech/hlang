@@ -9,7 +9,7 @@
 
 import type { ReactElement, ReactNode } from 'react';
 import type { EditorCore } from '@hlang-org/editor-core';
-import { useSelection } from '@hlang-org/editor-react';
+import { useReadOnly, useSelection } from '@hlang-org/editor-react';
 import { KIND_ROLE } from '../tokens/tokens';
 import { deriveParamSchema } from '../schema/param-field';
 import { useNodeParams } from '../hooks/useNodeParams';
@@ -26,6 +26,7 @@ export interface InspectorPanelProps {
 
 export function InspectorPanel({ core, emptyState }: InspectorPanelProps): ReactElement {
   const selection = useSelection(core);
+  const readOnly = useReadOnly(core);
   const selectedNodes = selection.selectedNodes;
   const singleId = selectedNodes.length === 1 ? selectedNodes[0] : undefined;
   const params = useNodeParams(core, singleId);
@@ -92,6 +93,7 @@ export function InspectorPanel({ core, emptyState }: InspectorPanelProps): React
         ) : (
           <ParamForm
             fields={fields}
+            disabled={readOnly}
             onCommit={(key, value) => params.setParam(key, value)}
           />
         )}

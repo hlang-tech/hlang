@@ -44,16 +44,20 @@
 }
 
 .lumen-embed .hl-toolbar-divider {
+  flex: none;
   width: 1px;
   height: 18px;
   margin: 0 4px;
   background: var(--hl-line-strong);
 }
 .lumen-embed .lumen-flow-name {
+  min-width: 0;
+  overflow: hidden;
   font-size: 13px;
   color: var(--hl-ink-2);
   padding: 4px 8px;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* Left rail: Outline and Insert. */
@@ -116,9 +120,13 @@
 .lumen-embed .hl-chip-w {
   --hl-kind: var(--hl-w);
 }
-.lumen-embed .hl-chip:hover {
+.lumen-embed .hl-chip:hover:not(:disabled) {
   border-color: color-mix(in oklab, var(--hl-silver) 45%, var(--hl-line-strong));
   background: rgba(255, 255, 255, 0.06);
+}
+.lumen-embed .hl-chip:disabled {
+  opacity: 0.55;
+  cursor: default;
 }
 .lumen-embed .hl-chip:focus-visible {
   outline: 2px solid var(--hl-kind);
@@ -166,22 +174,9 @@
 }
 
 /* Both views share one header row: the tabs, then the view's own controls. */
-.lumen-console-head,
-.lumen-console .hl-runlog-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-sizing: border-box;
+.lumen-console .hl-panel-head {
   height: 38px;
   padding: 5px 12px;
-  border-bottom: 1px solid var(--hl-line);
-  flex: none;
-}
-.lumen-console-actions {
-  display: flex;
-  gap: 4px;
-  margin-left: auto;
-  flex: none;
 }
 .lumen-console .hl-railtabs {
   margin: 0;

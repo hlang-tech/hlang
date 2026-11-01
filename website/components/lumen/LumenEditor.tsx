@@ -10,6 +10,11 @@
  * Embedding rules: shortcuts answer only to keystrokes inside the editor, the
  * wheel scrolls the page (zoom with a pinch or the dock), and on touch screens a
  * one-finger drag on empty canvas scrolls the page too.
+ *
+ * Editing needs room and a precise pointer (EDIT_QUERY). Without them the
+ * editor is view only, as Figma's and Miro's viewers are on a phone: the core
+ * refuses every change (editor-core's read-only mode), and the canvas offers
+ * looking, selecting, running and the console, but no way to edit.
  */
 
 import '@xyflow/react/dist/style.css';
@@ -20,15 +25,17 @@ import { ReactFlow, ReactFlowProvider, SelectionMode, useReactFlow } from '@xyfl
 import type { Connection } from '@xyflow/react';
 import { AddNodeCommand, createEditorCore, InterpreterGraphRunner } from '@hlang-org/editor-core';
 import type { EditorCore, IExecutionHandle, NodeDescriptor, NodeId } from '@hlang-org/editor-core';
-import { useClipboard, useDiagnostics, useHistory, useHlangFlow, useReconnect, useRename, useViewState } from '@hlang-org/editor-react';
+import { useClipboard, useDiagnostics, useHistory, useHlangFlow, useReadOnly, useReconnect, useRename, useViewState } from '@hlang-org/editor-react';
 import type { HlangRFEdge } from '@hlang-org/editor-react';
 import {
   CanvasChrome,
   CanvasDock,
   Cheatsheet,
+  ClearIcon,
   createHlangFlowTypes,
   EditorShell,
   EmptyState,
+  FollowIcon,
   InspectorPanel,
   isEditableTarget,
   LiveSignalProvider,
@@ -37,7 +44,10 @@ import {
   NodeInteractionProvider,
   NodeSearch,
   OutlineTree,
+  PanelAction,
+  PanelHead,
   RailTabs,
+  ReadOnlyBadge,
   RunButton,
   RunLog,
   RunTrace,
@@ -68,6 +78,14 @@ const { nodeTypes, edgeTypes } = createHlangFlowTypes();
 const OUTPUT_LINES = 200;
 /** The console's header row: the height it collapses to. */
 const CONSOLE_HEADER_HEIGHT = 39;
+
+/**
+ * Where the graph can be edited: a canvas wide enough for a flow and its
+ * ports, and a mouse or trackpad (`any-pointer`, so a tablet with a trackpad
+ * counts). Elsewhere the editor is view only.
+ */
+const EDIT_QUERY = '(min-width: 1024px) and (any-pointer: fine)';
+const VIEW_ONLY_REASON = 'Editing needs a screen at least 1024 px wide and a mouse or trackpad.';
 
 const LEFT_TABS = [
   { id: 'outline', label: 'Outline' },
@@ -125,17 +143,27 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
   const wide = useMedia('(min-width: 1440px)');
   const touch = useMedia('(pointer: coarse)');
   const narrow = useMedia('(max-width: 639px)');
+  const editable = useMedia(EDIT_QUERY);
 
   const { core, descriptors } = useMemo(() => {
     const kit = createLumenKit(value => {
       setLog(previous => [...previous, { id: (previous[previous.length - 1]?.id ?? 0) + 1, text: String(value) }].slice(-OUTPUT_LINES));
     });
-    const editor = createEditorCore({ graphRunner: new InterpreterGraphRunner(kit.registry, (options) => new Flow(options)) });
+    const editor = createEditorCore({
+      graphRunner: new InterpreterGraphRunner(kit.registry, (options) => new Flow(options)),
+      // The editor renders on the client only, so the query has its real answer.
+      readOnly: !window.matchMedia(EDIT_QUERY).matches,
+    });
     for (const descriptor of kit.descriptors) {
       editor.registry.register(descriptor);
     }
     return { core: editor, descriptors: kit.descriptors };
   }, []);
+
+  useEffect(() => {
+    core.mode.setReadOnly(!editable);
+  }, [core, editable]);
+  const readOnly = useReadOnly(core);
 
   const liveStore = useMemo(() => new LiveSignalStore(), []);
   const trace = useMemo(() => new RunTrace(), []);
@@ -279,21 +307,20 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
     return () => { observer.disconnect(); };
   }, [rf]);
 
-  const toolItems = useMemo<readonly ToolItem[]>(
-    () => [
-      { id: 'add', title: 'Add node', onClick: openSearch, icon: <TopIcon d="M12 5v14M5 12h14" /> },
-      { id: 'fit', title: 'Fit view', onClick: fit, separatorBefore: true, icon: <TopIcon d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /> },
-    ],
-    [openSearch, fit],
-  );
+  const toolItems = useMemo<readonly ToolItem[]>(() => {
+    const fitItem: ToolItem = { id: 'fit', title: 'Fit view', onClick: fit, icon: <TopIcon d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /> };
+    return readOnly
+      ? [fitItem]
+      : [{ id: 'add', title: 'Add node', onClick: openSearch, icon: <TopIcon d="M12 5v14M5 12h14" /> }, { ...fitItem, separatorBefore: true }];
+  }, [openSearch, fit, readOnly]);
 
-  const nodeInteraction = useMemo<NodeInteraction>(
-    () => ({
-      diagnosticFor: (id: NodeId) => diagnostics.worstOf(id),
-      rename: (id: NodeId, name: string) => { renamer.rename(id, name); },
-    }),
-    [diagnostics, renamer],
-  );
+  // A read-only editor leaves rename out, so a node's name cannot be edited in place.
+  const nodeInteraction = useMemo<NodeInteraction>(() => {
+    const diagnosticFor = (id: NodeId): ReturnType<NodeInteraction['diagnosticFor']> => diagnostics.worstOf(id);
+    return readOnly
+      ? { diagnosticFor }
+      : { diagnosticFor, rename: (id: NodeId, name: string) => { renamer.rename(id, name); } };
+  }, [diagnostics, renamer, readOnly]);
 
   // `?` toggles the shortcut sheet, for keystrokes inside the editor only.
   useEffect(() => {
@@ -336,9 +363,12 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
       if (!core.selection.isSelected(node.id)) {
         core.selection.selectNodes([node.id], 'replace');
       }
-      contextMenu.openForNode({ x: event.clientX, y: event.clientY }, node.id);
+      // Every item in the menu edits the graph.
+      if (!readOnly) {
+        contextMenu.openForNode({ x: event.clientX, y: event.clientY }, node.id);
+      }
     },
-    [core, contextMenu],
+    [core, contextMenu, readOnly],
   );
 
   // Drop a node onto an edge to splice it in; the core decides whether that is legal.
@@ -424,13 +454,14 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
                 center={wide ? <ToolCluster items={toolItems} /> : undefined}
                 actions={
                   <>
+                    {readOnly ? <ReadOnlyBadge title={VIEW_ONLY_REASON} /> : null}
                     {wide ? <ToolbarStat label="Nodes" value={`${String(flow.nodes.length)} nodes`} /> : null}
                     <RunButton onRun={toggleRun} running={running} />
                   </>
                 }
               />
             }
-            left={<LeftRail core={core} descriptors={descriptors} onAdd={addNode} onFocus={focusNode} />}
+            left={<LeftRail core={core} descriptors={descriptors} onAdd={addNode} onFocus={focusNode} readOnly={readOnly} />}
             right={
               <div className="hl-rightstack">
                 <InspectorPanel core={core} />
@@ -472,6 +503,9 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
                   }}
                   nodeTypes={nodeTypes}
                   edgeTypes={edgeTypes}
+                  nodesDraggable={!readOnly}
+                  nodesConnectable={!readOnly}
+                  edgesReconnectable={!readOnly}
                   fitView
                   fitViewOptions={{ padding: 0.14, maxZoom: 1 }}
                   minZoom={0.2}
@@ -481,13 +515,14 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
                   // The page keeps the wheel; zoom with a pinch or the dock.
                   zoomOnScroll={false}
                   preventScrolling={false}
-                  selectionOnDrag={!touch && canvasMode === 'select'}
-                  panOnDrag={touch ? false : canvasMode === 'pan' ? true : [1, 2]}
+                  // View only, a drag on empty canvas moves the view: there is nothing to select a set of nodes for.
+                  selectionOnDrag={!touch && !readOnly && canvasMode === 'select'}
+                  panOnDrag={touch ? false : readOnly || canvasMode === 'pan' ? true : [1, 2]}
                   selectionMode={SelectionMode.Partial}
                 >
                   <CanvasChrome />
                 </ReactFlow>
-                {flow.nodes.length === 0 ? <EmptyState hint="Double-click the canvas to search, or drag a port into empty space" /> : null}
+                {flow.nodes.length === 0 && !readOnly ? <EmptyState hint="Double-click the canvas to search, or drag a port into empty space" /> : null}
                 <CanvasDock
                   zoom={zoom}
                   mode={canvasMode}
@@ -500,6 +535,7 @@ function EditorBody({ autoRun = true }: LumenEditorProps): ReactElement {
                   onRedo={() => { history.redo(); }}
                   canUndo={history.canUndo}
                   canRedo={history.canRedo}
+                  readOnly={readOnly}
                 />
                 <NodeSearch controller={search} />
                 <NodeContextMenu controller={contextMenu} items={menuItems} />
@@ -519,9 +555,10 @@ interface LeftRailProps {
   readonly descriptors: readonly NodeDescriptor[];
   readonly onAdd: (code: string) => void;
   readonly onFocus: (id: NodeId) => void;
+  readonly readOnly: boolean;
 }
 
-function LeftRail({ core, descriptors, onAdd, onFocus }: LeftRailProps): ReactElement {
+function LeftRail({ core, descriptors, onAdd, onFocus, readOnly }: LeftRailProps): ReactElement {
   const [tab, setTab] = useState<string>('outline');
   const groups = [...new Set(descriptors.map(descriptor => descriptor.group))];
   return (
@@ -533,7 +570,7 @@ function LeftRail({ core, descriptors, onAdd, onFocus }: LeftRailProps): ReactEl
         </section>
       ) : (
         <section className="hl-leftrail-body">
-          <p className="hl-rail-hint">Node types. Click one to add it to the canvas.</p>
+          <p className="hl-rail-hint">{readOnly ? 'Node types. ' + VIEW_ONLY_REASON : 'Node types. Click one to add it to the canvas.'}</p>
           {groups.map(group => (
             <div key={group}>
               <p className="hl-rail-group">{group}</p>
@@ -545,6 +582,7 @@ function LeftRail({ core, descriptors, onAdd, onFocus }: LeftRailProps): ReactEl
                       key={descriptor.code}
                       type="button"
                       className={`hl-chip hl-chip-${descriptor.kind.toLowerCase()}`}
+                      disabled={readOnly}
                       onClick={() => { onAdd(descriptor.code); }}
                     >
                       <span className="hl-chip-kind">{descriptor.kind}</span>
@@ -612,24 +650,18 @@ function Output({
   const { ref, onScroll, follow, setFollow } = useFollowScroll<HTMLDivElement>();
   return (
     <section className="hl-output" aria-label="Console output" aria-live="off">
-      <header className="lumen-console-head">
-        {tabs}
-        <span className="lumen-console-actions">
-          <button
-            type="button"
-            className={`hl-runlog-toggle${follow ? ' is-on' : ''}`}
-            aria-pressed={follow}
-            onClick={() => {
-              setFollow(!follow);
-            }}
-          >
-            Follow
-          </button>
-          <button type="button" className="hl-runlog-toggle" disabled={log.length === 0} onClick={onClear}>
-            Clear
-          </button>
-        </span>
-      </header>
+      <PanelHead leading={tabs}>
+        <PanelAction
+          icon={<FollowIcon />}
+          label="Follow"
+          title="Follow the newest line"
+          pressed={follow}
+          onClick={() => {
+            setFollow(!follow);
+          }}
+        />
+        <PanelAction icon={<ClearIcon />} label="Clear" title="Clear the console" disabled={log.length === 0} onClick={onClear} />
+      </PanelHead>
       {log.length === 0 ? (
         <span className="hl-output-idle">{running ? 'Waiting for the first value' : 'Press Run to start the flow.'}</span>
       ) : (

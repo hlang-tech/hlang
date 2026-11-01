@@ -64,6 +64,7 @@ export function Editor() {
 | `useHistory(core)` | `canUndo`, `canRedo`, `undo`, `redo`. |
 | `useSelection(core)` | Selected node and edge ids, with selection setters. |
 | `useViewState(core)` | Hidden and locked node flags, with setters and toggles. |
+| `useReadOnly(core)` | Whether the editor is read-only, kept current as the host switches it. |
 | `useClipboard(core)` | Copy, cut, paste, and duplicate of the selection, including the system clipboard. |
 | `useRename(core)` | Rename a node through a command. |
 | `useDiagnostics(core)` | The core's edit-time diagnostics, also grouped by node. |

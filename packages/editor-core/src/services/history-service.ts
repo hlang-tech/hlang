@@ -12,7 +12,7 @@ import type {
   IEditorCommand,
   IHistoryService,
 } from './interfaces';
-import { IEventBus } from './interfaces';
+import { IEditorModeService, IEventBus } from './interfaces';
 
 /** Supplies the context commands run against. Injected to avoid a cycle. */
 export interface ICommandContextProvider {
@@ -54,14 +54,16 @@ export class HistoryService implements IHistoryService {
   constructor(
     @ICommandContextProvider private readonly provider: ICommandContextProvider,
     @IEventBus private readonly bus: IEventBus,
+    @IEditorModeService private readonly mode: IEditorModeService,
   ) {}
 
+  /** Read-only: nothing to undo or redo, since neither may change the graph. */
   canUndo(): boolean {
-    return this.undoStack.length > 0;
+    return !this.mode.readOnly && this.undoStack.length > 0;
   }
 
   canRedo(): boolean {
-    return this.redoStack.length > 0;
+    return !this.mode.readOnly && this.redoStack.length > 0;
   }
 
   push(command: IEditorCommand): void {
@@ -75,6 +77,9 @@ export class HistoryService implements IHistoryService {
   }
 
   undo(): void {
+    if (this.mode.readOnly) {
+      return;
+    }
     const command = this.undoStack.pop();
     if (command === undefined) {
       return;
@@ -85,6 +90,9 @@ export class HistoryService implements IHistoryService {
   }
 
   redo(): void {
+    if (this.mode.readOnly) {
+      return;
+    }
     const command = this.redoStack.pop();
     if (command === undefined) {
       return;

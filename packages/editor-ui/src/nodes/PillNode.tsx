@@ -46,10 +46,11 @@ export function PillNodeChrome({ node, selected }: PillNodeChromeProps): ReactEl
       requestAnimationFrame(() => inputRef.current?.select());
     }
   }, [editing, node.name]);
+  const { rename } = interaction;
   const commit = useCallback((): void => {
     setEditing(false);
-    interaction.rename(node.id, draft);
-  }, [interaction, node.id, draft]);
+    rename?.(node.id, draft);
+  }, [rename, node.id, draft]);
   const onKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement>): void => {
       if (e.key === 'Enter') {
@@ -68,6 +69,9 @@ export function PillNodeChrome({ node, selected }: PillNodeChromeProps): ReactEl
   // clicks (which RF does not block). 320ms window.
   const lastClick = useRef(0);
   const onNameClick = useCallback((): void => {
+    if (rename === undefined) {
+      return;
+    }
     const now = performance.now();
     if (now - lastClick.current < DOUBLE_CLICK_MS) {
       setEditing(true);
@@ -75,7 +79,7 @@ export function PillNodeChrome({ node, selected }: PillNodeChromeProps): ReactEl
     } else {
       lastClick.current = now;
     }
-  }, []);
+  }, [rename]);
 
   // Data ports only; the error port exists in the model but isn't drawn on the
   // resting pill (advanced affordance — keeps the capsule clean).
@@ -124,7 +128,7 @@ export function PillNodeChrome({ node, selected }: PillNodeChromeProps): ReactEl
             // clicks; it is the only rename path.
             onNameClick();
           }}
-          title="Double-click to rename"
+          title={rename === undefined ? undefined : 'Double-click to rename'}
         >
           {node.name}
         </span>

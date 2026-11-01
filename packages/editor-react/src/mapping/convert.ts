@@ -27,7 +27,9 @@ export interface NodeViewState {
  * Convert an editor node to a React Flow node. Optional `view` flags map to
  * React Flow's native `hidden` (removed from the rendered canvas), `selected`
  * (so programmatic selection like ⌘A reflects on the canvas), and, when locked,
- * `draggable`/`selectable: false` (pinned). Kept pure — callers supply the flags
+ * `draggable`/`selectable: false` (pinned). An unlocked node leaves both unset,
+ * so the canvas decides (`nodesDraggable`, `elementsSelectable`): a node's own
+ * flag would override it, and a read-only canvas could not stop the drag. Kept pure — callers supply the flags
  * from `core.viewState`/`core.selection`, so this stays trivially testable.
  */
 export function toRFNode(node: EditorNode, view?: NodeViewState): HlangRFNode {
@@ -39,8 +41,7 @@ export function toRFNode(node: EditorNode, view?: NodeViewState): HlangRFNode {
     data: { editorNode: node },
     hidden: view?.hidden ?? false,
     selected: view?.selected ?? false,
-    draggable: !locked,
-    selectable: !locked,
+    ...(locked ? { draggable: false, selectable: false } : {}),
   };
 }
 

@@ -1,0 +1,119 @@
+/** PanelHead — a docked panel's header row; it responds to its own width. */
+
+.hl-panel-head {
+  container: hl-panel-head / inline-size;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 7px 12px 7px 16px;
+  border-bottom: 1px solid var(--hl-line);
+  flex: none;
+}
+
+.hl-panel-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--hl-silver);
+  white-space: nowrap;
+}
+
+.hl-panel-meta {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 11px;
+  color: var(--hl-ink-3);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hl-panel-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  flex: none;
+}
+
+.hl-panel-action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  max-width: 180px;
+  padding: 0 9px 0 7px;
+  border: 1px solid var(--hl-line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--hl-ink-3);
+  font-family: var(--hl-font-ui);
+  font-size: 11px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: background 0.14s var(--hl-ease), color 0.14s var(--hl-ease);
+}
+.hl-panel-action:hover:not(:disabled) {
+  color: var(--hl-ink-2);
+}
+.hl-panel-action.is-on {
+  color: var(--hl-ink);
+  background: color-mix(in oklab, var(--hl-silver) 16%, transparent);
+  border-color: color-mix(in oklab, var(--hl-silver) 28%, transparent);
+}
+.hl-panel-action:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.hl-panel-action:focus-visible {
+  outline: 1px solid var(--hl-silver);
+  outline-offset: -1px;
+}
+.hl-panel-action-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+}
+.hl-panel-action-label {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Narrow: icons only. The label stays in the accessibility tree. */
+@container hl-panel-head (max-width: 599px) {
+  .hl-panel-action {
+    justify-content: center;
+    width: 30px;
+    padding: 0;
+  }
+  .hl-panel-action-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
+
+/* Narrower still: the status gives way to what the panel is and its actions. */
+@container hl-panel-head (max-width: 419px) {
+  .hl-panel-meta {
+    display: none;
+  }
+}
+
+/* A finger needs a larger target than a pointer. */
+@media (pointer: coarse) {
+  .hl-panel-action {
+    height: 30px;
+  }
+  @container hl-panel-head (max-width: 599px) {
+    .hl-panel-action {
+      width: 34px;
+    }
+  }
+}

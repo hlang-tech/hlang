@@ -1,6 +1,6 @@
 {
   "name": "@hlang-org/editor-core",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Headless core of the Lumen editor for hlang: graph model, reversible commands, validation, diagnostics, and IGraph serialization. No React, no DOM.",
   "keywords": [
     "hlang",

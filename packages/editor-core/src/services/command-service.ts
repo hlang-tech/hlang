@@ -14,7 +14,7 @@ import type {
   IEditorCommand,
   ValidationResult,
 } from './interfaces';
-import { IHistoryService } from './interfaces';
+import { IEditorModeService, IHistoryService } from './interfaces';
 import { ICommandContextProvider } from './history-service';
 
 /** Thrown by a command to reject a mutation with a validation reason. */
@@ -29,9 +29,16 @@ export class CommandService implements ICommandService {
   constructor(
     @ICommandContextProvider private readonly provider: ICommandContextProvider,
     @IHistoryService private readonly history: IHistoryService,
+    @IEditorModeService private readonly mode: IEditorModeService,
   ) {}
 
   execute<R>(command: IEditorCommand<R>): CommandResult<R> {
+    if (this.mode.readOnly) {
+      return {
+        ok: false,
+        error: { ok: false, reason: 'read-only', message: 'The editor is read-only: the graph cannot be changed.' },
+      };
+    }
     const ctx = this.provider.getContext();
     try {
       const value = command.execute(ctx);

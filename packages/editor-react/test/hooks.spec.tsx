@@ -16,6 +16,7 @@ import { useClipboard } from '../src/hooks/useClipboard';
 import { useRename } from '../src/hooks/useRename';
 import { useDiagnostics } from '../src/hooks/useDiagnostics';
 import { useReconnect } from '../src/hooks/useReconnect';
+import { useReadOnly } from '../src/hooks/useReadOnly';
 import { ConnectCommand } from '@hlang-org/editor-core';
 import { makeCore } from './fixtures/core';
 
@@ -304,9 +305,12 @@ describe('view-state → React Flow mapping', () => {
       vs: useViewState(core),
     }));
 
-    // Default: visible + draggable.
+    // Default: visible, and dragging and selecting left to the canvas
+    // (React Flow's nodesDraggable / elementsSelectable), so a read-only
+    // canvas can turn dragging off for every node.
     expect(result.current.view.nodes[0]?.hidden).toBe(false);
-    expect(result.current.view.nodes[0]?.draggable).toBe(true);
+    expect(result.current.view.nodes[0]?.draggable).toBeUndefined();
+    expect(result.current.view.nodes[0]?.selectable).toBeUndefined();
 
     act(() => {
       result.current.vs.setHidden(r.id, true);
@@ -433,5 +437,21 @@ describe('useReconnect', () => {
     });
     expect(ok).toBe(false);
     expect(core.model.getEdge('e-rw')).toBeDefined();
+  });
+});
+
+describe('useReadOnly', () => {
+  it('follows the editor\'s mode as the host switches it', () => {
+    const core = makeCore();
+    const { result } = renderHook(() => useReadOnly(core));
+    expect(result.current).toBe(false);
+    act(() => {
+      core.mode.setReadOnly(true);
+    });
+    expect(result.current).toBe(true);
+    act(() => {
+      core.mode.setReadOnly(false);
+    });
+    expect(result.current).toBe(false);
   });
 });
