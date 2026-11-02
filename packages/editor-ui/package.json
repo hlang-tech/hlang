@@ -1,6 +1,6 @@
 {
   "name": "@hlang-org/editor-ui",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Lumen design system for hlang: node, edge, panel, and shell components for a React Flow node editor, built on @hlang-org/editor-react.",
   "keywords": [
     "hlang",
