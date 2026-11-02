@@ -75,3 +75,25 @@ test('on a desktop the editor edits: nodes drag, and the dock has its editing to
   await expect.poll(() => node.evaluate(element => element.getBoundingClientRect().left)).not.toBe(before);
 });
 
+
+test('the inspector column scrolls under the wheel', async ({ page }) => {
+  await page.goto('/#lumen');
+  const editor = page.getByRole('application', { name: 'Lumen editor' });
+  await editor.scrollIntoViewIfNeeded();
+  await editor.locator('.react-flow__node').first().click();
+  const column = editor.locator('.hl-rightstack');
+  const inspector = column.locator('.hl-inspector');
+  await expect(inspector.locator('.hl-inspector-section').first()).toBeVisible();
+
+  // Precondition: the column is shorter than what it holds, or there is nothing to scroll.
+  const overflow = await column.evaluate(element => element.scrollHeight - element.clientHeight);
+  expect(overflow).toBeGreaterThan(0);
+
+  const box = await inspector.boundingBox();
+  expect(box).not.toBeNull();
+  if (box !== null) {
+    await page.mouse.move(box.x + box.width / 2, box.y + 60);
+    await page.mouse.wheel(0, 120);
+  }
+  await expect.poll(() => column.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+});

@@ -209,8 +209,10 @@
 .hl-rightstack .hl-inspector {
   flex: none;
 }
-/* The inspector defaults to height:100% (to fill its own pane); inside the
-   scrolling column it must grow to its content instead, or it collapses. */
+/* The inspector defaults to its own scroll region filling its pane; inside the
+   scrolling column it grows to its content and stops being a scroll container,
+   or it collapses and ends the wheel's scroll chain over it. */
 .hl-rightstack .hl-inspector {
   height: auto;
+  overflow: visible;
 }

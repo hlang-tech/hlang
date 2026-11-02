@@ -32,9 +32,9 @@ The palette is shared with the Lumen editor tokens in [`packages/editor-ui/src/t
 | Silver (primary accent) | `--hl-silver` | `#c8ccd4` |
 | Silver, bright edge | `--hl-silver-hi` | `#eef1f6` |
 | Silver, dim / secondary text | `--hl-silver-lo` | `#7d828c` |
-| Spark (live data only) | `--hl-spark` | `#a7c7ff` |
+| Spark (live data only) | `--hl-spark` | `#f7f9fc` |
 
-Black and silver carry the identity. Use the spark color only to show data that is moving.
+Black and silver carry the identity. Moving data is shown by light, not by a hue: the spark is brighter than any resting silver, and is used only for data that is moving.
 
 ## Type
 
