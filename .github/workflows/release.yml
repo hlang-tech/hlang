@@ -2,8 +2,8 @@ name: Release
 
 # Every push to main is a release. This workflow publishes the versions on main
 # that the registry does not have yet, under @hlang-org and the @hlang-tech
-# mirror, and creates their tags and GitHub Releases. When nothing is pending
-# it stops after one check.
+# mirror, and creates their tags and GitHub Releases, each carrying its tarball
+# and provenance. When nothing is pending it only completes those releases.
 #
 # npm authenticates with GitHub's OIDC token: each package trusts this workflow
 # file on npmjs.com (trusted publishing), so no npm token or one-time password
@@ -74,3 +74,11 @@ jobs:
       - name: Publish the @hlang-tech mirror
         if: steps.check.outputs.pending == 'true'
         run: node scripts/release/mirror-scope.mjs
+
+      # Every GitHub Release carries the tarball it released and the provenance
+      # npm recorded for it. This runs on every push to main, so it also
+      # completes releases a previous run did not.
+      - name: Attach the tarballs and their provenance to the releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release/attach-assets.mjs
