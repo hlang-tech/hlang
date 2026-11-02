@@ -14,6 +14,7 @@
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-c8ccd4?labelColor=0f1114" alt="MIT license"></a>
   <a href="https://hlang.tech/docs"><img src="https://img.shields.io/badge/docs-hlang.tech-c8ccd4?labelColor=0f1114" alt="文档"></a>
   <a href="https://scorecard.dev/viewer/?uri=github.com/hlang-tech/hlang"><img src="https://api.scorecard.dev/projects/github.com/hlang-tech/hlang/badge" alt="OpenSSF Scorecard"></a>
+  <a href="https://www.bestpractices.dev/projects/16180"><img src="https://www.bestpractices.dev/projects/16180/badge" alt="OpenSSF Best Practices"></a>
 </p>
 
 <p align="center">
