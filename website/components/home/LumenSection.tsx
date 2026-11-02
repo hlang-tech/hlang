@@ -19,7 +19,7 @@ export function LumenSection() {
       <SectionHeader
         id="lumen-title"
         title="Lumen, the editor for hlang graphs"
-        lead="This is the editor itself, running in your browser. Drag a node, change a parameter in the inspector or connect a port, and the running total follows."
+        lead="This is the editor itself, running in your browser. Drag a node, change a parameter in the inspector or connect a port, and the running total follows. On a phone or tablet it is view only: run it, tap a node, and follow its messages in the run log."
       />
 
       <div
