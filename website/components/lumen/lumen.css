@@ -159,7 +159,10 @@
 }
 .lumen-embed .hl-rightstack .hl-inspector {
   flex: none;
+  /* The column scrolls, not the inspector: grow to the content and stop being
+     a scroll container, or it ends the wheel's scroll chain. */
   height: auto;
+  overflow: visible;
 }
 
 /* Output strip: the values the Console node receives. */

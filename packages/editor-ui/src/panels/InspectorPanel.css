@@ -5,7 +5,11 @@
   padding: 14px;
   height: 100%;
   min-height: 0;
-  /* Its own scroll region: a tall node (or a short pane) never clips it. */
+  /* Its own scroll region: a tall node (or a short pane) never clips it. A host
+     that stacks it in a larger scrolling column sets `height: auto` and
+     `overflow: visible`: a scroll container that cannot scroll would still
+     end the wheel's scroll chain (overscroll-behavior), so the column would
+     never scroll under the pointer. */
   overflow-y: auto;
   overscroll-behavior: contain;
 }
