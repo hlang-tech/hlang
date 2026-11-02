@@ -35,8 +35,9 @@
   --hl-glass-edge: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
   --hl-glass-edge-hi: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 
-  /* The single cold spark — ONLY for live/flowing signal, never resting UI */
-  --hl-spark: #a7c7ff;
+  /* The live light — ONLY for live/flowing signal, never resting UI. Moving
+     data is told by light, not by hue: brighter than any resting silver. */
+  --hl-spark: #f7f9fc;
 
   /* Node-kind temperatures — muted/desaturated to sit in the silver world;
      used as a small dot/icon on the node, not a large fill. */
