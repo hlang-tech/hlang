@@ -1,8 +1,9 @@
 @import 'tailwindcss';
 
 /*
- * hlang design tokens. Black and silver carry the identity; the cold spark
- * appears only where data is moving. The dark set is shared with the Lumen
+ * hlang design tokens. Black and silver carry the identity; the spark, the
+ * live light, appears only where data is moving: the brightest mark on dark,
+ * the darkest on paper, never a hue. The dark set is shared with the Lumen
  * editor tokens (packages/editor-ui/src/tokens/tokens.css); the light set keeps
  * the same roles on paper: "silver" becomes graphite, the metal that marks.
  * Components use the roles only, so every part of the site follows the theme.
@@ -17,7 +18,7 @@
   --muted: #535963;
   --silver: #23272e;
   --silver-lo: #626872;
-  --spark: #2a5fc4;
+  --spark: #0b0d10;
 
   /* Code: one color per syntax role, each at least 4.5:1 on the code surfaces. */
   --code-bg: var(--surface);
@@ -44,7 +45,7 @@
   --muted: #9ba1ab;
   --silver: #c8ccd4;
   --silver-lo: #7d828c;
-  --spark: #a7c7ff;
+  --spark: #f7f9fc;
 
   --code-bg: var(--surface);
   --code-fg: #c9cdd6;
