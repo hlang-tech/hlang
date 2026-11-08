@@ -24,7 +24,7 @@
     "@hlang-org/interpreter": "workspace:*",
     "@hlang-org/ir": "workspace:*",
     "@hlang-org/runtime": "workspace:*",
-    "@shikijs/rehype": "^4.5.0",
+    "@shikijs/rehype": "^4.6.0",
     "@xyflow/react": "^12.12.0",
     "clsx": "^2.1.1",
     "github-slugger": "^2.0.0",
