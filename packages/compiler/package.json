@@ -79,15 +79,15 @@
     "@hlang-org/interpreter": "workspace:^",
     "@hlang-org/runtime": "workspace:^",
     "@types/estree": "^1.0.10",
-    "@types/node": "^24.0.0",
-    "@vitest/coverage-v8": "^5.0.5",
-    "eslint": "^9.15.0",
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.1.0",
+    "eslint": "^10.14.0",
     "publint": "^0.3.21",
     "rxjs": "^7.8.2",
     "tsup": "^9.0.0",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "typescript-eslint": "^8.62.1",
-    "vite": "^8.3.5",
-    "vitest": "^5.0.5"
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
   }
 }
