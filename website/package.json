@@ -48,20 +48,20 @@
     "unist-util-visit": "^5.2.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
-    "@tailwindcss/postcss": "^4.3.3",
+    "@tailwindcss/postcss": "^4.3.4",
     "@types/hast": "^3.0.5",
     "@types/mdast": "^4.0.4",
-    "@types/node": "^24.0.0",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "eslint": "^9.39.5",
-    "eslint-config-next": "16.4.3",
-    "tailwindcss": "^4.3.3",
+    "eslint": "^10.14.0",
+    "eslint-config-next": "16.4.5",
+    "tailwindcss": "^4.3.4",
     "typedoc": "^0.28.20",
     "typedoc-plugin-markdown": "^4.14.1",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "typescript-eslint": "^8.72.1"
   }
 }
