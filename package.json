@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
-    "markdownlint-cli2": "^0.24.0",
-    "turbo": "^2.11.10"
+    "markdownlint-cli2": "^0.24.1",
+    "turbo": "^2.11.13"
   }
 }
